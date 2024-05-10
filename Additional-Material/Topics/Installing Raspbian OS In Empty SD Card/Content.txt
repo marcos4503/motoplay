@@ -1,0 +1,107 @@
+################################################################################################
+                        INSTALLING RASPBIAN OS IN A EMPTY SD CARD
+################################################################################################
+
+To install a copy of the Raspbian operating system on a blank SD Card, see the steps below. Keep
+in mind that Raspbian OS is the official operating system for Raspberry PI devices, and is based
+on the Debian OS system but optimized for Raspberry Pi devices.
+
+It is worth remembering that Raspbibian OS has an LXDE user interface (desktop environment)
+optimized for Raspberry Pi devices, while Raspbian OS Lite does not have any graphical interface
+installed.
+
+Note that all of these steps were created with a Windows system on the desktop computer in mind.
+
+Starting...
+
+
+
+
+
+--> Step 1
+
+Place the SD Card you intend to use on your Raspberry Pi into your computer. You can use a USB, 
+SD adapter or something similar.
+
+--> Step 2
+
+Abra o "Raspberry PI Imager". Você pode obter uma versão portátil desse programa aqui na
+pasta "Additional-Material", em "Content do Download".
+
+--> Step 3
+
+Click on "CHOOSE DEVICE" to choose the device you intend to run the system on.
+
+--> Step 4
+
+Click "CHOOSE OS" to choose a desired version of Raspbian OS. I recommend you choose the latest
+version and if your Raspberry Pi is 4 or newer, choose the x64 version.
+
+Some Hardware may be incompatible with new versions of Raspbian OS. Check whether the accessories
+you intend to use have any OS version limitations, if so, choose an OS version that your
+accessories support.
+
+--> Step 5
+
+Click on "CHOOSE STORAGE" and select your inserted SD Card, which you intend to use on the
+Raspberry Pi. Now click "NEXT".
+
+--> Step 6
+
+In the dialog box that appears, click "EDIT SETTINGS".
+    - In the "GENERAL" tab...
+        - Check "Set Username And Password"
+            - In "Username", enter "rpi" or something you prefer.
+            - In "Password", enter the password that you want to use for your Raspberry Pi user
+              and for the device SSH connections.
+        - Check "Configure Wireless LAN"
+            - In "SSID", enter the exact name of your home's WiFi network. The name of the network
+              you want your Raspberry Pi to connect to.
+            - In "Password", enter the exact password for this WiFi network.
+            - In "Wireless LAN Country" select your country code.
+        - Check "Set Locale Settings"
+            - In "Time Zone" select your time zone.
+            - In "Keyboard Layout" select the keyboard layout you intend to use.
+    - In the "SERVICES" tab...
+        - Check "Enable SSH"
+            - Check "Use Password Authentication"
+
+Finally, click "SAVE". Still in the dialog, click "YES". If your SD Card already contains information,
+a warning will appear telling you that all content will be erased. Just confirm. 
+
+--> Step 7
+
+Now just wait until the process is complete.
+
+--> Step 8
+
+Once the process finishes, a warning box will appear saying that you can now remove the SD Card. Eject
+it from the computer, and place the SD Card in your Raspberry Pi. Finally, turn on the Raspberry Pi.
+
+--> Step 9
+
+Wait a few moments to make sure the Raspberry Pi has booted up. Now, access your router's settings
+panel and check if the Raspberry Pi has already connected to your home router, through the configured
+WiFi network. If the Raspberry Pi appeared on the router, copy its IP in the local network.
+
+If the Raspberry Pi does not appear connected to your router, try reloading the page, but if it persists
+without appearing, this could mean that you have configured your Raspberry Pi's WiFi incorrectly.
+
+--> Step 10
+
+Using an SSH program like Putty, connect to your Raspberry Pi using the copied IP from router, and your
+username and password configured in step 6. The connection can be made using the SSH version 2 protocol,
+on port 22. 
+
+--> Step 11
+
+Now, already connected, just use the commands below to make sure the system is up to date.
+    - sudo apt update
+    - sudo apt upgrade
+    - sudo apt full-upgrade
+    - sudo apt autoremove
+
+--> Step 12
+
+If everything has gone well so far, just connect a monitor to your Raspberry Pi, a keyboard/mouse and
+continue as you wish!

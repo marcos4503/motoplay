@@ -1,0 +1,103 @@
+################################################################################################
+               INSTALLING DRIVERS FOR DISPLAY MPI3501 TFT 3.5' 320x480 10HZ
+################################################################################################
+
+Display MPI3501 needs drivers installed to work. This guide will show you how to install the 
+necessary drivers to make Display MPI3501 work on your Raspberry Pi.
+
+Note that this Display only supports "Bullseye" versions of Raspbian OS, so please make sure your
+Raspberry Pi is running a "Bullseye" version.
+
+Starting...
+
+
+
+
+
+--> Step 1
+
+Connect your Display to the GPIO connectors on your Raspberry Pi. Use the images available in this
+folder as an example.
+
+If you are going to use a case with a fan or heat conductor, remember to buy Thermal Pads to place 
+between the chips and the heat conductor of the case, as in the images in this folder.
+
+--> Step 2
+
+First, connect to your Raspberry Pi's terminal, either via a normal USB keyboard or via SSH.
+
+--> Step 3
+
+Run the commands below on your Raspberry Pi...
+    - sudo rm -rf LCD-show
+    - git clone https://github.com/goodtft/LCD-show.git
+    - chmod -R 755 LCD-show
+    - cd LCD-show/
+    - sudo ./LCD35-show
+
+After that, the system should restart and after returning you should see an image on your Display.
+
+NOTE: Alternatively, a copy of the "LCD-show.git" repository is available in the "Download Content"
+      folder, under "For Display MPI3501 3.5' 320x480 10hz", along with a copy of the Wiki of 
+      this Display.
+
+--> Step 4
+
+If the Raspberry Pi has already restarted and the Display is showing image, now just check if the
+Touch Screen is working. If so, simply run the commands below to make sure your system is up to
+date...
+    - sudo apt update
+    - sudo apt upgrade
+    - sudo apt full-upgrade
+    - sudo apt autoremove
+
+If you need to rotate the screen, use the command below...
+    - cd LCD-show/
+    - sudo ./rotate.sh 90
+After executing this command, the system will restart and when it returns, the screen will be 
+rotated. You can also use the values 0, 90, 180 and 270 to rotate.
+
+--> Step 5
+
+If everything went well so far, then now just enjoy your device!
+
+
+
+
+
+
+
+
+
+
+################################################################################################
+                                         OPTIONAL STEPS
+################################################################################################
+
+--> Performing Touch Screen Calibration
+
+This LCD can be calibrated using a program called "xinput_calibrator". To install it, run the
+commands...
+    - cd LCD-show/
+    - sudo dpkg -i -B xinput-calibrator_0.7.5-1_armhf.deb
+Now, click the "Raspberry" button on the task bar, choose "Preference" > "Calibrate Touchscreen".
+
+Finish the touch calibration following the prompts. Maybe rebooting is required to make calibration
+active.
+
+You can create a 99-calibration.conf file to save the touch parameters (not necessary if
+file exists).
+    - /ect/X11/xorg.conf.d/99-calibration.conf
+
+
+
+--> Downloading Ready-to-Use Image
+
+If you want to download a ready-to-use image that already has the Display MPI3501 driver installed,
+go to the "Content do Download" folder in "For Display MPI3501 3.5' 320x480 10hz" and download the
+image. After downloading it, just use "Win32DiskImager" to write it to an SD Card and then place it
+on your Raspberry Pi. This image is pristine, with the Raspberry Pi Bullseye and Display MPI3501
+Drivers newly installed.
+
+Once the image is installed on your SD Card, simply install the Display on the Raspberry Pi, turn
+it on and test it.
