@@ -6,7 +6,7 @@ Display MPI3501 needs drivers installed to work. This guide will show you how to
 necessary drivers to make Display MPI3501 work on your Raspberry Pi.
 
 Note that this Display only supports "Bullseye" versions of Raspbian OS, so please make sure your
-Raspberry Pi is running a "Bullseye" version.
+Raspberry Pi is running a "Bullseye" version in a Raspberry Pi 4 Model B.
 
 Starting...
 
