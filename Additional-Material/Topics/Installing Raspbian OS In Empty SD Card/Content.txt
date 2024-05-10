@@ -6,9 +6,9 @@ To install a copy of the Raspbian operating system on a blank SD Card, see the s
 in mind that Raspbian OS is the official operating system for Raspberry PI devices, and is based
 on the Debian OS system but optimized for Raspberry Pi devices.
 
-It is worth remembering that Raspbibian OS has an LXDE user interface (desktop environment)
-optimized for Raspberry Pi devices, while Raspbian OS Lite does not have any graphical interface
-installed.
+It is worth remembering that Raspbibian OS has an LXDE user interface (desktop environment) on 
+Bullseye versions or older, and Wayland on Bookworm+, optimized for Raspberry Pi devices, while 
+Raspbian OS Lite does not have any graphical interface installed.
 
 Note that all of these steps were created with a Windows system on the desktop computer in mind.
 
@@ -25,8 +25,8 @@ SD adapter or something similar.
 
 --> Step 2
 
-Abra o "Raspberry PI Imager". Você pode obter uma versão portátil desse programa aqui na
-pasta "Additional-Material", em "Content do Download".
+Open "Raspberry PI Imager". You can get a portable version of this program here at 
+"Additional-Material" folder, in "Content to Download".
 
 --> Step 3
 
@@ -37,9 +37,9 @@ Click on "CHOOSE DEVICE" to choose the device you intend to run the system on.
 Click "CHOOSE OS" to choose a desired version of Raspbian OS. I recommend you choose the latest
 version and if your Raspberry Pi is 4 or newer, choose the x64 version.
 
-Some Hardware may be incompatible with new versions of Raspbian OS. Check whether the accessories
-you intend to use have any OS version limitations, if so, choose an OS version that your
-accessories support.
+Some Hardware (like some GPIO Displays) may be incompatible with new versions of 
+Raspbian OS. Check whether the accessories you intend to use have any OS version limitations, 
+if so, choose an OS version that your accessories support.
 
 --> Step 5
 

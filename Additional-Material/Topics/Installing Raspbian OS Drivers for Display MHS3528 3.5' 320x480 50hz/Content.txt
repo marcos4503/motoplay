@@ -2,8 +2,9 @@
                INSTALLING DRIVERS FOR DISPLAY MHS3528 TFT 3.5' 320x480 50HZ
 ################################################################################################
 
-Display MHS3528 needs drivers installed to work. This guide will show you how to install the 
-necessary drivers to make Display MHS3528 work on your Raspberry Pi.
+Display MHS3528 needs drivers installed to work, because it uses the GPIO to connect to the
+Raspberry Pi. This guide will show you how to install the necessary drivers to make Display 
+MHS3528 work on your Raspberry Pi.
 
 Note that this Display only supports "Bullseye" versions of Raspbian OS, so please make sure your
 Raspberry Pi is running a "Bullseye" version in a Raspberry Pi 4 Model B.
@@ -19,8 +20,8 @@ Starting...
 Connect your Display to the GPIO connectors on your Raspberry Pi. Use the images available in this
 folder as an example.
 
-If you are going to use a case with a fan or heat conductor, remember to buy Thermal Pads to place 
-between the chips and the heat conductor of the case, as in the images in this folder.
+If you are going to use a case with a fan or heat conductor, remember to buy and install Thermal
+Pads to place between the chips and the heat conductor of the case, as in the images in this folder.
 
 --> Step 2
 
@@ -37,7 +38,7 @@ Run the commands below on your Raspberry Pi...
 
 After that, the system should restart and after returning you should see an image on your Display.
 
-NOTE: Alternatively, a copy of the "LCD-show.git" repository is available in the "Download Content"
+NOTE: Alternatively, a copy of the "LCD-show.git" repository is available in the "Content to Download"
       folder, under "For Display MHS3528 3.5' 320x480 50hz", along with a copy of the Wiki of 
       this Display.
 
@@ -77,7 +78,7 @@ If everything went well so far, then now just enjoy your device!
 --> Downloading Ready-to-Use Image
 
 If you want to download a ready-to-use image that already has the Display MHS3528 driver installed,
-go to the "Content do Download" folder in "For Display MHS3528 3.5' 320x480 50hz" and download the
+go to the "Content to Download" folder in "For Display MHS3528 3.5' 320x480 50hz" and download the
 image. After downloading it, just use "Win32DiskImager" to write it to an SD Card and then place it
 on your Raspberry Pi. This image is pristine, with the Raspberry Pi Bullseye and Display MHS3528
 Drivers newly installed.
@@ -94,3 +95,10 @@ Finally, remember to update this image using the commands below...
     - sudo apt upgrade
     - sudo apt full-upgrade
     - sudo apt autoremove
+
+NOTE: This ready-to-use image was extracted from a 32GB SanDisk Ultra SD Card. Furthermore, this 
+      image is nothing more than a newly obtained Raspbian OS Bullseye x64, and nothing has been 
+      removed or added other than the driver for this Display. So if you need to make any 
+      configurations or adjustments (like changing the paging file, or network adjustments for 
+      example), you will need to do this after writing this image to your SD Card and running it 
+      on your Raspberry Pi.
