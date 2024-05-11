@@ -1,0 +1,50 @@
+################################################################################################
+          DISABLING BLINKING CURSOR, RAINBOW SPLASH AND NORMAL KERNEL LOGS AT BOOT
+################################################################################################
+
+This guide will teach you how to disable all of these Boot elements, basically leaving just a black
+screen during the Boot process. This guide does not teach you how to change the "Welcome to the
+Raspberry Pi Desktop" splash screen that appears during system loading.
+
+Note that all steps listed here MUST ONLY be done after your system has completed at least the 
+first initialization. So if you've just installed a new system on your Raspberry Pi's SD Card, 
+turn it on and let the system do its first boot. When finished, restart it and then you can 
+perform the steps listed here!
+
+Finally, keep in mind that the content shown here was tested on Raspbian OS version Bullseye and
+Bookworm!
+
+Starting...
+
+
+
+
+
+--> Step 1
+
+On your Raspberry Pi, open the terminal and use the command below to open the system's "config.txt"
+file...
+    - sudo nano "/boot/firmware/config.txt"
+After that, change the value of "disable_splash" to "1", as below...
+    - disable_splash=1
+If line "disable_splash=1" does not exist, add it to the end of file "config.txt". Now, just save the
+file and close it.
+
+--> Step 2
+
+Still in the terminal, use the command below to open the "cmdline.txt" file...
+    - sudo nano "/boot/firmware/cmdline.txt"
+When opening this file, you will see that all the content is present in just one line, as in the
+example below...
+    - console=serial0,115200 console=tty1 root=PARTUUID=7a905b6b-02 rootfstype=ext4 fsck.repair=yes rootwait quiet splash plymouth.ignore-serial-consoles
+Add each parameter below, in the same order, to the end of this line of file "cmdline.txt"...
+    - loglevel=3
+    - vt.global_cursor_default=0
+    - logo.nologo
+The file "cmdline.txt" should look like the example below...
+    - console=serial0,115200 console=tty1 root=PARTUUID=7a905b6b-02 rootfstype=ext4 fsck.repair=yes rootwait quiet splash plymouth.ignore-serial-consoles loglevel=3 vt.global_cursor_default=0 logo.nologo
+Now, just save the file and close it.
+
+--> Step 3
+
+Now, restart the device and after it turns back on, you should notice the changes.

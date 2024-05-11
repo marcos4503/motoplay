@@ -1,0 +1,44 @@
+################################################################################################
+          CHANGING IMAGE OF WELCOME TO THE RASPBERRY PI DESKTOP SCREEN
+################################################################################################
+
+This guide will teach you how to change the Raspbian OS system welcome image, which appears during
+system loading.
+
+Note that all steps listed here MUST ONLY be done after your system has completed at least the 
+first initialization. So if you've just installed a new system on your Raspberry Pi's SD Card, 
+turn it on and let the system do its first boot. When finished, restart it and then you can 
+perform the steps listed here!
+
+Finally, keep in mind that the content shown here was tested on Raspbian OS version Bullseye and
+Bookworm!
+
+Starting...
+
+
+
+
+
+--> Step 1
+
+Build an image that you want to be the system loading image, and name it as "splash.png". It should
+have a size of 1024x768. Then, place it in the root of a Pendrive.
+
+--> Step 2
+
+If this is your first time changing your system's splash image, then use the command below to make a
+backup of the original image...
+    - sudo cp "/usr/share/plymouth/themes/pix/splash.png" "/home/splash-backup.png"
+Use the commands below to install the new splash image on your system...
+    - sudo rm "/home/splash.png"
+    - sudo cp "/media/<username>/<drive name>/splash.png" "/home/splash.png"
+      - EXAMPLE: sudo cp "/media/marcos/MY DRIVE/splash.png" "/home/splash.png"
+    - sudo rm "/usr/share/plymouth/themes/pix/splash.png"
+    - sudo cp "/home/splash.png" "/usr/share/plymouth/themes/pix/splash.png"
+    - sudo plymouth-set-default-theme --rebuild-initrd pix
+    - sudo reboot
+
+--> Step 3
+
+If you've done everything right so far, your Raspberry Pi should have restarted and you should see
+the new boot image!

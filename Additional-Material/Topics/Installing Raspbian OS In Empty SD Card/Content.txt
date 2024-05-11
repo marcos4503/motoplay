@@ -105,3 +105,23 @@ Now, already connected, just use the commands below to make sure the system is u
 
 If everything has gone well so far, just connect a monitor to your Raspberry Pi, a keyboard/mouse and
 continue as you wish!
+
+
+
+
+
+
+
+
+
+
+################################################################################################
+                                         OPTIONAL STEPS
+################################################################################################
+
+--> Changing USB Physical Keyboard Layout
+
+If you are experiencing issues with incorrect keys when connecting a USB Keyboard, try changing the 
+keyboard layout. To do this, go to the Raspberry icon on the taskbar, then "Preferences", then 
+"Mouse And Keyboard Settings", then go to the "Keyboard" tab and then click on the "Keyboard Layout..."
+button. Now, just adjust the "Model", "Layout" and "Variant" fields to match your keyboard.
