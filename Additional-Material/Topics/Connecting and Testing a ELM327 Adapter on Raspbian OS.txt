@@ -1,0 +1,184 @@
+################################################################################################
+                  CONNECTING AND TESTING A ELM327 ADAPTER ON RASPBIAN OS
+################################################################################################
+
+This guide will teach you how to connect and communicate with an ELM327 adapter using the Linux
+Terminal. This guide will cover connection via a Serial interface, with the ELM327 adapter being
+either Bluetooth or USB. Once the connection is established, you can try sending AT commands to
+the ELM327 adapter, see the device's responses and do your tests, to test what you prefer.
+
+In this guide we will make use of the Linux "Screen" utility application. If you haven't installed
+it yet, use the command below to install it.
+    - sudo apt-get install screen
+
+Finally, keep in mind that the content shown here was tested on Raspbian OS version Bullseye and
+Bookworm!
+
+Starting...
+
+
+
+
+
+################################################################################################
+                                    USING AN ELM327 USB
+################################################################################################
+
+To communicate with USB devices using Serial Ports, it is very simple. As soon as you connect a
+USB device to one of the Raspberry Pi USB 2.0 ports, a new file will appear in the system's
+"/dev" directory, representing the USB connected device. These files generally follow the nomenclature 
+"/dev/ttyUSBx", such as "/dev/ttyUSB0" or "/dev/ttyUSB1", with the number at the end, indicating 
+the device connection order, where for example, the "ttyUSB0" represents the first connected device.
+
+To communicate with a USB device to send commands etc, we just need to open a connection with the
+Serial Port representation and then start sending the commands and reading the responses.
+
+--> Step 1
+
+With the USB device connected, identify the number referring to the device connection order, then
+use the command below...
+    - sudo screen /dev/ttyUSB0 9600
+You can change the "0" to the number representing your connected device if it is not "0".
+
+HINT: The number "9600" represents the Baudrate of the ELM327 device, and you must replace the
+      "9600" with the Baudrate number of your ELM327 device. This information is usually found
+      in the manual or on the sale page (if you purchased your ELM327 online).
+
+--> Step 2
+
+After executing the last step, the Screen will open with the connection open to the Serial Port,
+and you can now type commands and press ENTER to send them to the device. Soon after, you will
+receive feedback from the device, as soon as it sends a response. To test the ELM327, use the
+commands below...
+    - ATI
+    - press ENTER
+Right after this, you should see something like...
+    - ELM327 v2.2
+Once this is done, if you have received a response, then it means that the connection and the
+device worked as expected. If you want to exit Screen, press the shortcut below...
+    - CTRL + A + D
+
+
+
+
+
+################################################################################################
+                                  USING AN ELM327 BLUETOOTH
+################################################################################################
+
+To communicate with an ELM327 using Bluetooth things are a little more complicated, as it requires
+several additional steps, however, it is possible to communicate with an ELM327 Bluetooth in the
+same way as communicating with an ELM327 USB. A few moments after the ELM327 Bluetooth device is
+powered up, it will be available to connect to another Bluetooth device, which in this case will
+be our Raspberry Pi. Normally the ELM327 Bluetooth is turned on when the vehicle's ECU is turned
+on. On motorcycles with electronic injection, this occurs when the ignition key is turned on and
+the engine switch is activated.
+
+Before we begin, make sure the ELM327 Bluetooth device is turned on and visible so that other 
+Bluetooth devices can pair with it. Some ELM327 Bluetooth adapters (usually the cheapest ones) will
+always be visible and available for other devices to pair with. Other ELM327 Bluetooth adapters
+are not like this, and require you to press a button on their case to enter pairing mode and be
+visible to other devices.
+
+It is common that in ELM327 Bluetooth adapters, paired devices can connect to them and start 
+ommunicating as soon as they are powered on.
+
+NOTE: To communicate with ELM327 Bluetooth devices following this guide, your system will need to
+      have the BlueZ Stack installed (bluetoothd, bluetoothctl, rfcomm, etc).
+
+--> Step 1
+
+First, make sure the ELM327 Bluetooth adapter is turned on and in pairing mode, visible to other 
+devices. If your ELM327 Bluetooth device is of the type that is "always visible and available for 
+pairing", then another device will not be able to pair with it if it is already connected to
+a device. If the adapter is turned on and available for pairing, use the commands below to make
+sure the Bluetooth service is running on the system...
+    - sudo systemctl start bluetooth
+
+--> Step 2
+
+Now, let's go into the "bluetoothctl" app and make sure Bluetooth is turned on and available. To do
+this, use the commands below...
+    - bluetoothctl
+    - power on
+    - agent on
+
+--> Step 3
+
+Now, let's activate the search mode. To do this, use the command below...
+    - scan on
+After using the command, the "bluetoothctl" will start listing all devices available to connect 
+nearby. This list updates dynamically. See the name of the devices and find the name of your 
+ELM327 adapter, when you find it, write down its MAC. The MAC should look like "0A:1B:2C:3D:4E:5F"...
+
+--> Step 4
+
+With your ELM327 adapter already found and your MAC noted, let's try to pair it with it. To do this,
+use the command below...
+    - pair <MAC>
+Soon after, the "bluetoothctl" should ask you for the device's PIN. Usually the PIN is 0000 or 1234,
+but if none of these PINs work, try reading the manual for your ELM327. Once pairing has been completed
+successfully, use the command below to turn off search mode.
+    - scan off
+Now, use the command below to mark your ELM327 as a trusted device, then close "bluetoothctl" and 
+return to the default Terminal.
+    - trust <MAC>
+    - exit
+
+HINT: If in the future you want to undo the pairing, use the commands below...
+    - sudo systemctl start bluetooth
+    - sudo killall rfcomm
+    - sudo rfcomm release /dev/rfcomm0
+    - bluetoothctl
+    - power on
+    - agent on
+    - remove <MAC>
+    - exit
+
+--> Step 5
+
+Now, in order to communicate with the ELM327 Bluetooth adapter, as if it were an ELM327 USB, we need
+to connect to the ELM327 Bluetooth adapter and create a virtual Serial Port that can be accessed in 
+the same way as a Serial Port on a USB device. To make this connection and create this Serial Port
+for our ELM327 Bluetooth, use the commands below...
+    - sudo killall rfcomm
+    - sudo rfcomm bind /dev/rfcomm0 <MAC> 1
+With the above command we connect the Raspberry Pi to the ELM327 Bluetooth adapter and create a virtual
+Serial Port called "rfcomm0", on channel 1. Each Bluetooth device must have a unique channel number.
+
+HINT: If you are already connected to any other Bluetooth device (for example, a Headset), use the
+      command below and see if there is already a "rfcomm0" file in the "/dev" directory. If it already
+      exists, you may need to give another number for the virtual Serial Port, instead of "0".
+      - ls /dev
+
+HINT: After finishing communication with the device, always disconnect it. For this, you can use the
+      command below, which will also turn off the virtual Serial Port that was created earlier.
+    - sudo rfcomm release /dev/rfcomm0
+
+HINT: If you want to check if for some reason the system is blocking Bluetooth or the ELM327 device,
+      use the command below...
+    - sudo rfkill list
+
+--> Step 6
+
+Now that we have the virtual Serial Port created for the ELM327 Bluetooth adapter, let's open a 
+connection for it. To do this, use the command below...
+    - sudo screen /dev/rfcomm0 9600
+
+HINT: The number "9600" represents the Baudrate of the ELM327 device, and you must replace the
+      "9600" with the Baudrate number of your ELM327 device. This information is usually found
+      in the manual or on the sale page (if you purchased your ELM327 online).
+
+--> Step 7
+
+After executing the last step, the Screen will open with the connection open to the virtual
+Serial Port, and you can now type commands and press ENTER to send them to the adapter. Soon after,
+you will receive feedback from the device, as soon as it sends a response. To test the ELM327,
+use the commands below...
+    - ATI
+    - press ENTER
+Right after this, you should see something like...
+    - ELM327 v2.2
+Once this is done, if you have received a response, then it means that the connection and the
+device worked as expected. If you want to exit Screen, press the shortcut below...
+    - CTRL + A + D
