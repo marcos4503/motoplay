@@ -18,11 +18,13 @@ Of course, there are some mandatory Hardware accessories that need to be install
 
 # What Hardware do I need to have if I want to use Motoplay?
 
-| Image | Name | Details | Mandatory |
-| ----- | ---- | ------- | --------- |
-| a     | b    | c       | d         |
+This topic will tell you all the Hardware you can buy to install on your motorcycle if you want to use Motoplay. Since there are many functions in Motoplay, not every function may be of interest of you, so the Hardware is divided into groups according to their functions. For each group, there is a Table below, informing you of the Hardware you need to have if you want to use the functions of the group.
 
+Starting with the Computer group. Everything in this group is mandatory, and is necessary if you want to use Motoplay, as all the hardware in this group is directly connected to the central element of Motoplay, which is the on-board computer.
 
+| Image                                    | Name                               | Details                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Mandatory |
+| ---------------------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| <img src="This-Repository/rpi-4b.png" /> | Raspberry Pi 4 Model B (or better) | The Raspberry Pi is the hardware we will use as a computer due to its flexibility and practicality. It is an excellent piece of hardware that comes with a great Linux/Debian distro, which is Raspbian OS, in addition to having HDMI, P2, Gigabit, USB 2.0 and USB 3.0 ports, Bluetooth adapter and Wi-Fi. It is best if your Raspberry Pi is a 64-bit model, with at least 4GB of RAM and a 1.5 Ghz Quad-Core CPU. For this reason, the Raspberry Pi 4 Model B or any other newer or higher model is recommended. | Yes       |
 
 
 
