@@ -4,8 +4,11 @@
     This repository contains all the information and everything you need to know about what Motoplay is, how to use it and many other details. Read this page to understand everything about Motoplay.
 </p>
 
-# motoplay
-place-holder
+# What is Motoplay?
+
+Motoplay is a project that aims to bring an on-board computer to motorcycles. The main point is that this computer must be 100% functional, running Linux, for greater flexibility, and be able to interact with the vehicle's ECU to read information, have a media player, and several other functions. Basically, this computer should work as a kind of "second panel", with Touchscreen support, on the motorcycle's handlebars, so that the rider can count on several functions within reach of just a few touches.
+
+
 
 
 
