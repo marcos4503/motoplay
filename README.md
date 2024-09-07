@@ -84,6 +84,10 @@ Once you have the operating system installed and configured on your Raspberry Pi
 > [!TIP]
 > There are some guides that teach you how to prepare the system to work correctly with some models of Screens available on the market. There is a guide for <a href="https://github.com/marcos4503/motoplay/tree/main/Additional-Material/Topics/Installing%20Raspbian%20OS%20Drivers%20for%20Display%20MHS3528%203.5'%20320x480%2050hz">MHS3528</a>, <a href="https://github.com/marcos4503/motoplay/tree/main/Additional-Material/Topics/Installing%20Raspbian%20OS%20Drivers%20for%20Display%20MPI3501%203.5'%20320x480%2010hz">MPI3501</a> and <a href="https://github.com/marcos4503/motoplay/tree/main/Additional-Material/Topics/Preparing%20Raspbian%20OS%20for%20Display%20Waveshare%20DSI%204.3'%20800x480%2060hz">Waveshare DSI 4.3' 800x480</a>. If you prefer, you will also find ROMs ready to work with each of these Screens, by accessing <a href="https://github.com/marcos4503/motoplay/tree/main/Additional-Material/Content%20to%20Download">this link</a>! 🙂
 
+# Testing ELM327 Device Using Linux
+
+If you have an ELM327 device and want to test it, to check if it is working, using a Linux Operating System, with Bluetooth, just access <a href="https://github.com/marcos4503/motoplay/blob/main/Additional-Material/Topics/Connecting%20and%20Testing%20a%20ELM327%20Adapter%20on%20Raspbian%20OS.txt">this link</a> to follow a detailed guide on how to do it!
+
 # Installing and Preparing Motoplay on Raspberry Pi
 
 
