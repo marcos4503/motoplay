@@ -1,0 +1,9 @@
+################################################################################################
+                        CHANGING WALLPAPER AND HIDDING WASTEBASKET
+################################################################################################
+
+To change the Wallpaper on your Raspberry Pi, first right-click on an empty area of ​​the Desktop.
+Then click on "Desktop Preferences...".
+
+Click the "Picture" option to select a new image. You can also uncheck the "Wastebasket" option
+if you want to hide the Wastebasket.
