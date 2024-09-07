@@ -1,0 +1,8 @@
+################################################################################################
+                              HOW TO CHECK OS RELEASE AND VERSION
+################################################################################################
+
+If you want to check the Operating System name and Version installed on your Raspberry Pi, just
+use the command below.
+
+    - cat /etc/os-release
