@@ -1,0 +1,8 @@
+################################################################################################
+                                  REMOVING SHORTCUTS OF TASKBAR
+################################################################################################
+
+To remove shortcuts from the Taskbar of your Raspberry Pi, using the Graphical Interface, simply
+Right-click on the shortcut to be removed, then click on "Remove From Launcher".
+
+Remember that this will not uninstall the program, it will just remove the shortcut.
