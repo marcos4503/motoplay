@@ -80,7 +80,7 @@ Once you have the operating system installed and configured on your Raspberry Pi
 
 - <a href="https://github.com/marcos4503/motoplay/blob/main/Additional-Material/Topics/Changing%20Image%20of%20Welcome%20to%20the%20Raspberry%20Pi%20Desktop%20Screen.txt">Change Image of "Welcome To The Raspberry Pi Desktop" on Boot</a>
 - <a href="https://github.com/marcos4503/motoplay/blob/main/Additional-Material/Topics/Disabling%20Blinking%20Cursor%2C%20Rainbow%20Splash%20and%20Kernel%20Logs%20At%20Boot.txt">Disabling Blinking Cursor, Rainbow Splash and Kernel Logs At Boot</a>
-- <a href="https://github.com/marcos4503/motoplay/blob/main/Additional-Material/Topics/How%20To%20Check%20OS%20Release%20And%20Version.txt">Change Image of Menu Button (of Taskbar) and Height of Taskbar</a>
+- <a href="https://github.com/marcos4503/motoplay/blob/main/Additional-Material/Topics/Changing%20Height%20And%20Raspberry%20Icon%20of%20Taskbar.txt">Change Image of Menu Button (of Taskbar) and Height of Taskbar</a>
 - <a href="https://github.com/marcos4503/motoplay/blob/main/Additional-Material/Topics/How%20To%20Check%20OS%20Release%20And%20Version.txt">How To Check OS Release And Version Installed</a>
 
 > [!TIP]
