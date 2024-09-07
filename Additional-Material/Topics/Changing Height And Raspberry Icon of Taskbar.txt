@@ -19,3 +19,49 @@ Starting...
 
 
 --> Step 1
+
+First, let's start by defining a size for our Taskbar. To do this, right-click on an empty space 
+on the Raspberry Pi's Taskbar. Now, click on "Taskbar Preferences...".
+
+--> Step 2
+
+In the window that opens, on the "Taskbar" tab... Click on the "Size" dropbox, and then just 
+choose a size. You can also define whether the Taskbar should appear at the Bottom or Top of the
+screen, through the "Position" option. When finished, just click "OK".
+
+This change in the size of the Taskbar can help you have more space on the Screen, depending on
+your Resolution.
+
+--> Step 3
+
+Now, we will change the Taskbar Menu image, replacing the default Raspberry image. Build an image
+that you want to be the taskbar menu image, and name it as "icon.png". The resolution of this 
+image must be according to the Size you set for your Taskbar...
+    - Very Large: 48x48
+    - Large:      32x32
+    - Medium:     24x24
+    - Small:      16x16
+After finishing developing the image, place it in the Root of a Pendrive.
+
+--> Step 4
+
+Put the Pendrive on Raspberry. Use the commands below to install the new splash image on your system...
+    - sudo cp "/media/<username>/<drive name>/icon.png" "/home/icon.png"
+      - EXAMPLE: sudo cp "/media/marcos/MY DRIVE/icon.png" "/home/icon.png"
+    - Run the next command according to the Size you set for your Taskbar...
+      - Very Large:  sudo rm "/usr/share/icons/PiXflat/48x48/places/start-here.png"
+      - Large:       sudo rm "/usr/share/icons/PiXflat/32x32/places/start-here.png"
+      - Medium:      sudo rm "/usr/share/icons/PiXflat/24x24/places/start-here.png"
+      - Small:       sudo rm "/usr/share/icons/PiXflat/16x16/places/start-here.png"
+    - Run the next command according to the Size you set for your Taskbar...
+      - Very Large:  sudo cp "/home/icon.png" "/usr/share/icons/PiXflat/48x48/places/start-here.png"
+      - Large:       sudo cp "/home/icon.png" "/usr/share/icons/PiXflat/32x32/places/start-here.png"
+      - Medium:      sudo cp "/home/icon.png" "/usr/share/icons/PiXflat/24x24/places/start-here.png"
+      - Small:       sudo cp "/home/icon.png" "/usr/share/icons/PiXflat/16x16/places/start-here.png"
+    - sudo plymouth-set-default-theme --rebuild-initrd pix
+    - sudo reboot
+
+--> Step 5
+
+If you've done everything right so far, your Raspberry Pi should have restarted and you should see
+the new taskbar menu icon!
