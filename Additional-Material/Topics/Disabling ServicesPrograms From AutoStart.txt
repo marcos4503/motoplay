@@ -1,0 +1,28 @@
+################################################################################################
+                          DISABLING SERVICES/PROGRAMS FROM AUTOSTART
+################################################################################################
+
+Disabling Services/Programs that run automatically after system startup can help reduce system
+startup time and resource usage. First, you need to know which processes are running on your
+system. To do this, use the command below...
+    - systemctl --type=service
+
+Now, to disable a Service, just use the command below...
+    - sudo systemctl disable <service name>
+      - EXAMPLE: sudo systemctl disable sshd.service
+
+The list below contains some common processes that can be disabled, but of course, make sure that
+you really won't use them if you do turn them off.
+    - avahi-daemon.service
+      - It allows devices and applications to find and communicate with each other on a local network
+        without the need for manual configuration of DNS servers.
+    - cups-browsed.service
+      - Is a daemon that facilitates the discovery and integration of remote printers into the
+        local network.
+    - cups.service
+      - Is part of the Common UNIX Printing System ,CUPS, which is a modular printing system used to
+        manage printers and print jobs.
+    - ModemManager.service
+      - Is a DBus-enabled daemon that manages mobile broadband interfaces such as 2G, 3G, 4G and 
+        5G. It provides an abstraction layer for interacting with modems, making it easier to configure
+        and connect mobile modems.
