@@ -1,0 +1,19 @@
+################################################################################################
+                            EDITING TASKBAR AND ADDING USEFUL METERS
+################################################################################################
+
+This guide will show you how to edit your Taskbar and add useful widgets. Keep in mind that this
+guide was tested on Raspbian OS Bookworm!
+
+The Raspbian Taskbar is made up of components called "Plugins". So, there is a Plugin for each 
+item that makes up the Taskbar.
+
+To edit each piece or item on the Taskbar, you can access the Edit Window. To do this, right-click
+on an empty area of ​​the Taskbar. Now, click on "Add/Remove Plugins..."
+
+The window that opens is self-explanatory. Through it you can remove Plugins, edit existing
+Plugins, etc.
+
+I recommend that you add any Meters you deem necessary to monitor the performance of your Raspberry
+Pi. These meters are available in the "Available" area. To add any of them, just select one and then
+click on "Add To Left" or "Add To Right" depending on which side you want to place it.
