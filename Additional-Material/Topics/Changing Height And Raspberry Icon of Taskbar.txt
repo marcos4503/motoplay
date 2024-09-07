@@ -2,3 +2,20 @@
                       CHANGING HEIGHT AND RASPBERRY ICON OF TASKBAR
 ################################################################################################
 
+This guide will teach you how to change the Raspberry icon on your Raspberry Pi Taskbar 
+(or Menu/Launcher) to any other image you want.
+
+Note that all steps listed here MUST ONLY be done after your system has completed at least the 
+first initialization. So if you've just installed a new system on your Raspberry Pi's SD Card, 
+turn it on and let the system do its first boot. When finished, restart it and then you can 
+perform the steps listed here!
+
+Finally, keep in mind that the content shown here was tested on Raspbian OS version Bookworm!
+
+Starting...
+
+
+
+
+
+--> Step 1
