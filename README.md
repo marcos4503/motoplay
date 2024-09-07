@@ -78,10 +78,10 @@ You can follow <a href="https://github.com/marcos4503/motoplay/blob/main/Additio
 
 Once you have the operating system installed and configured on your Raspberry Pi, you may want to add a few finishing touches. If you want to do a few more things with your system, just read the topics below...
 
+- <a href="https://github.com/marcos4503/motoplay/blob/main/Additional-Material/Topics/How%20To%20Check%20OS%20Release%20And%20Version.txt">How To Check OS Release And Version Installed</a>
 - <a href="https://github.com/marcos4503/motoplay/blob/main/Additional-Material/Topics/Changing%20Image%20of%20Welcome%20to%20the%20Raspberry%20Pi%20Desktop%20Screen.txt">Change Image of "Welcome To The Raspberry Pi Desktop" on Boot</a>
 - <a href="https://github.com/marcos4503/motoplay/blob/main/Additional-Material/Topics/Disabling%20Blinking%20Cursor%2C%20Rainbow%20Splash%20and%20Kernel%20Logs%20At%20Boot.txt">Disabling Blinking Cursor, Rainbow Splash and Kernel Logs At Boot</a>
 - <a href="https://github.com/marcos4503/motoplay/blob/main/Additional-Material/Topics/Changing%20Height%20And%20Raspberry%20Icon%20of%20Taskbar.txt">Change Image of Menu Button (of Taskbar) and Height of Taskbar</a>
-- <a href="https://github.com/marcos4503/motoplay/blob/main/Additional-Material/Topics/How%20To%20Check%20OS%20Release%20And%20Version.txt">How To Check OS Release And Version Installed</a>
 
 > [!TIP]
 > There are some guides that teach you how to prepare the system to work correctly with some models of Screens available on the market. There is a guide for <a href="https://github.com/marcos4503/motoplay/tree/main/Additional-Material/Topics/Installing%20Raspbian%20OS%20Drivers%20for%20Display%20MHS3528%203.5'%20320x480%2050hz">MHS3528</a>, <a href="https://github.com/marcos4503/motoplay/tree/main/Additional-Material/Topics/Installing%20Raspbian%20OS%20Drivers%20for%20Display%20MPI3501%203.5'%20320x480%2010hz">MPI3501</a> and <a href="https://github.com/marcos4503/motoplay/tree/main/Additional-Material/Topics/Preparing%20Raspbian%20OS%20for%20Display%20Waveshare%20DSI%204.3'%20800x480%2060hz">Waveshare DSI 4.3' 800x480</a>. If you prefer, you will also find ROMs ready to work with each of these Screens, by accessing <a href="https://github.com/marcos4503/motoplay/tree/main/Additional-Material/Content%20to%20Download">this link</a>! 🙂
