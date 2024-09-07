@@ -1,0 +1,7 @@
+################################################################################################
+                            IT'S NECESSARY TO CREATE A SWAP FILE?
+################################################################################################
+
+If your Raspberry Pi has at least 4GB of RAM it is very unlikely that you will need to modify 
+anything related to Memory Swapping on your Raspberry Pi, which will host Motoplay. It is better
+to let the system and "dphys-swapfile" take care of this management in an automated way.
