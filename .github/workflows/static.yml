@@ -41,6 +41,7 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+  #free memmory job, to free memmory where is possible, in the github server
   sample_job:
     # The host should always be Linux
     runs-on: ubuntu-20.04
