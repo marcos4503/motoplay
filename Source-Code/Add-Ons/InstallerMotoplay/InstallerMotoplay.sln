@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35209.166
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InstallerMotoplay", "InstallerMotoplay.csproj", "{53CF1A2E-4179-40DE-8565-3171C4FBECD1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InstallerMotoplay.Desktop", "..\InstallerMotoplay.Desktop\InstallerMotoplay.Desktop.csproj", "{543C79B6-40B8-44CA-9491-6CF5844076B2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{53CF1A2E-4179-40DE-8565-3171C4FBECD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53CF1A2E-4179-40DE-8565-3171C4FBECD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53CF1A2E-4179-40DE-8565-3171C4FBECD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53CF1A2E-4179-40DE-8565-3171C4FBECD1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{543C79B6-40B8-44CA-9491-6CF5844076B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{543C79B6-40B8-44CA-9491-6CF5844076B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{543C79B6-40B8-44CA-9491-6CF5844076B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{543C79B6-40B8-44CA-9491-6CF5844076B2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DFDE6A11-F072-48B6-9804-3F1A684F3537}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,5 @@
+This project was created using "Avalonia C# Project" option, with extension "Avalonia for Visual Studio", installed in Visual Studio
+
+Target Platform: Desktop
+Design Pattern: Community Toolkit MVVM
+Features: Embedded Support, Compiled Bindings

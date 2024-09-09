@@ -1,0 +1,31 @@
+To Compile and Run a Avalonia App on Raspberry Pi x64...
+
+1. Setup the "Publish" of the App to run in Raspberry Pi.
+   - Right-click on the App project to be compiled (AppName.Desktop).
+   - Click "Publish..."
+   - If no Publishing Profile has been created, a wizard window will open.
+	 - On the "Destination" tab, select "Folder" and click "Next".
+	 - On the "Specific Destination" tab, select "Folder" and click "Next".
+	 - In the "Location" tab, select a desired Folder Location where you would like the resulting Compilation
+	   files to be placed. Once done, click "Finish".
+	 - Close the Wizard Window.
+   - Now, in the Publishing Area, click on "Show All Settings"
+   - Under "Setup" choose "Release | Any CPU"
+   - Under "Target Framework" choose the version of .NET Core to use.
+   - Under "Deployment Mode" choose "Self-Contained".
+   - Under "Destiny Runtime" choose "linux-arm64".
+   - Click "Save"
+
+2. Now, whenever you want to Compile the App, Right Click on the "AppName.Desktop" project, then 
+   click "Publish...". In the window that opens, click "Publish" again. The files resulting from the compilation
+   of the Application will be placed in the path specified in "Destination Location".
+
+3. Take all the files resulting from the Compilation, and copy them to any location on the Raspberry Pi, as
+   you prefer.
+
+4. On the Raspberry Pi, open the Terminal and use the command below to make the "AppName.Desktop" file present in
+   the files resulting from the Compilation executable.
+   - sudo chmod +x "CopiedFilesPath/AppName.Desktop"
+
+5. Finally, to run your Avalonia Application on Raspberry Pi, use the command below.
+   - sudo "CopiedFilesPath/AppName.Desktop"

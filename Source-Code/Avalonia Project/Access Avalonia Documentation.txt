@@ -1,0 +1,11 @@
+Use the extension "Web Browser Extension for VS2022" to have a Browser support inside the Visual Studio, 
+to access Avalonia Docs while developing the project!
+
+Extension Available At...
+https://marketplace.visualstudio.com/items?itemName=odalet.webbrowserforvs2022
+
+Go to "Tools > Options > Web Browser > General", to set the Home Page as Avalonia Docs using the URL below...
+https://docs.avaloniaui.net/docs/welcome
+
+Go to "View > Other Windows > Web Browser", to open the Browser Window. Pin the Browser window to auto load
+the Avalonia Docs on open the Visual Studio!

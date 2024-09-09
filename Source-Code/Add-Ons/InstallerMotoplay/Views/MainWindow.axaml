@@ -1,0 +1,35 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:InstallerMotoplay.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="clr-namespace:InstallerMotoplay.Views"
+        mc:Ignorable="d" x:Class="InstallerMotoplay.Views.MainWindow"
+        Icon="/Assets/motoplay-installer-logo.ico"
+        Title="Motoplay Installer"
+		HorizontalAlignment="Stretch"
+		VerticalAlignment="Stretch"
+		SystemDecorations="None"
+	    CanResize="False"
+		SizeToContent="WidthAndHeight"
+		Topmost="True"
+		WindowStartupLocation="CenterScreen"
+		WindowState="Normal"
+		IsEnabled="True"
+		Background="Transparent"
+		d:DesignWidth="400" d:DesignHeight="256">
+	
+	<Border HorizontalAlignment="Left" VerticalAlignment="Top" Width="400" Height="256" CornerRadius="8" Background="White">
+		<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+			
+			<StackPanel Orientation="Vertical" Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="32, 0, 32, 0">
+
+				<TextBlock Text="Place Holder" HorizontalAlignment="Center" Margin="0, 0, 0, 8"></TextBlock>
+				<ProgressBar IsIndeterminate="True" Maximum="100" Value="50"></ProgressBar>
+				
+			</StackPanel>
+
+		</Grid>
+	</Border>
+	
+</Window>

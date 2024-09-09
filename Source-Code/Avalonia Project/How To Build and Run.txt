@@ -1,0 +1,5 @@
+To Run this Avalonia App project in Visual Studio...
+
+1. Right-click on the "ProjectName.Desktop" project and select "Set as Startup Project".
+
+2. Click in "Play" icon, on topbar of Visual Studio (or use F5). The app will Build & Run.
