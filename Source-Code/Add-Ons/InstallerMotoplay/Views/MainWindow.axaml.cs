@@ -18,13 +18,13 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
-        //Initialize the window normally
+        //Initialize the window normally on Avalonia side
         InitializeComponent();
     }
 
     public MainWindow(string[]? cliArgs) : this()
     {
-        //Start the real initialization of window
+        //Start the real initialization of window, receiving all CLI arguments
         StartThisWindow(cliArgs);
     }
 
