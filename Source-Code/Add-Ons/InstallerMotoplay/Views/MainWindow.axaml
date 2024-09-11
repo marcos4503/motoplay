@@ -12,23 +12,31 @@
 		SystemDecorations="None"
 	    CanResize="False"
 		SizeToContent="WidthAndHeight"
-		Topmost="True"
+		Topmost="False"
 		WindowStartupLocation="CenterScreen"
 		WindowState="Normal"
 		IsEnabled="True"
 		Background="Transparent"
 		d:DesignWidth="400" d:DesignHeight="256">
 	
-	<Border HorizontalAlignment="Left" VerticalAlignment="Top" Width="400" Height="256" CornerRadius="8" Background="White">
+	<Border HorizontalAlignment="Left" VerticalAlignment="Top" Width="400" Height="256" CornerRadius="8" Background="White" Padding="8, 8, 8, 8">
 		<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+
+			<Grid Name="doingTasksRoot" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+				<StackPanel Orientation="Vertical" Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="8, 0, 8, 0">
+
+					<TextBlock Name="doingTaskStatus" Text="Place Holder" HorizontalAlignment="Center" Margin="0, 0, 0, 8"></TextBlock>
+					<ProgressBar IsIndeterminate="True" Maximum="100" Value="50"></ProgressBar>
+
+				</StackPanel>
+			</Grid>
 			
-			<StackPanel Orientation="Vertical" Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="32, 0, 32, 0">
+			
 
-				<TextBlock Text="Place Holder" HorizontalAlignment="Center" Margin="0, 0, 0, 8"></TextBlock>
-				<ProgressBar IsIndeterminate="True" Maximum="100" Value="50"></ProgressBar>
-				
-			</StackPanel>
-
+			<Button Name="toggleKeyboardButton" IsVisible="True" HorizontalAlignment="Right" VerticalAlignment="Top" Width="32" Height="32" Padding="6, 6, 6, 6">
+				<Image Name="toggleKeyboardButtonImg" Source="/Assets/keyboard-on.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+			</Button>
+		
 		</Grid>
 	</Border>
 	

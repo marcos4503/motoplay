@@ -10,6 +10,11 @@ namespace Motoplay;
 
 public partial class App : Application
 {
+    //Cache variables
+    //...
+
+    //Core methods
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);

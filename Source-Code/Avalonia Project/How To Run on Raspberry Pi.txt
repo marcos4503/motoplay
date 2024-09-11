@@ -20,12 +20,18 @@ To Compile and Run a Avalonia App on Raspberry Pi x64...
    click "Publish...". In the window that opens, click "Publish" again. The files resulting from the compilation
    of the Application will be placed in the path specified in "Destination Location".
 
-3. Take all the files resulting from the Compilation, and copy them to any location on the Raspberry Pi, as
-   you prefer.
+3. Take all the files resulting from the Build and copy them to the active user folder on the Raspberry Pi.
+   Example: "/home/user"
+   Placing the app in the active user's folder will allow the app to edit any files of the active user directory
+   without errors. Running the app with "sudo" may cause some unwanted effects, such as the app not having sound,
+   or being unable to open apps that do NOT require "sudo".
 
 4. On the Raspberry Pi, open the Terminal and use the command below to make the "AppName.Desktop" file present in
-   the files resulting from the Compilation executable.
-   - sudo chmod +x "CopiedFilesPath/AppName.Desktop"
+   the files resulting from the Compilation, executable.
+   - chmod +x "CopiedFilesPath/AppName.Desktop"
 
 5. Finally, to run your Avalonia Application on Raspberry Pi, use the command below.
-   - sudo "CopiedFilesPath/AppName.Desktop"
+   - "CopiedFilesPath/AppName.Desktop"
+
+BONUS! If you launch the Avalonia Application using the Linux Terminal, you will be able to view the Stack Trace
+       if the App crashes for any reason, or experiences a failure!
