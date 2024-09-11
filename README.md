@@ -74,7 +74,7 @@ You can follow <a href="https://github.com/marcos4503/motoplay/blob/main/Additio
 
 
 > [!TIP]
-> Raspbian OS (version Bookworm+) is the ONLY operating system officially supported by Motoplay!
+> Raspbian OS (version Bookworm+) is the ONLY operating system officially supported by Motoplay. The only Graphic Server Protocol supported by Motoplay is Wayland, which is already incorporated into Raspbian OS Bookworm or newer.
 
 Once you have the operating system installed and configured on your Raspberry Pi, you may want to add a few finishing touches. If you want to do a few more things with your system, just read the topics below...
 
