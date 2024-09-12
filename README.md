@@ -93,14 +93,19 @@ If you have an ELM327 device and want to test it, to check if it is working, usi
 
 # Installing and Preparing Motoplay on Raspberry Pi
 
-To install the Motoplay on your Raspberry Pi, first, open your Terminal. Make sure that the Terminal is not being opened with "sudo" (as root). Then, just enter all the command lines below.
+To install the Motoplay on your Raspberry Pi, first, open your Terminal. Make sure that the Terminal is not being opened with "sudo" (as root). Then, just enter all the command lines below, one by one.
 
 ```sh
 cd ~
+
 s="install-motoplay.sh"
+
 sudo apt-get install curl -y
+
 curl -o $s "https://marcos4503.github.io/motoplay/Repository-Pages/current-install-motoplay-script.sh"
+
 chmod +x $s
+
 $s ; rm $s ; exit
 ```
 
