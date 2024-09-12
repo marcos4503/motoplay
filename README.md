@@ -97,11 +97,11 @@ To install the Motoplay on your Raspberry Pi, first, open your Terminal. Make su
 
 ```sh
 cd ~
-src="install-motoplay.sh"
+s="install-motoplay.sh"
 sudo apt-get install curl -y
-curl -o $src "https://marcos4503.github.io/motoplay/Repository-Pages/current-installer-motoplay-script.sh"
-chmod +x $src
-$src ; rm $src ; exit
+curl -o $s "https://marcos4503.github.io/motoplay/Repository-Pages/current-installer-motoplay-script.sh"
+chmod +x $s
+$s ; rm $s ; exit
 ```
 
 Once you have entered all the commands above, the script will install the "Motoplay Installer" which is the program responsible for executing ALL the remaining installation processes, as well as ensuring that Motoplay on your Raspberry Pi is always up to date.
