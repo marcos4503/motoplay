@@ -72,10 +72,6 @@ Now that you have the desired/needed accessories installed on your motorcycle, a
 
 You can follow <a href="https://github.com/marcos4503/motoplay/blob/main/Additional-Material/Topics/Installing%20Raspbian%20OS%20In%20Empty%20SD%20Card/Content.txt">this guide</a> to install Raspbian OS and set it up on your Raspberry Pi. You may need the "Raspberry Pi Imager" to install the system on your Raspberry Pi. You can access <a href="https://github.com/marcos4503/motoplay/tree/main/Additional-Material/Content%20to%20Download">this link</a> to find the download for this software.
 
-
-> [!TIP]
-> Raspbian OS (version Bookworm+) is the ONLY operating system officially supported by Motoplay. The only Graphic Server Protocol supported by Motoplay is Wayland and the only Compositor supported by Motoplay is Wayfire, which is already incorporated into Raspbian OS Bookworm+.
-
 Once you have the operating system installed and configured on your Raspberry Pi, you may want to add a few finishing touches. If you want to do a few more things with your system, just read the topics below...
 
 - <a href="https://github.com/marcos4503/motoplay/blob/main/Additional-Material/Topics/How%20To%20Check%20OS%20Release%20And%20Version.txt">How To Check OS Release And Version Installed</a>
@@ -97,21 +93,21 @@ If you have an ELM327 device and want to test it, to check if it is working, usi
 
 # Installing and Preparing Motoplay on Raspberry Pi
 
-...
+To install the Motoplay on your Raspberry Pi, first, open your Terminal. Make sure that the Terminal is not being opened with "sudo" (as root). Then, just enter all the command lines below.
 
+```sh
+cd ~
+src="install-motoplay.sh"
+sudo apt-get install curl -y
+curl -o $src "https://marcos4503.github.io/motoplay/Repository-Pages/current-installer-motoplay-script.sh"
+chmod +x $src
+$src ; rm $src ; exit
+```
 
+Once you have entered all the commands above, the script will install the "Motoplay Installer" which is the program responsible for executing ALL the remaining installation processes, as well as ensuring that Motoplay on your Raspberry Pi is always up to date.
 
-
-
-
-
-
-
-
-
-
-
-
+> [!IMPORTANT]
+> The Raspbian OS (version Bookworm+) is the ONLY operating system officially supported by Motoplay. The only Graphic Server Protocol supported by Motoplay is Wayland and the only Compositor supported by Motoplay is Wayfire, which is already incorporated into Raspbian OS Bookworm+.
 
 # Support projects like this
 
