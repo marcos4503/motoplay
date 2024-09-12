@@ -108,7 +108,7 @@ curl -o $s $u
 
 chmod +x $s
 
-$s ; rm $s ; exit
+~/$s ; rm $s ; exit
 ```
 
 Once you have entered all the commands above, the script will install the "Motoplay Installer" which is the program responsible for executing ALL the remaining installation processes, as well as ensuring that Motoplay on your Raspberry Pi is always up to date.
