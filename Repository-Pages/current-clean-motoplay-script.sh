@@ -4,7 +4,7 @@ echo "Starting Motoplay Uninstaller..."
 cd ~
 rm -r Motoplay
 rm .local/share/applications/Motoplay.desktop
-rm .local/share/applications/Motoplay Installer.desktop
+rm ".local/share/applications/Motoplay Installer.desktop"
 sudo update-desktop-database
 rm .config/wayfire-autobackup.ini
 cp .config/wayfire.ini .config/wayfire-autobackup.ini
