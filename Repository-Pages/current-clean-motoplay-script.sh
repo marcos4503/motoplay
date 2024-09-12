@@ -5,6 +5,7 @@ cd ~
 rm -r Motoplay
 rm .local/share/applications/Motoplay.desktop
 rm .local/share/applications/Motoplay Installer.desktop
+sudo update-desktop-database
 rm .config/wayfire-autobackup.ini
 cp .config/wayfire.ini .config/wayfire-autobackup.ini
 sed -z -i 's/\[autostart\]\nmotoplay = \/home\/rpi\/Motoplay\/App\/Motoplay.Desktop/ /g' .config/wayfire.ini
