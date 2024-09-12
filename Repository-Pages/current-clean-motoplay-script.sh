@@ -1,6 +1,9 @@
 #!/bin/sh
 
 echo "Starting Motoplay Uninstaller..."
+sudo pkill -f "App/Motoplay.Desktop"
+sudo pkill -f "Installer/Motoplay.Desktop"
+sleep 10
 cd ~
 rm -r Motoplay
 rm .local/share/applications/Motoplay.desktop
