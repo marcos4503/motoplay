@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:views="clr-namespace:InstallerMotoplay.Views"
         mc:Ignorable="d" x:Class="InstallerMotoplay.Views.MainWindow"
-        Icon="/Assets/motoplay-installer-logo.ico"
+        Icon="/Assets/motoplay-installer-ic32x.png"
         Title="Motoplay Installer"
 		HorizontalAlignment="Stretch"
 		VerticalAlignment="Stretch"
@@ -19,20 +19,39 @@
 		Background="Transparent"
 		d:DesignWidth="400" d:DesignHeight="256">
 	
-	<Border HorizontalAlignment="Left" VerticalAlignment="Top" Width="400" Height="256" CornerRadius="8" Background="White" Padding="8, 8, 8, 8">
+	<Border HorizontalAlignment="Left" VerticalAlignment="Top" Width="400" Height="256" CornerRadius="8" Background="White" Padding="8, 8, 8, 8" BorderBrush="LightGray" BorderThickness="1">
 		<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 
 			<Grid Name="doingTasksRoot" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 				<StackPanel Orientation="Vertical" Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="8, 0, 8, 0">
-
 					<TextBlock Name="doingTaskStatus" Text="Place Holder" HorizontalAlignment="Center" Margin="0, 0, 0, 8"></TextBlock>
-					<ProgressBar IsIndeterminate="True" Maximum="100" Value="50"></ProgressBar>
-
+					<ProgressBar Name="doingTasksBar" IsIndeterminate="True" Maximum="100" Value="50"></ProgressBar>
+				</StackPanel>
+			</Grid>
+			
+			<Grid Name="updateMenu" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+				<StackPanel Orientation="Vertical" Spacing="32" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+					<TextBlock Name="updateMenuTitle" Text="Choose an Installation/Update Source for Motoplay!" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0, 0, 0, 0"></TextBlock>
+					<StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center" VerticalAlignment="Top">
+						<StackPanel Orientation="Vertical" Spacing="11" HorizontalAlignment="Left" VerticalAlignment="Top">
+							<Button Name="installOnlineButton" Content="Online"  HorizontalContentAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Top" Width="150" Height="32"></Button>
+							<TextBlock Text="Or use &quot;online&quot; Arg." Foreground="Gray" HorizontalAlignment="Center" VerticalAlignment="Top"></TextBlock>
+						</StackPanel>
+						<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Left" VerticalAlignment="Top">
+							<StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Left" VerticalAlignment="Top">
+								<Button Name="installFlashdriveButton" Content="Flash Drive"  HorizontalContentAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Top" Width="140" Height="32"></Button>
+								<Image Name="installFlashdriveButtonHelp" Source="avares://InstallerMotoplay/Assets/info-icon.png" Width="28" Height="28" Cursor="Help"></Image>
+							</StackPanel>
+							<TextBox Name="flashDriveNameInput"  Watermark="Flash Drive Name..." HorizontalAlignment="Stretch" VerticalAlignment="Top" Padding="2, 2, 2, 2" MinHeight="24" BorderBrush="Gray"></TextBox>
+						</StackPanel>
+					</StackPanel>
 				</StackPanel>
 			</Grid>
 			
 			
-
+			
+			<TextBlock Name="versionDisplay" Text="0.0.0" HorizontalAlignment="Center" VerticalAlignment="Bottom" FontSize="10" Foreground="LightGray"></TextBlock>
+			
 			<Button Name="toggleKeyboardButton" IsVisible="True" HorizontalAlignment="Right" VerticalAlignment="Top" Width="32" Height="32" Padding="6, 6, 6, 6">
 				<Image Name="toggleKeyboardButtonImg" Source="/Assets/keyboard-on.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
 			</Button>

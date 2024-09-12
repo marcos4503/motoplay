@@ -11,8 +11,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AvaloniaResource Remove="Assets\motoplay-installer-logo-redistributable.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\info-icon.png" />
     <None Remove="Assets\motoplay-installer-logo.ico" />
     <None Remove="Assets\motoplay-installer-logo.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\motoplay-installer-logo-redistributable.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -25,5 +36,6 @@
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
     <PackageReference Include="Coroutine" Version="2.1.5" />
     <PackageReference Include="MessageBox.Avalonia" Version="3.1.6" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 </Project>

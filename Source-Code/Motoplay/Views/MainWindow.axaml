@@ -6,7 +6,7 @@
         xmlns:views="clr-namespace:Motoplay.Views"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Motoplay.Views.MainWindow"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/motoplay-ic32x.png"
         Title="Motoplay">
 	
 	<Grid>

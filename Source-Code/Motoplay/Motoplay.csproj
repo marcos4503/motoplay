@@ -11,6 +11,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AvaloniaResource Remove="Assets\motoplay-logo-redistributable.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\motoplay-logo-redistributable.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />

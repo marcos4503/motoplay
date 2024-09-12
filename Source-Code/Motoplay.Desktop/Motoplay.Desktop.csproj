@@ -7,7 +7,14 @@
     <Nullable>enable</Nullable>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>motoplay-logo.ico</ApplicationIcon>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
   </PropertyGroup>
+  <ItemGroup>
+    <Content Include="motoplay-logo.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
