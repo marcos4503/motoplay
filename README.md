@@ -119,6 +119,24 @@ Once you have entered all the commands above, the script will install the "Motop
 > [!IMPORTANT]
 > The Raspbian OS (version Bookworm+ x64) is the ONLY operating system officially supported by Motoplay. The only Graphic Server Protocol supported by Motoplay is Wayland and the only Compositor supported by Motoplay is Wayfire, which is already incorporated into Raspbian OS Bookworm+.
 
+# Uninstalling Motoplay from Raspberry Pi
+
+If for any reason you want to uninstall Motoplay, first, open your Terminal. Make sure that the Terminal is not being opened with "sudo" (as root). Then, just enter all the command lines below, one by one. Just keep in mind that all data related to Motoplay will be deleted, including your preferences.
+
+```sh
+s="clear-motoplay.sh"
+
+u="https://marcos4503.github.io/motoplay/Repository-Pages/current-clean-motoplay-script.sh"
+
+cd ~
+
+curl -o $s $u
+
+chmod +x $s
+
+~/$s ; rm $s ; exit
+```
+
 # Support projects like this
 
 If you liked the Motoplay and found it useful for your, please consider making a donation (if possible). This would make it even more possible for me to create and continue to maintain projects like this, but if you cannot make a donation, it is still a pleasure for you to use it! Thanks! 😀
