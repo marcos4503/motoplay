@@ -106,6 +106,9 @@ $src ; rm $src ; exit
 
 Once you have entered all the commands above, the script will install the "Motoplay Installer" which is the program responsible for executing ALL the remaining installation processes, as well as ensuring that Motoplay on your Raspberry Pi is always up to date.
 
+> [!TIP]
+> You can run the above command lines again if you want to update your Motoplay Installer in the future! While it is not necessary to update the Motoplay Installer, it may help in troubleshooting some specific issues.
+
 > [!IMPORTANT]
 > The Raspbian OS (version Bookworm+) is the ONLY operating system officially supported by Motoplay. The only Graphic Server Protocol supported by Motoplay is Wayland and the only Compositor supported by Motoplay is Wayfire, which is already incorporated into Raspbian OS Bookworm+.
 
