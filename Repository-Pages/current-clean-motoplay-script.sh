@@ -10,3 +10,4 @@ sed -z -i 's/\[autostart\]\nmotoplay = \/home\/rpi\/Motoplay\/App\/Motoplay.Desk
 echo "Motoplay Uninstallation Finished!"
 echo "Rebooting in 10 Seconds..."
 sleep 10
+sudo reboot
