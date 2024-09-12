@@ -1,13 +1,14 @@
 ================================== TO LAUNCH RELEASE FOR THE "MOTOPLAY INSTALLER" ==================================
 
-1. In properties of module "InstallerMotoplay.Desktop", change the version string to the new version like "1.X.X".
-2. Publish "InstallerMotoplay.Desktop" modules in RELEASE mode.
+1. In properties of modules "InstallerMotoplay" AND "InstallerMotoplay.Desktop", change the version string to the new
+   version like "1.X.X".
+2. Publish "InstallerMotoplay.Desktop" module in RELEASE mode.
 3. Get the "Publish" resultant files and ZIP all files.
 4. Copy the Zip file to folder "Repository-Pages" with the name of "current-installer-motoplay-release.zip".
 
 ===================================== TO LAUNCH RELEASE FOR THE "MOTOPLAY APP" =====================================
 
-1. In properties of module "Motoplay.Desktop", change the version string to the new version like "1.X.X".
+1. In properties of modules "Motoplay" AND "Motoplay.Desktop", change the version string to new version like "1.X.X".
 2. Publish "Motoplay.Desktop" modules in RELEASE mode.
 3. Get the "Publish" resultant files and ZIP all files but splitting into pieces of 10MB, using 7-Zip.
    The name of the parts must be like "current-motoplay-compilation.zip.XXX"
