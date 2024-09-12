@@ -117,7 +117,7 @@ Once you have entered all the commands above, the script will install the "Motop
 > You can run the above command lines again if you want to update your Motoplay Installer in the future! While it is not necessary to update the Motoplay Installer, it may help in troubleshooting some specific issues.
 
 > [!IMPORTANT]
-> The Raspbian OS (version Bookworm+) is the ONLY operating system officially supported by Motoplay. The only Graphic Server Protocol supported by Motoplay is Wayland and the only Compositor supported by Motoplay is Wayfire, which is already incorporated into Raspbian OS Bookworm+.
+> The Raspbian OS (version Bookworm+ x64) is the ONLY operating system officially supported by Motoplay. The only Graphic Server Protocol supported by Motoplay is Wayland and the only Compositor supported by Motoplay is Wayfire, which is already incorporated into Raspbian OS Bookworm+.
 
 # Support projects like this
 
