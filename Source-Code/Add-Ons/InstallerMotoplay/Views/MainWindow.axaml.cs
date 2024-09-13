@@ -148,11 +148,15 @@ public partial class MainWindow : Window
         //Recover the version of the application
         System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
         System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
-        applicationVersion = fvi.FileVersion.Remove(fvi.FileVersion.Length -1, 1);
-        applicationVersion = applicationVersion.Remove(applicationVersion.Length -1, 1);
+        if (OperatingSystem.IsWindows() == true)
+        {
+            applicationVersion = fvi.FileVersion.Remove(fvi.FileVersion.Length - 1, 1);
+            applicationVersion = applicationVersion.Remove(applicationVersion.Length - 1, 1);
+        }
+        if (OperatingSystem.IsLinux() == true)
+            applicationVersion = fvi.FileVersion;
 
-        //Show the version in title and bottom
-        this.Title = (this.Title + " v" + applicationVersion);
+        //Show the application version at the bottom
         versionDisplay.Text = applicationVersion;
 
         //Start Coroutine to wait GUI really initialize, before initialize the window
@@ -636,7 +640,7 @@ public partial class MainWindow : Window
                 //------------- START -------------//
 
                 //Send a command to extract the downloaded file
-                SendCommandToTerminalAndClearCurrentOutputLines(("7z e -y \"" + fileToExpand + "\" -o\"" + (rootPath + "/InstallFiles") + "\""));
+                SendCommandToTerminalAndClearCurrentOutputLines(("7z x -y \"" + fileToExpand + "\" -o\"" + (rootPath + "/InstallFiles") + "\""));
 
                 //Wait the end of command execution
                 while (isLastCommandFinishedExecution() == false)

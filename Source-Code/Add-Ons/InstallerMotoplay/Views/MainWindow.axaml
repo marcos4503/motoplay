@@ -19,7 +19,7 @@
 		Background="Transparent"
 		d:DesignWidth="400" d:DesignHeight="256">
 	
-	<Border HorizontalAlignment="Left" VerticalAlignment="Top" Width="400" Height="256" CornerRadius="8" Background="White" Padding="8, 8, 8, 8" BorderBrush="LightGray" BorderThickness="1">
+	<Border HorizontalAlignment="Left" VerticalAlignment="Top" Width="400" Height="256" CornerRadius="8" Background="White" Padding="8, 8, 8, 8" BorderBrush="LightGray" BorderThickness="2">
 		<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 
 			<Grid Name="doingTasksRoot" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">

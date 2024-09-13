@@ -10,7 +10,7 @@
         Title="Motoplay">
 	
 	<Grid>
-	    <TextBlock Text="Teste 2"></TextBlock>
+	    <TextBlock Text="SUCESSO!"></TextBlock>
 	</Grid>
 	
 </Window>

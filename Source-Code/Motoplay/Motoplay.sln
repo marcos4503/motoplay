@@ -11,6 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Itens de Solução", "Itens
 	ProjectSection(SolutionItems) = preProject
 		..\Avalonia Project\About The Project.txt = ..\Avalonia Project\About The Project.txt
 		..\Avalonia Project\Access Avalonia Documentation.txt = ..\Avalonia Project\Access Avalonia Documentation.txt
+		..\Avalonia Project\Correct Way To Change App Icon Or Version.txt = ..\Avalonia Project\Correct Way To Change App Icon Or Version.txt
 		..\Avalonia Project\How To Build and Run.txt = ..\Avalonia Project\How To Build and Run.txt
 		..\Avalonia Project\How To Run on Raspberry Pi.txt = ..\Avalonia Project\How To Run on Raspberry Pi.txt
 	EndProjectSection

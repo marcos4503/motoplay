@@ -1,0 +1,4 @@
+To make property changes to an Avalonia Project, it is useful to make the same changes to
+both Solutions contained in the project. So, for example, when changing the Icon or Version
+of the application, it is useful to make the same changes to the "AppName" and "AppName.Desktop"
+solutions. To make the changes, simply right-click on a solution, and then click on "Properties".

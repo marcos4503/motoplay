@@ -1,0 +1,63 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:asyncImageLoader="clr-namespace:AsyncImageLoader;assembly=AsyncImageLoader.Avalonia"
+        mc:Ignorable="d" x:Class="Motoplay.SplashScreenWindow"
+		Icon="/Assets/motoplay-logo.ico"
+		Title="Motoplay"
+		HorizontalAlignment="Stretch"
+		VerticalAlignment="Stretch"
+		SystemDecorations="None"
+	    CanResize="False"
+		SizeToContent="WidthAndHeight"
+		Topmost="False"
+		WindowStartupLocation="CenterScreen"
+		WindowState="Normal"
+		IsEnabled="True"
+		Background="Transparent"
+		d:DesignWidth="400" d:DesignHeight="256"
+		
+		ShowInTaskbar="False"
+		ExtendClientAreaToDecorationsHint="True"
+		ExtendClientAreaChromeHints="NoChrome"
+		ExtendClientAreaTitleBarHeightHint="0">
+
+	<!-- Window Resources -->
+	<Window.Resources>
+		<!-- Top Rectangle Animation -->
+		<Animation x:Key="topRectEntry" x:SetterTargetType="Rectangle" Duration="0:0:1.0" Delay="0:0:0.5" FillMode="Forward" Easing="ExponentialEaseIn">
+			<KeyFrame Cue="0%"><Setter Property="Margin" Value="0, 0, 0, 0"/></KeyFrame>
+			<KeyFrame Cue="100%"><Setter Property="Margin" Value="0, 50, 0, 0"/></KeyFrame>
+		</Animation>
+		<!-- Right Rectangle Animation -->
+		<Animation x:Key="rightRectEntry" x:SetterTargetType="Rectangle" Duration="0:0:1.0" Delay="0:0:0.5" FillMode="Forward" Easing="ExponentialEaseIn">
+			<KeyFrame Cue="0%"><Setter Property="Margin" Value="0, 0, 0, 0"/></KeyFrame>
+			<KeyFrame Cue="100%"><Setter Property="Margin" Value="0, 0, 50, 0"/></KeyFrame>
+		</Animation>
+	</Window.Resources>
+	
+	
+	
+	<Border HorizontalAlignment="Left" VerticalAlignment="Top" Width="400" Height="256" CornerRadius="8" ClipToBounds="True" Background="White" BorderBrush="LightGray" BorderThickness="2">
+		<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#e0e0e0">
+			<!-- Background -->
+			<Border Name="backgroundImageContainer" Background="Gray" CornerRadius="8, 8, 0, 0" ClipToBounds="True" Height="180" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+				<asyncImageLoader:AdvancedImage Name="backgroundImage" Stretch="UniformToFill" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" RenderOptions.BitmapInterpolationMode="HighQuality"></asyncImageLoader:AdvancedImage>
+			</Border>
+			<ProgressBar Name="startProgressBar" Height="4" MinHeight="2" Foreground="#2796e6" CornerRadius="0" Maximum="100" Value="0" Margin="0, 176, 0, 0" Padding="0" HorizontalAlignment="Stretch" VerticalAlignment="Top"></ProgressBar>
+			
+			<!-- Logo -->
+			<Border Name="logoImageContainer" Background="Gray" Width="180" MinHeight="40" Margin="14, 0, 0, 14" HorizontalAlignment="Left" VerticalAlignment="Bottom">
+				<asyncImageLoader:AdvancedImage Name="logoImage" Stretch="Uniform" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" RenderOptions.BitmapInterpolationMode="HighQuality"></asyncImageLoader:AdvancedImage>
+			</Border>
+			<TextBlock Name="appVersionDisplay" Text="0.0.0" FontSize="8" Foreground="Black" Opacity="0.5" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="196, 0, 0, 11"></TextBlock>
+			<TextBlock Name="progressMsgText" Text="Place Holder" FontSize="10" Foreground="Black" Opacity="0.8" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0, 0, 14, 11"></TextBlock>
+			
+			<!-- Rectangles of animation -->
+			<Rectangle Name="topRectFx" Height="1" HorizontalAlignment="Stretch" VerticalAlignment="Top" Fill="LightGray" Margin="0, 0, 0, 0"></Rectangle>
+			<Rectangle Name="rightRectFx" Width="1" Height="176" HorizontalAlignment="Right" VerticalAlignment="Top" Fill="LightGray" Margin="0, 0, 0, 0"></Rectangle>
+		</Grid>
+	</Border>
+	
+</Window>

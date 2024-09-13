@@ -4,4 +4,5 @@ namespace Motoplay.ViewModels;
 
 public class ViewModelBase : ObservableObject
 {
+
 }

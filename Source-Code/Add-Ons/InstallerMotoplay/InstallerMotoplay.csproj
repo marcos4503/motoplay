@@ -4,6 +4,8 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <ApplicationIcon>Assets\motoplay-installer-logo.ico</ApplicationIcon>
+    <AssemblyVersion>1.0.2</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,6 +26,7 @@
     <Content Include="Assets\motoplay-installer-logo-redistributable.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Assets\motoplay-installer-logo.ico" />
   </ItemGroup>
 
   <ItemGroup>
