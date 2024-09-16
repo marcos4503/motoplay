@@ -41,7 +41,7 @@ public partial class App : Application
             await splashScreen.InitializeApp();
 
             //Prepare the Main Window
-            MainWindow mainWindow = new MainWindow() { DataContext = null };
+            MainWindow mainWindow = new MainWindow(desktop.Args) { DataContext = null };
 
             //Start and show the Main Window
             desktop.MainWindow = mainWindow;

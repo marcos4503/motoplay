@@ -33,7 +33,7 @@ public partial class SplashScreenWindow : Window
     public async Task InitializeApp()
     {
         //Show final start message
-        progressMsgText.Text = "Loading Motoplay";
+        progressMsgText.Text = "Loading Motoplay App";
 
         //Recover the version of the application
         System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
@@ -82,7 +82,7 @@ public partial class SplashScreenWindow : Window
         }
 
         //Show final start message
-        progressMsgText.Text = "Starting Motoplay";
+        progressMsgText.Text = "Starting";
 
         //Wait final time
         await Task.Delay(1000);

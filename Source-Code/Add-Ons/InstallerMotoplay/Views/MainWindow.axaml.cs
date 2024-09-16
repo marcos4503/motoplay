@@ -31,11 +31,10 @@ public partial class MainWindow : Window
     private Process wvkbdProcess = null;
 
     //Private variables
-    private string applicationVersion = "";
-    private string[] cliArgs = null;
-    private string systemTargetUsername = "";
+    private string[] receivedCliArgs = null;
+    private string systemCurrentUsername = "";
     private string motoplayRootPath = "";
-    private bool isCommandInProgress = false;
+    private string applicationVersion = "";
 
     //Core methods
 
@@ -52,7 +51,7 @@ public partial class MainWindow : Window
         Mutex mutex = new Mutex(true, "InstallerMotoplay.Desktop", out created);
 
         //If already have a instance of the app running, cancel
-        if(created == false)
+        if (created == false)
         {
             //Warn and stop here
             MessageBoxManager.GetMessageBoxStandard("Error", "Motoplay Installer is already running!", ButtonEnum.Ok).ShowAsync();
@@ -60,28 +59,28 @@ public partial class MainWindow : Window
             return;
         }
 
-        //Start the initialization of window, receiving all CLI arguments
-        StartThisWindow(cliArgs);
-    }
-
-    private void StartThisWindow(string[]? cliArgs)
-    {
-        //Log the parameters found to console
+        //Log the parameters found, to console
         StringBuilder paramsStr = new StringBuilder();
-        foreach(string item in cliArgs)
+        foreach (string item in cliArgs)
             paramsStr.Append(" " + item);
-        Debug.WriteLine("Params Found:" + paramsStr.ToString() + ".");
+        AvaloniaDebug.WriteLine("CLI Params Found: \"" + paramsStr.ToString() + "\".");
 
         //Save the CLI arguments
-        this.cliArgs = cliArgs;
+        this.receivedCliArgs = cliArgs;
 
+        //Start the initialization of window, receiving all CLI arguments
+        StartThisWindow();
+    }
+
+    private void StartThisWindow()
+    {
         //If is Linux...
         if (OperatingSystem.IsLinux() == true)
         {
             //Find the active user name
-            systemTargetUsername = Directory.GetCurrentDirectory().Replace("/home/", "").Split("/")[0];
+            systemCurrentUsername = Directory.GetCurrentDirectory().Replace("/home/", "").Split("/")[0];
             //Build the root path for motoplay
-            motoplayRootPath = (@"/home/" + systemTargetUsername + "/Motoplay");
+            motoplayRootPath = (@"/home/" + systemCurrentUsername + "/Motoplay");
             //Create the root folder if not exists
             if (Directory.Exists(motoplayRootPath) == false)
                 Directory.CreateDirectory(motoplayRootPath);
@@ -90,111 +89,63 @@ public partial class MainWindow : Window
         if (OperatingSystem.IsWindows() == true)
         {
             //Find the active user name
-            systemTargetUsername = "dummy";
+            systemCurrentUsername = System.Security.Principal.WindowsIdentity.GetCurrent().Name.Split("\\")[1];
             //Build the root path for motoplay
-            motoplayRootPath = (@"C:\Motoplay");
+            motoplayRootPath = (@"C:\Users\" + systemCurrentUsername + @"\Desktop\Motoplay");
             //Create the root folder if not exists
             if (Directory.Exists(motoplayRootPath) == false)
                 Directory.CreateDirectory(motoplayRootPath);
         }
 
-        //Prepare the UI
-        doingTaskStatus.Text = "Initializing";
-        toggleKeyboardButton.IsVisible = false;
-        toggleKeyboardButton.Click += (s, e) => 
-        {
-            //If is keyboard not open
-            if (wvkbdProcess == null)
-            {
-                //Build the string of keyboard parameters
-                StringBuilder keyboardParams = new StringBuilder();
-                keyboardParams.Append(("-L " + (int)((float)Screens.Primary.Bounds.Height * 0.45f)));
-                keyboardParams.Append(" --fn \"Segoe UI 16\"");
-                keyboardParams.Append(" --bg 000000AA");
-                keyboardParams.Append(" --fg 323333EF");
-                keyboardParams.Append(" --fg-sp 121212EF");
-                keyboardParams.Append(" --press 021E4DFF");
-                keyboardParams.Append(" --press-sp 021E4DFF");
-                keyboardParams.Append(" --text FFFFFFFF");
-                keyboardParams.Append(" --text-sp C7C7C7FF");
-                keyboardParams.Append(" --landscape-layers landscape,special,emoji");
-
-                //Start the wvkbd process
-                wvkbdProcess = new Process() { StartInfo = new ProcessStartInfo() { FileName = "/usr/bin/wvkbd-mobintl", Arguments = keyboardParams.ToString() } };
-                wvkbdProcess.Start();
-
-                //Set the icon
-                toggleKeyboardButtonImg.Source = new Bitmap(AssetLoader.Open(new Uri("avares://InstallerMotoplay/Assets/keyboard-off.png")));
-
-                //Cancel here
-                return;
-            }
-
-            //If is keyboard open
-            if (wvkbdProcess != null)
-            {
-                //Stop the wvkbd process
-                wvkbdProcess.Kill();
-                wvkbdProcess = null;
-
-                //Set the icon
-                toggleKeyboardButtonImg.Source = new Bitmap(AssetLoader.Open(new Uri("avares://InstallerMotoplay/Assets/keyboard-on.png")));
-
-                //Cancel here
-                return;
-            }
-        };
-        
         //Recover the version of the application
         System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
-        System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
-        if (OperatingSystem.IsWindows() == true)
-        {
-            applicationVersion = fvi.FileVersion.Remove(fvi.FileVersion.Length - 1, 1);
-            applicationVersion = applicationVersion.Remove(applicationVersion.Length - 1, 1);
-        }
-        if (OperatingSystem.IsLinux() == true)
-            applicationVersion = fvi.FileVersion;
+        FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+        applicationVersion = fvi.FileVersion;
 
         //Show the application version at the bottom
         versionDisplay.Text = applicationVersion;
 
-        //Start Coroutine to wait GUI really initialize, before initialize the window
-        CoroutineHandler.Start(WaitGuiInitBeforeReallyContinue());
+        //Prepare the UI
+        doingTaskStatus.Text = "Initializing Motoplay Installer";
+        toggleKeyboardButton.IsVisible = false;
+        toggleKeyboardButton.Click += (s, e) => { ToggleVirtualKeyboard(); };
+        //If is Windows, disable the keyboard button
+        if (OperatingSystem.IsWindows() == true)
+            toggleKeyboardButton.IsEnabled = false;
+
+        //Start Coroutine to start the binded CLI terminal process
+        CoroutineHandler.Start(StartBindedCliTerminalProcess());
     }
 
-    private IEnumerator<Wait> WaitGuiInitBeforeReallyContinue()
+    private IEnumerator<Wait> StartBindedCliTerminalProcess()
     {
-        //Wait a time while GUI is initialized
-        yield return new Wait(5.0f);
-
-        //Start a terminal CLI process
-        StartCliProcess();
-    }
-
-    private void StartCliProcess()
-    {
-        //Inform that read is in progress
-        isCommandInProgress = true;
+        //Wait a time
+        yield return new Wait(8.0f);
 
         //Start a new thread to start the process
-        AsyncTaskSimplified asyncTask = new AsyncTaskSimplified(null, new string[] { });
+        AsyncTaskSimplified asyncTask = new AsyncTaskSimplified(null, new string[] { systemCurrentUsername });
         asyncTask.onStartTask_RunMainThread += (callerWindow, startParams) => { };
         asyncTask.onExecuteTask_RunBackground += (callerWindow, startParams, threadTools) =>
         {
+            //Get the start params
+            string user = startParams[0];
+
+            //Warn about the start of the binded CLI terminal
+            AvaloniaDebug.WriteLine("Starting Binded CLI Terminal...");
+
             //Prepare the Terminal process
             Process terminalProcess = new Process();
             if (OperatingSystem.IsLinux() == true)
             {
                 terminalProcess.StartInfo.FileName = "/bin/bash";
                 terminalProcess.StartInfo.Arguments = "";
-                terminalProcess.StartInfo.WorkingDirectory = @"./";
+                terminalProcess.StartInfo.WorkingDirectory = (@"/home/" + user);
             }
             if (OperatingSystem.IsWindows() == true)
             {
                 terminalProcess.StartInfo.FileName = "cmd.exe";
                 terminalProcess.StartInfo.Arguments = "/k";
-                terminalProcess.StartInfo.WorkingDirectory = @"C:\";
+                terminalProcess.StartInfo.WorkingDirectory = (@"C:\Users\" + user);
             }
             terminalProcess.StartInfo.UseShellExecute = false;
             terminalProcess.StartInfo.CreateNoWindow = true;
@@ -202,6 +153,7 @@ public partial class MainWindow : Window
             terminalProcess.StartInfo.RedirectStandardOutput = true;
             terminalProcess.StartInfo.RedirectStandardError = true;
 
+            //Register receivers for all outputs from terminal
             terminalProcess.ErrorDataReceived += new DataReceivedEventHandler((s, e) =>
             {
                 //If don't have data, cancel
@@ -213,6 +165,8 @@ public partial class MainWindow : Window
 
                 //Add this new line to list
                 terminalReceivedOutputLines.Add(currentLineOutput);
+                //Repass this new line to for debugging too
+                AvaloniaDebug.WriteLine(currentLineOutput);
             });
             terminalProcess.OutputDataReceived += new DataReceivedEventHandler((s, e) =>
             {
@@ -225,9 +179,11 @@ public partial class MainWindow : Window
 
                 //Add this new line to list
                 terminalReceivedOutputLines.Add(currentLineOutput);
+                //Repass this new line to for debugging too
+                AvaloniaDebug.WriteLine(currentLineOutput);
             });
 
-            //Start the process, enable output reading and store a reference for the process
+            //Start the process, and store a reference for the process
             terminalProcess.Start();
             terminalProcess.BeginOutputReadLine();
             terminalProcess.BeginErrorReadLine();
@@ -247,88 +203,22 @@ public partial class MainWindow : Window
         };
         asyncTask.onDoneTask_RunMainThread += (callerWindow, backgroundResult) =>
         {
-            //Start the process of installation of "wvkbd" tool, if needed
-            CoroutineHandler.Start(InstallWvkbdIfNeeded());
+            //Start the process of setup for "p7zip-full"
+            CoroutineHandler.Start(SetupTheP7ZipFull());
         };
         asyncTask.Execute(AsyncTaskSimplified.ExecutionMode.NewDefaultThread);
     }
 
-    private IEnumerator<Wait> InstallWvkbdIfNeeded()
+    private IEnumerator<Wait> SetupTheP7ZipFull() 
     {
-        //If Linux, continue...
+        //If is Linux...
         if (OperatingSystem.IsLinux() == true)
         {
             //Inform that is checking
-            doingTaskStatus.Text = "Checking installation of Virtual Keyboard \"wvkbd\"";
+            doingTaskStatus.Text = "Checking Installation of \"p7zip-full\" Package";
 
             //Wait time
-            yield return new Wait(3.0f);
-
-            //Send a command to check if the "wvkbd" is installed
-            SendCommandToTerminalAndClearCurrentOutputLines("sudo dpkg -s wvkbd");
-            //Wait the end of command execution
-            while (isLastCommandFinishedExecution() == false)
-                yield return new Wait(0.1f);
-
-            //If not installed, start installation
-            if (isThermFoundInTerminalOutputLines("is not installed") == true)
-            {
-                //Inform that is installing
-                doingTaskStatus.Text = "Installing Virtual Keyboard \"wvkbd\"";
-
-                //Wait time
-                yield return new Wait(5.0f);
-
-                //Send a command to install the "wvkbd"
-                SendCommandToTerminalAndClearCurrentOutputLines("sudo apt-get install wvkbd -y");
-                //Wait the end of command execution
-                while (isLastCommandFinishedExecution() == false)
-                    yield return new Wait(0.1f);
-
-                //Inform that is checking
-                doingTaskStatus.Text = "Checking installation of Virtual Keyboard \"wvkbd\"";
-
-                //Wait time
-                yield return new Wait(5.0f);
-
-                //Send a command to check if the "wvkbd" is installed
-                SendCommandToTerminalAndClearCurrentOutputLines("sudo dpkg -s wvkbd");
-                //Wait the end of command execution
-                while (isLastCommandFinishedExecution() == false)
-                    yield return new Wait(0.1f);
-
-                //If not installed, stop the program
-                if (isThermFoundInTerminalOutputLines("is not installed") == true)
-                {
-                    var diag = MessageBoxManager.GetMessageBoxStandard("Error", "There was an error installing the Package. Please check your connection and try again!", ButtonEnum.Ok).ShowAsync();
-                    while (diag.IsCompleted == false)
-                        yield return new Wait(0.1f);
-                    this.Close();
-                }
-            }
-
-            //Enable the keyboard button
-            toggleKeyboardButton.IsVisible = true;
-        }
-
-        //If Windows, just continue...
-        if (OperatingSystem.IsWindows() == true)
-            Debug.WriteLine("The tool \"wvkbd\" is not necessary on Windows.");
-
-        //Start the process of installation of "p7zip-full" tool, if needed
-        CoroutineHandler.Start(InstallP7ZipFullIfNeeded());
-    }
-
-    private IEnumerator<Wait> InstallP7ZipFullIfNeeded()
-    {
-        //If Linux, continue...
-        if (OperatingSystem.IsLinux() == true)
-        {
-            //Inform that is checking
-            doingTaskStatus.Text = "Checking installation of Compactor \"p7zip-full\"";
-
-            //Wait time
-            yield return new Wait(3.0f);
+            yield return new Wait(1.0f);
 
             //Send a command to check if the "p7zip-full" is installed
             SendCommandToTerminalAndClearCurrentOutputLines("sudo dpkg -s p7zip-full");
@@ -337,10 +227,10 @@ public partial class MainWindow : Window
                 yield return new Wait(0.1f);
 
             //If not installed, start installation
-            if (isThermFoundInTerminalOutputLines("is not installed") == true) 
+            if (isThermFoundInTerminalOutputLines("is not installed") == true)
             {
                 //Inform that is installing
-                doingTaskStatus.Text = "Installing Compactor \"p7zip-full\"";
+                doingTaskStatus.Text = "Installing \"p7zip-full\" Package";
 
                 //Wait time
                 yield return new Wait(5.0f);
@@ -351,8 +241,8 @@ public partial class MainWindow : Window
                 while (isLastCommandFinishedExecution() == false)
                     yield return new Wait(0.1f);
 
-                //Inform that is checking
-                doingTaskStatus.Text = "Checking installation of Compactor \"p7zip-full\"";
+                //Inform that is confirming
+                doingTaskStatus.Text = "Confirming Installation of \"p7zip-full\" Package";
 
                 //Wait time
                 yield return new Wait(5.0f);
@@ -378,9 +268,505 @@ public partial class MainWindow : Window
 
         //If Windows, just continue...
         if (OperatingSystem.IsWindows() == true)
-            Debug.WriteLine("The tool \"p7zip-full\" is not necessary on Windows.");
+            AvaloniaDebug.WriteLine("The package \"p7zip-full\" is not necessary on Windows.");
 
-        //Continue to the installer
+        //Continue to next step...
+        CoroutineHandler.Start(SetupTheCurl());
+    }
+
+    private IEnumerator<Wait> SetupTheCurl()
+    {
+        //If is Linux...
+        if (OperatingSystem.IsLinux() == true)
+        {
+            //Inform that is checking
+            doingTaskStatus.Text = "Checking Installation of \"curl\" Package";
+
+            //Wait time
+            yield return new Wait(1.0f);
+
+            //Send a command to check if the "curl" is installed
+            SendCommandToTerminalAndClearCurrentOutputLines("sudo dpkg -s curl");
+            //Wait the end of command execution
+            while (isLastCommandFinishedExecution() == false)
+                yield return new Wait(0.1f);
+
+            //If not installed, start installation
+            if (isThermFoundInTerminalOutputLines("is not installed") == true)
+            {
+                //Inform that is installing
+                doingTaskStatus.Text = "Installing \"curl\" Package";
+
+                //Wait time
+                yield return new Wait(5.0f);
+
+                //Send a command to install the "curl"
+                SendCommandToTerminalAndClearCurrentOutputLines("sudo apt-get install curl -y");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Inform that is confirming
+                doingTaskStatus.Text = "Confirming Installation of \"curl\" Package";
+
+                //Wait time
+                yield return new Wait(5.0f);
+
+                //Send a command to check if the "curl" is installed
+                SendCommandToTerminalAndClearCurrentOutputLines("sudo dpkg -s curl");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //If not installed, stop the program
+                if (isThermFoundInTerminalOutputLines("is not installed") == true)
+                {
+                    var diag = MessageBoxManager.GetMessageBoxStandard("Error", "There was an error installing the Package. Please check your connection and try again!", ButtonEnum.Ok).ShowAsync();
+                    while (diag.IsCompleted == false)
+                        yield return new Wait(0.1f);
+                    this.Close();
+                }
+            }
+
+            //...
+        }
+
+        //If Windows, just continue...
+        if (OperatingSystem.IsWindows() == true)
+            AvaloniaDebug.WriteLine("The package \"curl\" is not necessary on Windows.");
+
+        //Continue to next step...
+        CoroutineHandler.Start(SetupTheMake());
+    }
+
+    private IEnumerator<Wait> SetupTheMake()
+    {
+        //If is Linux...
+        if (OperatingSystem.IsLinux() == true)
+        {
+            //Inform that is checking
+            doingTaskStatus.Text = "Checking Installation of \"make\" Package";
+
+            //Wait time
+            yield return new Wait(1.0f);
+
+            //Send a command to check if the "make" is installed
+            SendCommandToTerminalAndClearCurrentOutputLines("sudo dpkg -s make");
+            //Wait the end of command execution
+            while (isLastCommandFinishedExecution() == false)
+                yield return new Wait(0.1f);
+
+            //If not installed, start installation
+            if (isThermFoundInTerminalOutputLines("is not installed") == true)
+            {
+                //Inform that is installing
+                doingTaskStatus.Text = "Installing \"make\" Package";
+
+                //Wait time
+                yield return new Wait(5.0f);
+
+                //Send a command to install the "make"
+                SendCommandToTerminalAndClearCurrentOutputLines("sudo apt-get install make -y");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Inform that is confirming
+                doingTaskStatus.Text = "Confirming Installation of \"make\" Package";
+
+                //Wait time
+                yield return new Wait(5.0f);
+
+                //Send a command to check if the "make" is installed
+                SendCommandToTerminalAndClearCurrentOutputLines("sudo dpkg -s make");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //If not installed, stop the program
+                if (isThermFoundInTerminalOutputLines("is not installed") == true)
+                {
+                    var diag = MessageBoxManager.GetMessageBoxStandard("Error", "There was an error installing the Package. Please check your connection and try again!", ButtonEnum.Ok).ShowAsync();
+                    while (diag.IsCompleted == false)
+                        yield return new Wait(0.1f);
+                    this.Close();
+                }
+            }
+        }
+
+        //If Windows, just continue...
+        if (OperatingSystem.IsWindows() == true)
+            AvaloniaDebug.WriteLine("The package \"make\" is not necessary on Windows.");
+
+        //Continue to next step...
+        CoroutineHandler.Start(SetupTheWaylandClientDev());
+    }
+
+    private IEnumerator<Wait> SetupTheWaylandClientDev() 
+    {
+        //If is Linux...
+        if (OperatingSystem.IsLinux() == true)
+        {
+            //Inform that is checking
+            doingTaskStatus.Text = "Checking Installation of \"librust-wayland-client-dev\" Package";
+
+            //Wait time
+            yield return new Wait(1.0f);
+
+            //Send a command to check if the "librust-wayland-client-dev" is installed
+            SendCommandToTerminalAndClearCurrentOutputLines("sudo dpkg -s librust-wayland-client-dev");
+            //Wait the end of command execution
+            while (isLastCommandFinishedExecution() == false)
+                yield return new Wait(0.1f);
+
+            //If not installed, start installation
+            if (isThermFoundInTerminalOutputLines("is not installed") == true)
+            {
+                //Inform that is installing
+                doingTaskStatus.Text = "Installing \"librust-wayland-client-dev\" Package";
+
+                //Wait time
+                yield return new Wait(5.0f);
+
+                //Send a command to install the "librust-wayland-client-dev"
+                SendCommandToTerminalAndClearCurrentOutputLines("sudo apt-get install librust-wayland-client-dev -y");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Inform that is confirming
+                doingTaskStatus.Text = "Confirming Installation of \"librust-wayland-client-dev\" Package";
+
+                //Wait time
+                yield return new Wait(5.0f);
+
+                //Send a command to check if the "librust-wayland-client-dev" is installed
+                SendCommandToTerminalAndClearCurrentOutputLines("sudo dpkg -s librust-wayland-client-dev");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //If not installed, stop the program
+                if (isThermFoundInTerminalOutputLines("is not installed") == true)
+                {
+                    var diag = MessageBoxManager.GetMessageBoxStandard("Error", "There was an error installing the Package. Please check your connection and try again!", ButtonEnum.Ok).ShowAsync();
+                    while (diag.IsCompleted == false)
+                        yield return new Wait(0.1f);
+                    this.Close();
+                }
+            }
+
+            //...
+        }
+
+        //If Windows, just continue...
+        if (OperatingSystem.IsWindows() == true)
+            AvaloniaDebug.WriteLine("The package \"librust-wayland-client-dev\" is not necessary on Windows.");
+
+        //Continue to next step...
+        CoroutineHandler.Start(SetupTheCairoDev());
+    }
+
+    private IEnumerator<Wait> SetupTheCairoDev()
+    {
+        //If is Linux...
+        if (OperatingSystem.IsLinux() == true)
+        {
+            //Inform that is checking
+            doingTaskStatus.Text = "Checking Installation of \"libcairo2-dev\" Package";
+
+            //Wait time
+            yield return new Wait(1.0f);
+
+            //Send a command to check if the "libcairo2-dev" is installed
+            SendCommandToTerminalAndClearCurrentOutputLines("sudo dpkg -s libcairo2-dev");
+            //Wait the end of command execution
+            while (isLastCommandFinishedExecution() == false)
+                yield return new Wait(0.1f);
+
+            //If not installed, start installation
+            if (isThermFoundInTerminalOutputLines("is not installed") == true)
+            {
+                //Inform that is installing
+                doingTaskStatus.Text = "Installing \"libcairo2-dev\" Package";
+
+                //Wait time
+                yield return new Wait(5.0f);
+
+                //Send a command to install the "libcairo2-dev"
+                SendCommandToTerminalAndClearCurrentOutputLines("sudo apt-get install libcairo2-dev -y");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Inform that is confirming
+                doingTaskStatus.Text = "Confirming Installation of \"libcairo2-dev\" Package";
+
+                //Wait time
+                yield return new Wait(5.0f);
+
+                //Send a command to check if the "libcairo2-dev" is installed
+                SendCommandToTerminalAndClearCurrentOutputLines("sudo dpkg -s libcairo2-dev");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //If not installed, stop the program
+                if (isThermFoundInTerminalOutputLines("is not installed") == true)
+                {
+                    var diag = MessageBoxManager.GetMessageBoxStandard("Error", "There was an error installing the Package. Please check your connection and try again!", ButtonEnum.Ok).ShowAsync();
+                    while (diag.IsCompleted == false)
+                        yield return new Wait(0.1f);
+                    this.Close();
+                }
+            }
+
+            //...
+        }
+
+        //If Windows, just continue...
+        if (OperatingSystem.IsWindows() == true)
+            AvaloniaDebug.WriteLine("The package \"libcairo2-dev\" is not necessary on Windows.");
+
+        //Continue to next step...
+        CoroutineHandler.Start(SetupThePangoDev());
+    }
+
+    private IEnumerator<Wait> SetupThePangoDev()
+    {
+        //If is Linux...
+        if (OperatingSystem.IsLinux() == true)
+        {
+            //Inform that is checking
+            doingTaskStatus.Text = "Checking Installation of \"libghc-gi-pango-dev\" Package";
+
+            //Wait time
+            yield return new Wait(1.0f);
+
+            //Send a command to check if the "libghc-gi-pango-dev" is installed
+            SendCommandToTerminalAndClearCurrentOutputLines("sudo dpkg -s libghc-gi-pango-dev");
+            //Wait the end of command execution
+            while (isLastCommandFinishedExecution() == false)
+                yield return new Wait(0.1f);
+
+            //If not installed, start installation
+            if (isThermFoundInTerminalOutputLines("is not installed") == true)
+            {
+                //Inform that is installing
+                doingTaskStatus.Text = "Installing \"libghc-gi-pango-dev\" Package";
+
+                //Wait time
+                yield return new Wait(5.0f);
+
+                //Send a command to install the "libghc-gi-pango-dev"
+                SendCommandToTerminalAndClearCurrentOutputLines("sudo apt-get install libghc-gi-pango-dev -y");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Inform that is confirming
+                doingTaskStatus.Text = "Confirming Installation of \"libghc-gi-pango-dev\" Package";
+
+                //Wait time
+                yield return new Wait(5.0f);
+
+                //Send a command to check if the "libghc-gi-pango-dev" is installed
+                SendCommandToTerminalAndClearCurrentOutputLines("sudo dpkg -s libghc-gi-pango-dev");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //If not installed, stop the program
+                if (isThermFoundInTerminalOutputLines("is not installed") == true)
+                {
+                    var diag = MessageBoxManager.GetMessageBoxStandard("Error", "There was an error installing the Package. Please check your connection and try again!", ButtonEnum.Ok).ShowAsync();
+                    while (diag.IsCompleted == false)
+                        yield return new Wait(0.1f);
+                    this.Close();
+                }
+            }
+
+            //...
+        }
+
+        //If Windows, just continue...
+        if (OperatingSystem.IsWindows() == true)
+            AvaloniaDebug.WriteLine("The package \"libghc-gi-pango-dev\" is not necessary on Windows.");
+
+        //Continue to next step...
+        CoroutineHandler.Start(SetupTheXKBCommon());
+    }
+
+    private IEnumerator<Wait> SetupTheXKBCommon() 
+    {
+        //If is Linux...
+        if (OperatingSystem.IsLinux() == true)
+        {
+            //Inform that is checking
+            doingTaskStatus.Text = "Checking Installation of \"libxkbcommon-dev\" Package";
+
+            //Wait time
+            yield return new Wait(1.0f);
+
+            //Send a command to check if the "libxkbcommon-dev" is installed
+            SendCommandToTerminalAndClearCurrentOutputLines("sudo dpkg -s libxkbcommon-dev");
+            //Wait the end of command execution
+            while (isLastCommandFinishedExecution() == false)
+                yield return new Wait(0.1f);
+
+            //If not installed, start installation
+            if (isThermFoundInTerminalOutputLines("is not installed") == true)
+            {
+                //Inform that is installing
+                doingTaskStatus.Text = "Installing \"libxkbcommon-dev\" Package";
+
+                //Wait time
+                yield return new Wait(5.0f);
+
+                //Send a command to install the "libxkbcommon-dev"
+                SendCommandToTerminalAndClearCurrentOutputLines("sudo apt-get install libxkbcommon-dev -y");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Inform that is confirming
+                doingTaskStatus.Text = "Confirming Installation of \"libxkbcommon-dev\" Package";
+
+                //Wait time
+                yield return new Wait(5.0f);
+
+                //Send a command to check if the "libxkbcommon-dev" is installed
+                SendCommandToTerminalAndClearCurrentOutputLines("sudo dpkg -s libxkbcommon-dev");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //If not installed, stop the program
+                if (isThermFoundInTerminalOutputLines("is not installed") == true)
+                {
+                    var diag = MessageBoxManager.GetMessageBoxStandard("Error", "There was an error installing the Package. Please check your connection and try again!", ButtonEnum.Ok).ShowAsync();
+                    while (diag.IsCompleted == false)
+                        yield return new Wait(0.1f);
+                    this.Close();
+                }
+            }
+
+            //...
+        }
+
+        //If Windows, just continue...
+        if (OperatingSystem.IsWindows() == true)
+            AvaloniaDebug.WriteLine("The package \"libxkbcommon-dev\" is not necessary on Windows.");
+
+        //Continue to next step...
+        CoroutineHandler.Start(SetupTheWvkbdMobintl());
+    }
+
+    private IEnumerator<Wait> SetupTheWvkbdMobintl()
+    {
+        //If is Linux...
+        if (OperatingSystem.IsLinux() == true)
+        {
+            //Inform that is checking
+            doingTaskStatus.Text = "Checking Installation of \"wvkbd-mobintl\" Package";
+
+            //Wait time
+            yield return new Wait(1.0f);
+
+            //Check if package "wvkbd-mobintl" is installed
+            bool isWvkbdInstalled = File.Exists((motoplayRootPath + "/Keyboard/wvkbd-mobintl"));
+
+            //If not installed, start installation
+            if (isWvkbdInstalled == false)
+            {
+                //Inform that is downloading
+                doingTaskStatus.Text = "Downloading \"wvkbd-mobintl\" Package";
+
+                //Wait time
+                yield return new Wait(5.0f);
+
+                //Send a command to create "Keyboard" folder
+                SendCommandToTerminalAndClearCurrentOutputLines(("mkdir \"" + motoplayRootPath + "/Keyboard" + "\""));
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Send a command to create "DownloadedFiles" folder
+                SendCommandToTerminalAndClearCurrentOutputLines(("mkdir \"" + motoplayRootPath + "/DownloadedFiles" + "\""));
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Send a command to create delete "wvkbd-mobintl" previously downloaded ZIP
+                SendCommandToTerminalAndClearCurrentOutputLines(("rm \"" + motoplayRootPath + "/DownloadedFiles/wvkbd-enhanced-for-motoplay.zip" + "\""));
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Send a command to download the "wvkbd-mobintl"
+                SendCommandToTerminalAndClearCurrentOutputLines("curl -o \"" + motoplayRootPath + "/DownloadedFiles/wvkbd-enhanced-for-motoplay.zip" + "\" \"https://marcos4503.github.io/motoplay/Repository-Pages/wvkbd-enhanced-for-motoplay.zip\"");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Inform that is downloading
+                doingTaskStatus.Text = "Expanding Files of \"wvkbd-mobintl\" Package";
+
+                //Wait time
+                yield return new Wait(5.0f);
+
+                //Send a command to extract files of "wvkbd-mobintl"
+                SendCommandToTerminalAndClearCurrentOutputLines("unzip \"" + motoplayRootPath + "/DownloadedFiles/wvkbd-enhanced-for-motoplay.zip" + "\" -d \"" + motoplayRootPath + "/Keyboard" + "\"");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Inform that is compiling
+                doingTaskStatus.Text = "Installing \"wvkbd-mobintl\" Package";
+
+                //Wait time
+                yield return new Wait(5.0f);
+
+                //Send a command to change directory to "wvkbd-mobintl" files
+                SendCommandToTerminalAndClearCurrentOutputLines("cd \"" + motoplayRootPath + "/Keyboard" + "\"");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Send a command to compile "wvkbd-mobintl" files
+                SendCommandToTerminalAndClearCurrentOutputLines("make");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Send a command to change to default directory
+                SendCommandToTerminalAndClearCurrentOutputLines("cd ~");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Inform that is compiling
+                doingTaskStatus.Text = "Preparing \"wvkbd-mobintl\" Package";
+
+                //Wait time
+                yield return new Wait(5.0f);
+
+                //Send a command to make the "wvkbd-mobintl" executable
+                SendCommandToTerminalAndClearCurrentOutputLines("chmod +x \"" + motoplayRootPath + "/Keyboard/wvkbd-mobintl" + "\"");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+            }
+
+            //Enable the keyboard button
+            toggleKeyboardButton.IsVisible = true;
+        }
+
+        //If Windows, just continue...
+        if (OperatingSystem.IsWindows() == true)
+            AvaloniaDebug.WriteLine("The package \"wvkbd-mobintl\" is not necessary on Windows.");
+
+        //Continue to next step...
         ContinueToInstaller();
     }
 
@@ -395,11 +781,11 @@ public partial class MainWindow : Window
         Directory.CreateDirectory((motoplayRootPath + "/InstallFiles"));
 
         //If have the "online" argument, skip to online mode
-        if (cliArgs != null)
-            if (cliArgs.Length >= 1)
-                if (cliArgs[0].Contains("online") == true)
+        if (receivedCliArgs != null)
+            if (receivedCliArgs.Length >= 1)
+                if (receivedCliArgs[0].Contains("online") == true)
                 {
-                    GetFilesFromOnline();
+                    GetInstallFilesFromOnline();
                     return;
                 }
 
@@ -411,43 +797,45 @@ public partial class MainWindow : Window
         installFlashdriveButtonHelp.Tapped += (s, e) => { MessageBoxManager.GetMessageBoxStandard("Tip", "To install or update Motoplay App from a Flash Drive...\n\n1. Create a folder called \"Motoplay\" inside the Flash Drive.\n2. Place all the Motoplay files inside this folder created on the Flash Drive.\n3. Connect the Flash Drive to the Raspberry Pi.\n4. Enter the name of the Flash Drive in the Text Box below.\n5. Click on \"Flash Drive\" to start the update, using the files on the Flash Drive, instead of the files found Online, in the Motoplay repository.\n\nOnce this is done, just wait for the update, Motoplay will be updated normally and will start.", ButtonEnum.Ok).ShowAsync(); };
 
         //Setup the buttons
-        installOnlineButton.Click += (s, e) => { GetFilesFromOnline(); };
-        installFlashdriveButton.Click += (s, e) => { GetFilesFromFlashDrive(); };
+        installOnlineButton.Click += (s, e) => { GetInstallFilesFromOnline(); };
+        installFlashdriveButton.Click += (s, e) => { GetInstallFilesFromFlashDrive(); };
     }
 
-    private void GetFilesFromOnline()
-    {
-        //Start the coroutine to download the current installation files of online repository
-        CoroutineHandler.Start(DownloadFilesIndexOfRepository());
-    }
-
-    private IEnumerator<Wait> DownloadFilesIndexOfRepository() 
+    private void GetInstallFilesFromOnline()
     {
         //Change the screen
         doingTasksRoot.IsVisible = true;
         updateMenu.IsVisible = false;
 
         //Inform status
-        doingTaskStatus.Text = "Downloading files index for Motoplay App";
-
-        //Wait time
-        yield return new Wait(1.0f);
+        doingTaskStatus.Text = "Preparing To Download The Motoplay App";
+        doingTasksBar.Maximum = 100;
+        doingTasksBar.Value = 0;
+        doingTasksBar.IsIndeterminate = true;
 
         //Start a new thread to copy the files
         AsyncTaskSimplified asyncTask = new AsyncTaskSimplified(null, new string[] { motoplayRootPath });
         asyncTask.onStartTask_RunMainThread += (callerWindow, startParams) => { };
         asyncTask.onExecuteTask_RunBackground += (callerWindow, startParams, threadTools) =>
         {
-            //Get the needed params
-            string rootPath = startParams[0];
-
             //Wait some time
             threadTools.MakeThreadSleep(1000);
+
+            //Get the needed params
+            string rootPath = startParams[0];
 
             //Try to do the task
             try
             {
                 //------------- START -------------//
+
+                //-------------------------- REPOSITORY INFO DOWNLOAD --------------------------//
+
+                //Inform the status
+                threadTools.ReportNewProgress("Downloading Repository Information;0;0");
+
+                //Wait some time
+                threadTools.MakeThreadSleep(1000);
 
                 //If the file already exists, delete it
                 if (File.Exists((rootPath + "/PersistentData/app-repository-info.json")) == true)
@@ -456,7 +844,7 @@ public partial class MainWindow : Window
                 //Prepare the target download URL
                 string downloadUrl = @"https://marcos4503.github.io/motoplay/Repository-Pages/motoplay-data-info.json";
                 string saveAsPath = (rootPath + "/PersistentData/app-repository-info.json");
-                //Download the "Mods" folder sync
+                //Download the data sync
                 HttpClient httpClient = new HttpClient();
                 HttpResponseMessage httpRequestResult = httpClient.GetAsync(downloadUrl).Result;
                 httpRequestResult.EnsureSuccessStatusCode();
@@ -469,72 +857,13 @@ public partial class MainWindow : Window
                 downloadStream.Dispose();
                 downloadStream.Close();
 
-                //-------------- END --------------//
+                //-------------------------- MOTOPLAY APP DOWNLOAD --------------------------//
+
+                //Inform the status
+                threadTools.ReportNewProgress("Downloading Motoplay App;100;0");
 
                 //Wait some time
                 threadTools.MakeThreadSleep(1000);
-
-                //Return a success response
-                return new string[] { "success" };
-            }
-            catch (Exception ex)
-            {
-                //Return a error response
-                return new string[] { "error" };
-            }
-
-            //Finish the thread...
-            return new string[] { "none" };
-        };
-        asyncTask.onDoneTask_RunMainThread += (callerWindow, backgroundResult) =>
-        {
-            //If was error
-            if (backgroundResult[0] != "success")
-            {
-                MessageBoxManager.GetMessageBoxStandard("Error", "There was a problem during installation. Please check your internet connection!", ButtonEnum.Ok).ShowAsync();
-                this.Close();
-                return;
-            }
-
-            //If was success
-            if (backgroundResult[0] == "success")
-                CoroutineHandler.Start(DownloadMotoplayFilesOfRepository());
-        };
-        asyncTask.Execute(AsyncTaskSimplified.ExecutionMode.NewDefaultThread);
-    }
-
-    private IEnumerator<Wait> DownloadMotoplayFilesOfRepository()
-    {
-        //Change the screen
-        doingTasksRoot.IsVisible = true;
-        updateMenu.IsVisible = false;
-
-        //Inform status
-        doingTaskStatus.Text = "Downloading Motoplay App";
-
-        //Change progress bar to finite
-        doingTasksBar.Maximum = 100;
-        doingTasksBar.Value = 0;
-        doingTasksBar.IsIndeterminate = false;
-
-        //Wait time
-        yield return new Wait(1.0f);
-
-        //Start a new thread to download the files
-        AsyncTaskSimplified asyncTask = new AsyncTaskSimplified(null, new string[] { motoplayRootPath });
-        asyncTask.onStartTask_RunMainThread += (callerWindow, startParams) => { };
-        asyncTask.onExecuteTask_RunBackground += (callerWindow, startParams, threadTools) =>
-        {
-            //Get the needed params
-            string rootPath = startParams[0];
-
-            //Wait some time
-            threadTools.MakeThreadSleep(1000);
-
-            //Try to do the task
-            try
-            {
-                //------------- START -------------//
 
                 //Load the repository info
                 AppRepositoryInfo appInfo = new AppRepositoryInfo((rootPath + "/PersistentData/app-repository-info.json"));
@@ -549,10 +878,14 @@ public partial class MainWindow : Window
                 {
                     //Download this part
                     WebClient client = new WebClient();
-                    client.DownloadProgressChanged += (s, e) => 
+                    client.DownloadProgressChanged += (s, e) =>
                     {
+                        //Get the progress info
+                        int maxValue = (int)(100 * appInfo.loadedData.downloadPartsLinks.Length);
+                        int value = (int)((100 * i) + (int)(e.ProgressPercentage));
+
                         //Report the progress
-                        threadTools.ReportNewProgress((((100 * i) + (int)(e.ProgressPercentage)).ToString() + ":" + (100 * appInfo.loadedData.downloadPartsLinks.Length).ToString()));
+                        threadTools.ReportNewProgress(("Downloading Motoplay App;" + maxValue + ";" + value));
                     };
                     client.DownloadFileAsync(new Uri(appInfo.loadedData.downloadPartsLinks[i]), ((rootPath + "/DownloadedFiles/" + appInfo.loadedData.downloadPartsLinks[i].Split("/").Last())));
 
@@ -561,86 +894,19 @@ public partial class MainWindow : Window
                         threadTools.MakeThreadSleep(33);
                 }
 
-                //-------------- END --------------//
+                //Get the main ZIP file of all ZIP parts of Motoplay App downloaded
+                string motoplayAppMainZipFilePath = ((rootPath + "/DownloadedFiles/" + appInfo.loadedData.downloadPartsLinks[0].Split("/").Last()));
+
+                //-------------------------- EXTRACT MOTOPLAY APP DOWNLOADED FILES --------------------------//
+
+                //Inform the status
+                threadTools.ReportNewProgress("Expanding Downloaded Files;0;0");
 
                 //Wait some time
                 threadTools.MakeThreadSleep(1000);
 
-                //Return a success response
-                return new string[] { "success", ((rootPath + "/DownloadedFiles/" + appInfo.loadedData.downloadPartsLinks[0].Split("/").Last())) };
-            }
-            catch (Exception ex)
-            {
-                //Return a error response
-                return new string[] { "error", "" };
-            }
-
-            //Finish the thread...
-            return new string[] { "none", "" };
-        };
-        asyncTask.onNewProgress_RunMainThread += (callerWindow, newProgress) =>
-        {
-            //Get the two numbers of progress
-            string[] progressParts = newProgress.Split(":");
-
-            //Report the new progress
-            doingTasksBar.Maximum = int.Parse(progressParts[1]);
-            doingTasksBar.Value = int.Parse(progressParts[0]);
-            doingTasksBar.IsIndeterminate = false;
-        };
-        asyncTask.onDoneTask_RunMainThread += (callerWindow, backgroundResult) =>
-        {
-            //If was error
-            if (backgroundResult[0] != "success")
-            {
-                MessageBoxManager.GetMessageBoxStandard("Error", "There was a problem during installation. Please check your internet connection!", ButtonEnum.Ok).ShowAsync();
-                this.Close();
-                return;
-            }
-
-            //If was success
-            if (backgroundResult[0] == "success")
-                CoroutineHandler.Start(ExpandDownloadedMotoplayFilesOfRepository(backgroundResult[1]));
-        };
-        asyncTask.Execute(AsyncTaskSimplified.ExecutionMode.NewDefaultThread);
-    }
-
-    private IEnumerator<Wait> ExpandDownloadedMotoplayFilesOfRepository(string zipFilePath) 
-    {
-        //Change the screen
-        doingTasksRoot.IsVisible = true;
-        updateMenu.IsVisible = false;
-
-        //Inform status
-        doingTaskStatus.Text = "Expanding downloaded Files";
-
-        //Change progress bar to finite
-        doingTasksBar.Maximum = 100;
-        doingTasksBar.Value = 50;
-        doingTasksBar.IsIndeterminate = true;
-
-        //Wait time
-        yield return new Wait(1.0f);
-
-        //Start a new thread to extract the files
-        AsyncTaskSimplified asyncTask = new AsyncTaskSimplified(null, new string[] { motoplayRootPath, zipFilePath });
-        asyncTask.onStartTask_RunMainThread += (callerWindow, startParams) => { };
-        asyncTask.onExecuteTask_RunBackground += (callerWindow, startParams, threadTools) =>
-        {
-            //Get the needed params
-            string rootPath = startParams[0];
-            string fileToExpand = startParams[1];
-
-            //Wait some time
-            threadTools.MakeThreadSleep(1000);
-
-            //Try to do the task
-            try
-            {
-                //------------- START -------------//
-
                 //Send a command to extract the downloaded file
-                SendCommandToTerminalAndClearCurrentOutputLines(("7z x -y \"" + fileToExpand + "\" -o\"" + (rootPath + "/InstallFiles") + "\""));
+                SendCommandToTerminalAndClearCurrentOutputLines(("7z x -y \"" + motoplayAppMainZipFilePath + "\" -o\"" + (rootPath + "/InstallFiles") + "\""));
 
                 //Wait the end of command execution
                 while (isLastCommandFinishedExecution() == false)
@@ -663,12 +929,38 @@ public partial class MainWindow : Window
             //Finish the thread...
             return new string[] { "none" };
         };
+        asyncTask.onNewProgress_RunMainThread += (callerWindow, newProgress) =>
+        {
+            //Split the progress
+            string[] progressSplitted = newProgress.Split(";");
+            string message = progressSplitted[0];
+            int maxValue = int.Parse(progressSplitted[1]);
+            int value = int.Parse(progressSplitted[2]);
+
+            //If is a indetermined progress bar
+            if (maxValue == 0 && value == 0)
+            {
+                doingTasksBar.Maximum = 100;
+                doingTasksBar.Value = 0;
+                doingTasksBar.IsIndeterminate = true;
+            }
+            //If is a determined progress bar
+            if (maxValue != 0 || value != 0)
+            {
+                doingTasksBar.Maximum = maxValue;
+                doingTasksBar.Value = value;
+                doingTasksBar.IsIndeterminate = false;
+            }
+
+            //Show the progress message
+            doingTaskStatus.Text = message;
+        };
         asyncTask.onDoneTask_RunMainThread += (callerWindow, backgroundResult) =>
         {
             //If was error
             if (backgroundResult[0] != "success")
             {
-                MessageBoxManager.GetMessageBoxStandard("Error", "There was a problem during installation!", ButtonEnum.Ok).ShowAsync();
+                MessageBoxManager.GetMessageBoxStandard("Error", "There was a problem during installation. Please check your internet connection!", ButtonEnum.Ok).ShowAsync();
                 this.Close();
                 return;
             }
@@ -680,6 +972,189 @@ public partial class MainWindow : Window
         asyncTask.Execute(AsyncTaskSimplified.ExecutionMode.NewDefaultThread);
     }
 
+    private void GetInstallFilesFromFlashDrive()
+    {
+
+    }
+
+    private void FinishInstallationUsingLoadedInstallFiles()
+    {
+        //Start the coroutine to finish the installation
+        CoroutineHandler.Start(FinishInstallation());
+    }
+
+    private IEnumerator<Wait> FinishInstallation()
+    {
+        //Inform status
+        doingTaskStatus.Text = "Stopping Processes of Motoplay";
+
+        //Wait time
+        yield return new Wait(2.5f);
+
+        //Send a command to stop possible process of running motoplay
+        SendCommandToTerminalAndClearCurrentOutputLines("sudo pkill -f \"App/Motoplay.Desktop\"");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution() == false)
+            yield return new Wait(0.1f);
+
+        //Wait time
+        yield return new Wait(2.5f);
+
+        //Inform status
+        doingTaskStatus.Text = "Installing Motoplay App";
+
+        //Wait time
+        yield return new Wait(2.0f);
+
+        //Send a command to delete the folder of motoplay app
+        SendCommandToTerminalAndClearCurrentOutputLines("rm -r \"" + (motoplayRootPath + "/App") + "\"");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution() == false)
+            yield return new Wait(0.1f);
+
+        //Send a command to copy install files as a new final folder
+        SendCommandToTerminalAndClearCurrentOutputLines("cp -r \"" + (motoplayRootPath + "/InstallFiles") + "\" \"" + (motoplayRootPath + "/App") + "\"");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution() == false)
+            yield return new Wait(0.1f);
+
+        //Inform status
+        doingTaskStatus.Text = "Preparing Motoplay App";
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+        //Send a command to make the motoplay app, executable
+        SendCommandToTerminalAndClearCurrentOutputLines("chmod +x \"" + (motoplayRootPath + "/App/Motoplay.Desktop") + "\"");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution() == false)
+            yield return new Wait(0.1f);
+
+
+
+        //If already done post-install tasks, start motoplay
+        if (File.Exists((motoplayRootPath + "/PersistentData/done-post-install-tasks.ok")) == true)
+            CoroutineHandler.Start(FinishAndStartMotoplay());
+
+        //If NEVER done post-install tasks, do it now
+        if (File.Exists((motoplayRootPath + "/PersistentData/done-post-install-tasks.ok")) == false)
+            CoroutineHandler.Start(DoPostInstallTasks());
+    }
+
+    private IEnumerator<Wait> DoPostInstallTasks()
+    {
+        //Inform status
+        doingTaskStatus.Text = "Finishing Installation";
+
+        //Wait time
+        yield return new Wait(5.0f);
+
+        //Create a .desktop file for the installer
+        StringBuilder motoplayInstallerDskContent = new StringBuilder();
+        motoplayInstallerDskContent.AppendLine("[Desktop Entry]");
+        motoplayInstallerDskContent.AppendLine("Encoding=UTF-8");
+        motoplayInstallerDskContent.AppendLine("Name=Motoplay Installer");
+        motoplayInstallerDskContent.AppendLine("GenericName=motoplay,installer");
+        motoplayInstallerDskContent.AppendLine("Categories=Other");
+        motoplayInstallerDskContent.AppendLine("Comment=The Motoplay App installer or updater. Install, re-install or update the Motoplay by Internet or Flash Drive!");
+        motoplayInstallerDskContent.AppendLine("Type=Application");
+        motoplayInstallerDskContent.AppendLine("Terminal=false");
+        motoplayInstallerDskContent.AppendLine(("Exec=" + motoplayRootPath + "/Installer/InstallerMotoplay.Desktop"));
+        motoplayInstallerDskContent.AppendLine(("Icon=" + motoplayRootPath + "/Installer/Assets/motoplay-installer-logo-redistributable.png"));
+        motoplayInstallerDskContent.AppendLine("StartupWMClass=InstallerMotoplay.Desktop");
+        File.WriteAllText(("/home/" + systemCurrentUsername + "/.local/share/applications/Motoplay Installer.desktop"), motoplayInstallerDskContent.ToString());
+
+        //Send a command to make the .desktop file of installer, executable
+        SendCommandToTerminalAndClearCurrentOutputLines("chmod +x \"" + ("/home/" + systemCurrentUsername + "/.local/share/applications/Motoplay Installer.desktop") + "\"");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution() == false)
+            yield return new Wait(0.1f);
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+        //Create a .desktop file for the installer
+        StringBuilder motoplayDskContent = new StringBuilder();
+        motoplayDskContent.AppendLine("[Desktop Entry]");
+        motoplayDskContent.AppendLine("Encoding=UTF-8");
+        motoplayDskContent.AppendLine("Name=Motoplay");
+        motoplayDskContent.AppendLine("GenericName=motoplay");
+        motoplayDskContent.AppendLine("Categories=Other");
+        motoplayDskContent.AppendLine("Comment=The Motoplay App!");
+        motoplayDskContent.AppendLine("Type=Application");
+        motoplayDskContent.AppendLine("Terminal=false");
+        motoplayDskContent.AppendLine(("Exec=" + motoplayRootPath + "/App/Motoplay.Desktop"));
+        motoplayDskContent.AppendLine(("Icon=" + motoplayRootPath + "/App/Assets/motoplay-logo-redistributable.png"));
+        motoplayDskContent.AppendLine("StartupWMClass=Motoplay.Desktop");
+        File.WriteAllText(("/home/" + systemCurrentUsername + "/.local/share/applications/Motoplay.desktop"), motoplayDskContent.ToString());
+
+        //Send a command to make the .desktop file, executable
+        SendCommandToTerminalAndClearCurrentOutputLines("chmod +x \"" + ("/home/" + systemCurrentUsername + "/.local/share/applications/Motoplay.desktop") + "\"");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution() == false)
+            yield return new Wait(0.1f);
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+        //Send a command to update the desktop files database
+        SendCommandToTerminalAndClearCurrentOutputLines("sudo update-desktop-database");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution() == false)
+            yield return new Wait(0.1f);
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+        //Inform status
+        doingTaskStatus.Text = "Configuring Automatic Start";
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+        //Read the Wayland desktop Composer config file
+        string waylandDesktopComposerCfg = File.ReadAllText(("/home/" + systemCurrentUsername + "/.config/wayfire.ini"));
+        //If don't have the auto start configured, add it
+        if (waylandDesktopComposerCfg.Contains("motoplay") == false)
+        {
+            waylandDesktopComposerCfg += ("\n\n[autostart]\nmotoplay = " + motoplayRootPath + "/App/Motoplay.Desktop");
+            File.WriteAllText(("/home/" + systemCurrentUsername + "/.config/wayfire.ini"), waylandDesktopComposerCfg);
+        }
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+
+
+        //Create the file of sinal of post tasks done
+        File.WriteAllText((motoplayRootPath + "/PersistentData/done-post-install-tasks.ok"), "Ok");
+
+        //Start the motoplay app
+        CoroutineHandler.Start(FinishAndStartMotoplay());
+    }
+
+    private IEnumerator<Wait> FinishAndStartMotoplay()
+    {
+        //Inform status
+        doingTaskStatus.Text = "Starting Motoplay App";
+
+        //Wait time
+        yield return new Wait(2.5f);
+
+        //Send a command to open the motoplay
+        SendCommandToTerminalAndClearCurrentOutputLines((motoplayRootPath + "/App/Motoplay.Desktop"));
+
+        //Close this installer
+        this.Close();
+    }
+
+
+
+
+
+
+
+    /*
     private void GetFilesFromFlashDrive()
     {
         //If not typed nothing, cancel
@@ -780,173 +1255,51 @@ public partial class MainWindow : Window
         };
         asyncTask.Execute(AsyncTaskSimplified.ExecutionMode.NewDefaultThread);
     }
+    */
 
-    private void FinishInstallationUsingLoadedInstallFiles()
+    //Keyboard methods
+
+    private void ToggleVirtualKeyboard()
     {
-        //Start the coroutine to finish the installation
-        CoroutineHandler.Start(FinishInstallation());
-    }
-
-    private IEnumerator<Wait> FinishInstallation() 
-    {
-        //Inform status
-        doingTaskStatus.Text = "Stopping processes of Motoplay";
-
-        //Wait time
-        yield return new Wait(5.0f);
-
-        //Send a command to stop possible process of running motoplay
-        SendCommandToTerminalAndClearCurrentOutputLines("sudo pkill -f \"App/Motoplay.Desktop\"");
-        //Wait the end of command execution
-        while (isLastCommandFinishedExecution() == false)
-            yield return new Wait(0.1f);
-
-        //Inform status
-        doingTaskStatus.Text = "Installing Motoplay App";
-
-        //Wait time
-        yield return new Wait(5.0f);
-
-        //Send a command to delete the folder of motoplay app
-        SendCommandToTerminalAndClearCurrentOutputLines("rm -r \"" + (motoplayRootPath + "/App") + "\"");
-        //Wait the end of command execution
-        while (isLastCommandFinishedExecution() == false)
-            yield return new Wait(0.1f);
-
-        //Send a command to copy install files as a new final folder
-        SendCommandToTerminalAndClearCurrentOutputLines("cp -r \"" + (motoplayRootPath + "/InstallFiles") + "\" \"" + (motoplayRootPath + "/App") + "\"");
-        //Wait the end of command execution
-        while (isLastCommandFinishedExecution() == false)
-            yield return new Wait(0.1f);
-
-        //Inform status
-        doingTaskStatus.Text = "Preparing Motoplay App";
-
-        //Wait time
-        yield return new Wait(5.0f);
-
-        //Send a command to make the motoplay app, executable
-        SendCommandToTerminalAndClearCurrentOutputLines("chmod +x \"" + (motoplayRootPath + "/App/Motoplay.Desktop") + "\"");
-        //Wait the end of command execution
-        while (isLastCommandFinishedExecution() == false)
-            yield return new Wait(0.1f);
-
-
-
-        //If already done post-install tasks, start motoplay
-        if (File.Exists((motoplayRootPath + "/PersistentData/done-post-install-tasks.ok")) == true)
-            CoroutineHandler.Start(FinishAndStartMotoplay());
-
-        //If NEVER done post-install tasks, do it now
-        if (File.Exists((motoplayRootPath + "/PersistentData/done-post-install-tasks.ok")) == false)
-            CoroutineHandler.Start(DoPostInstallTasks());
-    }
-
-    private IEnumerator<Wait> DoPostInstallTasks() 
-    {
-        //Inform status
-        doingTaskStatus.Text = "Finishing Installation";
-
-        //Wait time
-        yield return new Wait(5.0f);
-
-        //Create a .desktop file for the installer
-        StringBuilder motoplayInstallerDskContent = new StringBuilder();
-        motoplayInstallerDskContent.AppendLine("[Desktop Entry]");
-        motoplayInstallerDskContent.AppendLine("Encoding=UTF-8");
-        motoplayInstallerDskContent.AppendLine("Name=Motoplay Installer");
-        motoplayInstallerDskContent.AppendLine("GenericName=motoplay,installer");
-        motoplayInstallerDskContent.AppendLine("Categories=Other");
-        motoplayInstallerDskContent.AppendLine("Comment=The Motoplay App installer or updater. Install, re-install or update the Motoplay by Internet or Flash Drive!");
-        motoplayInstallerDskContent.AppendLine("Type=Application");
-        motoplayInstallerDskContent.AppendLine("Terminal=false");
-        motoplayInstallerDskContent.AppendLine(("Exec=" + motoplayRootPath + "/Installer/InstallerMotoplay.Desktop"));
-        motoplayInstallerDskContent.AppendLine(("Icon=" + motoplayRootPath + "/Installer/Assets/motoplay-installer-logo-redistributable.png"));
-        motoplayInstallerDskContent.AppendLine("StartupWMClass=InstallerMotoplay.Desktop");
-        File.WriteAllText(("/home/" + systemTargetUsername + "/.local/share/applications/Motoplay Installer.desktop"), motoplayInstallerDskContent.ToString());
-
-        //Send a command to make the .desktop file of installer, executable
-        SendCommandToTerminalAndClearCurrentOutputLines("chmod +x \"" + ("/home/" + systemTargetUsername + "/.local/share/applications/Motoplay Installer.desktop") + "\"");
-        //Wait the end of command execution
-        while (isLastCommandFinishedExecution() == false)
-            yield return new Wait(0.1f);
-
-        //Wait time
-        yield return new Wait(5.0f);
-
-        //Create a .desktop file for the installer
-        StringBuilder motoplayDskContent = new StringBuilder();
-        motoplayDskContent.AppendLine("[Desktop Entry]");
-        motoplayDskContent.AppendLine("Encoding=UTF-8");
-        motoplayDskContent.AppendLine("Name=Motoplay");
-        motoplayDskContent.AppendLine("GenericName=motoplay");
-        motoplayDskContent.AppendLine("Categories=Other");
-        motoplayDskContent.AppendLine("Comment=The Motoplay App!");
-        motoplayDskContent.AppendLine("Type=Application");
-        motoplayDskContent.AppendLine("Terminal=false");
-        motoplayDskContent.AppendLine(("Exec=" + motoplayRootPath + "/App/Motoplay.Desktop"));
-        motoplayDskContent.AppendLine(("Icon=" + motoplayRootPath + "/App/Assets/motoplay-logo-redistributable.png"));
-        motoplayDskContent.AppendLine("StartupWMClass=Motoplay.Desktop");
-        File.WriteAllText(("/home/" + systemTargetUsername + "/.local/share/applications/Motoplay.desktop"), motoplayDskContent.ToString());
-
-        //Send a command to make the .desktop file, executable
-        SendCommandToTerminalAndClearCurrentOutputLines("chmod +x \"" + ("/home/" + systemTargetUsername + "/.local/share/applications/Motoplay.desktop") + "\"");
-        //Wait the end of command execution
-        while (isLastCommandFinishedExecution() == false)
-            yield return new Wait(0.1f);
-
-        //Wait time
-        yield return new Wait(5.0f);
-
-        //Send a command to update the desktop files database
-        SendCommandToTerminalAndClearCurrentOutputLines("sudo update-desktop-database");
-        //Wait the end of command execution
-        while (isLastCommandFinishedExecution() == false)
-            yield return new Wait(0.1f);
-
-        //Wait time
-        yield return new Wait(5.0f);
-
-        //Inform status
-        doingTaskStatus.Text = "Configuring Automatic Start";
-
-        //Wait time
-        yield return new Wait(5.0f);
-
-        //Read the Wayland desktop Composer config file
-        string waylandDesktopComposerCfg = File.ReadAllText(("/home/" + systemTargetUsername + "/.config/wayfire.ini"));
-        //If don't have the auto start configured, add it
-        if (waylandDesktopComposerCfg.Contains("motoplay") == false)
+        //If is keyboard not open
+        if (wvkbdProcess == null)
         {
-            waylandDesktopComposerCfg += ("\n\n[autostart]\nmotoplay = " + motoplayRootPath + "/App/Motoplay.Desktop");
-            File.WriteAllText(("/home/" + systemTargetUsername + "/.config/wayfire.ini"), waylandDesktopComposerCfg);
+            //Build the string of keyboard parameters
+            StringBuilder keyboardParams = new StringBuilder();
+            keyboardParams.Append(("-L " + (int)((float)Screens.Primary.Bounds.Height * 0.45f)));
+            keyboardParams.Append(" --fn \"Segoe UI 16\"");
+            keyboardParams.Append(" --bg 000000AA");
+            keyboardParams.Append(" --fg 323333F0");
+            keyboardParams.Append(" --fg-sp 141414F0");
+            keyboardParams.Append(" --press 00AEFFFF");
+            keyboardParams.Append(" --press-sp 00AEFFFF");
+            keyboardParams.Append(" --text FFFFFFFF");
+            keyboardParams.Append(" --text-sp FFFFFFFF");
+
+            //Start the wvkbd process
+            wvkbdProcess = new Process() { StartInfo = new ProcessStartInfo() { FileName = (motoplayRootPath + "/Keyboard/wvkbd-mobintl"), Arguments = keyboardParams.ToString() } };
+            wvkbdProcess.Start();
+
+            //Set the icon
+            toggleKeyboardButtonImg.Source = new Bitmap(AssetLoader.Open(new Uri("avares://InstallerMotoplay/Assets/keyboard-off.png")));
+
+            //Cancel here
+            return;
         }
 
-        //Wait time
-        yield return new Wait(5.0f);
+        //If is keyboard open
+        if (wvkbdProcess != null)
+        {
+            //Stop the wvkbd process
+            wvkbdProcess.Kill();
+            wvkbdProcess = null;
 
+            //Set the icon
+            toggleKeyboardButtonImg.Source = new Bitmap(AssetLoader.Open(new Uri("avares://InstallerMotoplay/Assets/keyboard-on.png")));
 
-
-        //Create the file of sinal of post tasks done
-        File.WriteAllText((motoplayRootPath + "/PersistentData/done-post-install-tasks.ok"), "Ok");
-
-        //Start the motoplay app
-        CoroutineHandler.Start(FinishAndStartMotoplay());
-    }
-
-    private IEnumerator<Wait> FinishAndStartMotoplay()
-    {
-        //Inform status
-        doingTaskStatus.Text = "Starting Motoplay App";
-
-        //Wait time
-        yield return new Wait(5.0f);
-
-        //Send a command to open the motoplay
-        SendCommandToTerminalAndClearCurrentOutputLines((motoplayRootPath + "/App/Motoplay.Desktop"));
-
-        //Close this installer
-        this.Close();
+            //Cancel here
+            return;
+        }
     }
 
     //Auxiliar methods

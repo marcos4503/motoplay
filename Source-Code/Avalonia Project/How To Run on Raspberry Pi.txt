@@ -35,3 +35,4 @@ To Compile and Run a Avalonia App on Raspberry Pi x64...
 
 BONUS! If you launch the Avalonia Application using the Linux Terminal, you will be able to view the Stack Trace
        if the App crashes for any reason, or experiences a failure!
+	   You can also use "Console.WriteLine("");" to output messages to the Terminal, which makes debugging easier.

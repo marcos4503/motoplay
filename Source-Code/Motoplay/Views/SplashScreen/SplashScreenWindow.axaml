@@ -36,9 +36,10 @@
 			<KeyFrame Cue="100%"><Setter Property="Margin" Value="0, 0, 50, 0"/></KeyFrame>
 		</Animation>
 	</Window.Resources>
+
+
 	
-	
-	
+	<!-- Root of Window -->
 	<Border HorizontalAlignment="Left" VerticalAlignment="Top" Width="400" Height="256" CornerRadius="8" ClipToBounds="True" Background="White" BorderBrush="LightGray" BorderThickness="2">
 		<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#e0e0e0">
 			<!-- Background -->

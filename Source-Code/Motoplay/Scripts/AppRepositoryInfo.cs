@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace InstallerMotoplay.Scripts
+namespace Motoplay.Scripts
 {
     /*
      * This class manage the download info of a JSON

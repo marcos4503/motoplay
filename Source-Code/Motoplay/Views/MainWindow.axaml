@@ -3,14 +3,77 @@
         xmlns:vm="using:Motoplay.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:gif="clr-namespace:Avalonia.Labs.Gif;assembly=Avalonia.Labs.Gif"
         xmlns:views="clr-namespace:Motoplay.Views"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="Motoplay.Views.MainWindow"
-        Icon="/Assets/motoplay-ic32x.png"
-        Title="Motoplay">
+        mc:Ignorable="d" x:Class="Motoplay.Views.MainWindow"
+		Icon="/Assets/motoplay-logo.ico"
+		Title="Motoplay"
+		HorizontalAlignment="Stretch"
+		VerticalAlignment="Stretch"
+		SystemDecorations="None"
+		CanResize="True"
+		SizeToContent="Manual"
+		Topmost="False"
+	    WindowStartupLocation="CenterScreen"
+		WindowState="Maximized"
+		IsEnabled="True"
+		Background="Transparent"
+		d:DesignWidth="800" d:DesignHeight="480">
 	
-	<Grid>
-	    <TextBlock Text="SUCESSO!"></TextBlock>
+	<!-- Window Resources -->
+	<Window.Resources>
+	</Window.Resources>
+	
+	
+	
+	<!-- Root of Window -->
+	<Grid Name="windowRoot" Background="White" RowDefinitions="2,*,2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+		<!-- Top Divisor -->
+		<Grid Grid.Row="0" Grid.Column="0" Background="LightGray" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Grid>
+		<!-- Mid Area Container -->
+		<Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+			<!-- Mid Area Background -->
+			<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+				<!-- Pages Background Area -->
+				<Grid Background="White" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+					
+				</Grid>
+				<!-- Menu Bar Background Area -->
+				<Grid ColumnDefinitions="15.5*,85.0*" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+					<Grid Grid.Row="0" Grid.Column="0">
+						<Image Source="/Assets/menubar-background.png" Stretch="Fill" RenderOptions.BitmapInterpolationMode="HighQuality" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+					</Grid>
+					<Grid Grid.Row="0" Grid.Column="1"></Grid>
+				</Grid>
+			</Grid>
+			<!-- Mid Area -->
+			<Grid ColumnDefinitions="12.6*,2,88*" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+				<!-- Menu Bar -->
+				<Grid Grid.Row="0" Grid.Column="0">
+					
+				</Grid>
+				<!-- Mid Area Divisor -->
+				<Grid Grid.Row="0" Grid.Column="1" Background="#ababab"></Grid>
+				<!-- Page Area -->
+				<Grid Grid.Row="0" Grid.Column="2">
+					
+				</Grid>
+			</Grid>
+
+			<!-- Motoplay Status Bar -->
+			<Grid HorizontalAlignment="Right" VerticalAlignment="Top" Height="32" Width="2" Margin="0, 8, 8, 0">
+				<StackPanel Orientation="Horizontal" Spacing="4" FlowDirection="RightToLeft">
+					<!-- Keyboat Toggle Button -->
+					<Button Name="toggleKeyboardButton" HorizontalAlignment="Right" VerticalAlignment="Top" Width="32" Height="32" Padding="6, 6, 6, 6">
+						<Image Name="toggleKeyboardButtonImg" Source="/Assets/keyboard-on.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+					</Button>
+					<!-- Tasks Display -->
+					<gif:GifImage Name="runningTasksIndicator" IsVisible="True" Width="32" Height="32" Source="avares://Motoplay/Assets/running-tasks-2.gif" Stretch="Fill" />
+				</StackPanel>
+			</Grid>
+		</Grid>
+		<!-- Bottom Divisor -->
+		<Grid Grid.Row="2" Grid.Column="0" Background="LightGray" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Grid>
 	</Grid>
 	
 </Window>
