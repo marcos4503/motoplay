@@ -19,6 +19,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AvaloniaXaml Remove="Assets\Languages\LangStrings-PT-BR.axaml" />
+    <AvaloniaXaml Remove="Assets\Languages\LangStrings.axaml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Assets\splash-logo.png" />
   </ItemGroup>
 
@@ -26,7 +31,9 @@
     <Content Include="Assets\motoplay-logo-redistributable.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Assets\motoplay-logo.ico" />
+    <Content Include="Assets\motoplay-logo.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -42,5 +49,14 @@
     <PackageReference Include="Coroutine" Version="2.1.5" />
     <PackageReference Include="MessageBox.Avalonia" Version="3.1.6" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Update="Assets\Languages\LangStrings-PT-BR.axaml">
+      <SubType>Designer</SubType>
+    </AvaloniaResource>
+    <AvaloniaResource Update="Assets\Languages\LangStrings.axaml">
+      <SubType>Designer</SubType>
+    </AvaloniaResource>
   </ItemGroup>
 </Project>

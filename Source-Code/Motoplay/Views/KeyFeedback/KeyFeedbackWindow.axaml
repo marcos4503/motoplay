@@ -1,0 +1,29 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" x:Class="Motoplay.KeyFeedbackWindow"
+        Icon="/Assets/motoplay-logo.ico"
+        Title="Virtual Keyboard"
+		HorizontalAlignment="Stretch"
+		VerticalAlignment="Stretch"
+		SystemDecorations="None"
+		CanResize="False"
+		SizeToContent="WidthAndHeight"
+		Topmost="True"
+		WindowStartupLocation="Manual"
+		WindowState="Normal"
+		IsEnabled="True"
+		Background="Transparent"
+		d:DesignWidth="2" d:DesignHeight="2"
+		
+		ShowInTaskbar="False"
+		IsHitTestVisible="False"
+		ExtendClientAreaToDecorationsHint="True"
+		ExtendClientAreaChromeHints="NoChrome"
+		ExtendClientAreaTitleBarHeightHint="0">
+
+	<!-- Root of Window -->
+	<Border Name="letterRoot" HorizontalAlignment="Left" VerticalAlignment="Top" Width="2" Height="2" Opacity="0.0" IsHitTestVisible="False"></Border>
+	
+</Window>

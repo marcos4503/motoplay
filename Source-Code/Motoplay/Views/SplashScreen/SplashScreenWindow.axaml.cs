@@ -32,19 +32,14 @@ public partial class SplashScreenWindow : Window
 
     public async Task InitializeApp()
     {
-        //Show final start message
+        //Show start message
         progressMsgText.Text = "Loading Motoplay App";
 
         //Recover the version of the application
         System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
-        System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
-        if (OperatingSystem.IsWindows() == true)
-        {
-            appVersion = fvi.FileVersion.Remove(fvi.FileVersion.Length - 1, 1);
-            appVersion = appVersion.Remove(appVersion.Length - 1, 1);
-        }
-        if (OperatingSystem.IsLinux() == true)
-            appVersion = fvi.FileVersion;
+        FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+        appVersion = fvi.FileVersion;
+
         //Show the app version
         appVersionDisplay.Text = appVersion;
 
@@ -60,9 +55,10 @@ public partial class SplashScreenWindow : Window
         long startTime = DateTime.Now.Ticks;
         long currentTime = startTime;
         long elapsedTime = 0;
+        int loadingTimeSecs = 2;
 
         //Start a timer of progress
-        while ((currentTime - startTime) <= (TimeSpan.TicksPerSecond * 5))
+        while ((currentTime - startTime) <= (TimeSpan.TicksPerSecond * loadingTimeSecs))
         {
             //Update the current time
             currentTime = DateTime.Now.Ticks;
@@ -74,7 +70,7 @@ public partial class SplashScreenWindow : Window
             Dispatcher.UIThread.Post(() => 
             {
                 //Update the progressbar
-                startProgressBar.Value = (int)((new TimeSpan(elapsedTime).TotalMilliseconds / 5000.0f) * 100.0f);
+                startProgressBar.Value = (int)((new TimeSpan(elapsedTime).TotalMilliseconds / (float)(loadingTimeSecs * 1000)) * 100.0f);
             }, DispatcherPriority.Render);
 
             //Wait time, equivalent to 30 FPS
@@ -82,7 +78,7 @@ public partial class SplashScreenWindow : Window
         }
 
         //Show final start message
-        progressMsgText.Text = "Starting";
+        progressMsgText.Text = "Initializing";
 
         //Wait final time
         await Task.Delay(1000);

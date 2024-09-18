@@ -63,12 +63,31 @@
 			<!-- Motoplay Status Bar -->
 			<Grid HorizontalAlignment="Right" VerticalAlignment="Top" Height="32" Width="2" Margin="0, 8, 8, 0">
 				<StackPanel Orientation="Horizontal" Spacing="4" FlowDirection="RightToLeft">
-					<!-- Keyboat Toggle Button -->
+					<!-- Keyboard Toggle Button -->
 					<Button Name="toggleKeyboardButton" HorizontalAlignment="Right" VerticalAlignment="Top" Width="32" Height="32" Padding="6, 6, 6, 6">
 						<Image Name="toggleKeyboardButtonImg" Source="/Assets/keyboard-on.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
 					</Button>
+					<!-- Keyboard Notification -->
+					<Grid Name="toggleKeyboardTip" IsVisible="False" ColumnDefinitions="*,16" FlowDirection="LeftToRight" HorizontalAlignment="Right" VerticalAlignment="Top" Width="256" Height="200" ClipToBounds="True">
+						<!-- Style -->
+						<Grid.Transitions>
+							<Transitions>
+								<DoubleTransition Property="Width" Duration="0:0:0.35"/>
+								<DoubleTransition Property="Height" Duration="0:0:0.35"/>
+							</Transitions>
+						</Grid.Transitions>
+						<!-- Content -->
+						<Grid Grid.Row="0" Grid.Column="1" Width="16" Height="32" HorizontalAlignment="Right" VerticalAlignment="Top">
+							<Polygon HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Points="0,16 16,16 0,32" Fill="#00aaff"></Polygon>
+						</Grid>
+						<Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+							<Border HorizontalAlignment="Stretch" VerticalAlignment="Top" Background="#00aaff" CornerRadius="8, 8, 8, 8" Padding="8, 8, 8, 8">
+								<TextBlock Text="{DynamicResource ResourceKey=statusBar_toggleKeyboardTipText}" TextWrapping="Wrap" Foreground="White" HorizontalAlignment="Right" VerticalAlignment="Top"></TextBlock>
+							</Border>
+						</Grid>
+					</Grid>
 					<!-- Tasks Display -->
-					<gif:GifImage Name="runningTasksIndicator" IsVisible="True" Width="32" Height="32" Source="avares://Motoplay/Assets/running-tasks-2.gif" Stretch="Fill" />
+					<gif:GifImage Name="runningTasksIndicator" HorizontalAlignment="Right" VerticalAlignment="Top" IsVisible="True" Width="32" Height="32" Source="avares://Motoplay/Assets/running-tasks-2.gif" Stretch="Fill" />
 				</StackPanel>
 			</Grid>
 		</Grid>

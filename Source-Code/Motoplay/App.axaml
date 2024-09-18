@@ -7,5 +7,14 @@
     <Application.Styles>
         <FluentTheme />
     </Application.Styles>
+
+	<!-- Motoplay App default language to use in Editor -->
+	<Application.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<MergeResourceInclude Source="/Assets/Languages/LangStrings.axaml" />
+			</ResourceDictionary.MergedDictionaries>
+		</ResourceDictionary>
+	</Application.Resources>
 	
 </Application>

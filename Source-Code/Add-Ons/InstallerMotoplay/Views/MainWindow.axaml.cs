@@ -974,7 +974,94 @@ public partial class MainWindow : Window
 
     private void GetInstallFilesFromFlashDrive()
     {
+        //If not typed nothing, cancel
+        if (string.IsNullOrEmpty(flashDriveNameInput.Text) == true)
+        {
+            MessageBoxManager.GetMessageBoxStandard("Error", "Enter the name of a Flash Drive!", ButtonEnum.Ok).ShowAsync();
+            return;
+        }
 
+        //Save the typed flash drive name
+        File.WriteAllText((motoplayRootPath + "/PersistentData/last-fd-name.txt"), flashDriveNameInput.Text);
+
+        //If the flash drive not exists, cancel
+        if (Directory.Exists(("/media/" + systemCurrentUsername + "/" + flashDriveNameInput.Text)) == false)
+        {
+            MessageBoxManager.GetMessageBoxStandard("Error", "Flash Drive \"" + flashDriveNameInput.Text + "\" is not available!", ButtonEnum.Ok).ShowAsync();
+            return;
+        }
+        //If the "Motoplay" folder not exists, cancel
+        if (Directory.Exists(("/media/" + systemCurrentUsername + "/" + flashDriveNameInput.Text + "/Motoplay")) == false)
+        {
+            MessageBoxManager.GetMessageBoxStandard("Error", "The \"Motoplay\" folder containing the installation files does not exist inside Flash Drive \"" + flashDriveNameInput.Text + "\"!", ButtonEnum.Ok).ShowAsync();
+            return;
+        }
+
+        //Change the screen
+        doingTasksRoot.IsVisible = true;
+        updateMenu.IsVisible = false;
+
+        //Inform status
+        doingTaskStatus.Text = "Copying Files From \"" + flashDriveNameInput.Text + "\" Drive";
+
+        //Start a new thread to copy the files
+        AsyncTaskSimplified asyncTask = new AsyncTaskSimplified(null, new string[] { motoplayRootPath, systemCurrentUsername, flashDriveNameInput.Text });
+        asyncTask.onStartTask_RunMainThread += (callerWindow, startParams) => { };
+        asyncTask.onExecuteTask_RunBackground += (callerWindow, startParams, threadTools) =>
+        {
+            //Get the needed params
+            string rootPath = startParams[0];
+            string user = startParams[1];
+            string driveName = startParams[2];
+
+            //Wait some time
+            threadTools.MakeThreadSleep(1000);
+
+            //Try to do the task
+            try
+            {
+                //------------- START -------------//
+
+                //Copy each file present in the drive
+                foreach (FileInfo file in (new DirectoryInfo(("/media/" + user + "/" + driveName + "/Motoplay")).GetFiles()))
+                    File.Copy(file.FullName, (rootPath + "/InstallFiles/" + Path.GetFileName(file.FullName)));
+
+                //Copy each directory present in the drive
+                foreach (DirectoryInfo dir in (new DirectoryInfo(("/media/" + user + "/" + driveName + "/Motoplay")).GetDirectories()))
+                    CopyDirectory(dir.FullName, (rootPath + "/InstallFiles/" + dir.Name));
+
+                //-------------- END --------------//
+
+                //Wait some time
+                threadTools.MakeThreadSleep(1000);
+
+                //Return a success response
+                return new string[] { "success" };
+            }
+            catch (Exception ex)
+            {
+                //Return a error response
+                return new string[] { "error" };
+            }
+
+            //Finish the thread...
+            return new string[] { "none" };
+        };
+        asyncTask.onDoneTask_RunMainThread += (callerWindow, backgroundResult) =>
+        {
+            //If was error
+            if (backgroundResult[0] != "success")
+            {
+                MessageBoxManager.GetMessageBoxStandard("Error", "There was a problem copying files from the Flash Drive!", ButtonEnum.Ok).ShowAsync();
+                this.Close();
+                return;
+            }
+
+            //If was success
+            if (backgroundResult[0] == "success")
+                FinishInstallationUsingLoadedInstallFiles();
+        };
+        asyncTask.Execute(AsyncTaskSimplified.ExecutionMode.NewDefaultThread);
     }
 
     private void FinishInstallationUsingLoadedInstallFiles()
@@ -987,6 +1074,9 @@ public partial class MainWindow : Window
     {
         //Inform status
         doingTaskStatus.Text = "Stopping Processes of Motoplay";
+        doingTasksBar.Maximum = 100;
+        doingTasksBar.Value = 0;
+        doingTasksBar.IsIndeterminate = true;
 
         //Wait time
         yield return new Wait(2.5f);
@@ -1142,120 +1232,14 @@ public partial class MainWindow : Window
         yield return new Wait(2.5f);
 
         //Send a command to open the motoplay
-        SendCommandToTerminalAndClearCurrentOutputLines((motoplayRootPath + "/App/Motoplay.Desktop"));
+        SendCommandToTerminalAndClearCurrentOutputLines(("\"" + motoplayRootPath + "/App/Motoplay.Desktop\" & echo \"> ContinueInOtherThread\""));
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution() == false)
+            yield return new Wait(0.1f);
 
         //Close this installer
         this.Close();
     }
-
-
-
-
-
-
-
-    /*
-    private void GetFilesFromFlashDrive()
-    {
-        //If not typed nothing, cancel
-        if (string.IsNullOrEmpty(flashDriveNameInput.Text) == true)
-        {
-            MessageBoxManager.GetMessageBoxStandard("Error", "Enter the name of a Flash Drive!", ButtonEnum.Ok).ShowAsync();
-            return;
-        }
-
-        //Save the typed flash drive name
-        File.WriteAllText((motoplayRootPath + "/PersistentData/last-fd-name.txt"), flashDriveNameInput.Text);
-
-        //If the flash drive not exists, cancel
-        if (Directory.Exists(("/media/" + systemTargetUsername + "/" + flashDriveNameInput.Text)) == false)
-        {
-            MessageBoxManager.GetMessageBoxStandard("Error", "Flash Drive \"" + flashDriveNameInput.Text + "\" is not available!", ButtonEnum.Ok).ShowAsync();
-            return;
-        }
-        //If the "Motoplay" folder not exists, cancel
-        if (Directory.Exists(("/media/" + systemTargetUsername + "/" + flashDriveNameInput.Text + "/Motoplay")) == false)
-        {
-            MessageBoxManager.GetMessageBoxStandard("Error", "The \"Motoplay\" folder containing the installation files does not exist inside Flash Drive \"" + flashDriveNameInput.Text + "\"!", ButtonEnum.Ok).ShowAsync();
-            return;
-        }
-
-        //Start the files load coroutine
-        CoroutineHandler.Start(CopyInstallationFilesFromFlashDrive());
-    }
-
-    private IEnumerator<Wait> CopyInstallationFilesFromFlashDrive()
-    {
-        //Change the screen
-        doingTasksRoot.IsVisible = true;
-        updateMenu.IsVisible = false;
-
-        //Inform status
-        doingTaskStatus.Text = "Copying files from \"" + flashDriveNameInput.Text + "\" Drive";
-
-        //Wait time
-        yield return new Wait(1.0f);
-
-        //Start a new thread to copy the files
-        AsyncTaskSimplified asyncTask = new AsyncTaskSimplified(null, new string[] { motoplayRootPath, systemTargetUsername, flashDriveNameInput.Text });
-        asyncTask.onStartTask_RunMainThread += (callerWindow, startParams) => { };
-        asyncTask.onExecuteTask_RunBackground += (callerWindow, startParams, threadTools) =>
-        {
-            //Get the needed params
-            string rootPath = startParams[0];
-            string user = startParams[1];
-            string driveName = startParams[2];
-
-            //Wait some time
-            threadTools.MakeThreadSleep(1000);
-
-            //Try to do the task
-            try
-            {
-                //------------- START -------------//
-
-                //Copy each file present in the drive
-                foreach (FileInfo file in (new DirectoryInfo(("/media/" + user + "/" + driveName + "/Motoplay")).GetFiles()))
-                    File.Copy(file.FullName, (rootPath + "/InstallFiles/" + Path.GetFileName(file.FullName)));
-
-                //Copy each directory present in the drive
-                foreach (DirectoryInfo dir in (new DirectoryInfo(("/media/" + user + "/" + driveName + "/Motoplay")).GetDirectories()))
-                    CopyDirectory(dir.FullName, (rootPath + "/InstallFiles/" + dir.Name));
-
-                //-------------- END --------------//
-
-                //Wait some time
-                threadTools.MakeThreadSleep(1000);
-
-                //Return a success response
-                return new string[] { "success" };
-            }
-            catch (Exception ex)
-            {
-                //Return a error response
-                return new string[] { "error" };
-            }
-
-            //Finish the thread...
-            return new string[] { "none" };
-        };
-        asyncTask.onDoneTask_RunMainThread += (callerWindow, backgroundResult) =>
-        {
-            //If was error
-            if (backgroundResult[0] != "success")
-            {
-                MessageBoxManager.GetMessageBoxStandard("Error", "There was a problem copying files from the Flash Drive!", ButtonEnum.Ok).ShowAsync();
-                this.Close();
-                return;
-            }
-
-            //If was success
-            if (backgroundResult[0] == "success")
-                FinishInstallationUsingLoadedInstallFiles();
-        };
-        asyncTask.Execute(AsyncTaskSimplified.ExecutionMode.NewDefaultThread);
-    }
-    */
 
     //Keyboard methods
 
