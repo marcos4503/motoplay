@@ -8,7 +8,7 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>motoplay-logo.ico</ApplicationIcon>
-    <AssemblyVersion>0.0.1</AssemblyVersion>
+    <AssemblyVersion>0.0.2</AssemblyVersion>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="motoplay-logo.ico">

@@ -22,6 +22,24 @@
 	
 	<!-- Window Resources -->
 	<Window.Resources>
+		<!-- Toast Notification Entry Animation -->
+		<Animation x:Key="toastNotificationEntry" x:SetterTargetType="Grid" Duration="0:0:0.5" Delay="0:0:0.0" FillMode="Forward" Easing="QuadraticEaseInOut">
+			<KeyFrame Cue="0%">
+				<Setter Property="Margin" Value="0, -256, 0, 0"/>
+			</KeyFrame>
+			<KeyFrame Cue="100%">
+				<Setter Property="Margin" Value="0, 0, 0, 0"/>
+			</KeyFrame>
+		</Animation>
+		<!-- Toast Notification Exit Animation -->
+		<Animation x:Key="toastNotificationExit" x:SetterTargetType="Grid" Duration="0:0:0.5" Delay="0:0:0.0" FillMode="Forward" Easing="CubicEaseIn">
+			<KeyFrame Cue="0%">
+				<Setter Property="Margin" Value="0, 0, 0, 0"/>
+			</KeyFrame>
+			<KeyFrame Cue="100%">
+				<Setter Property="Margin" Value="0, -256, 0, 0"/>
+			</KeyFrame>
+		</Animation>
 	</Window.Resources>
 	
 	
@@ -50,7 +68,46 @@
 			<Grid ColumnDefinitions="12.6*,2,88*" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 				<!-- Menu Bar -->
 				<Grid Grid.Row="0" Grid.Column="0">
-					
+					<Grid RowDefinitions="72,*,72" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="8, 8, 8, 8">
+						<Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+							<Button Name="rollMenuUp" HorizontalAlignment="Center" VerticalAlignment="Stretch" Width="72" CornerRadius="16" Background="#ededed" Padding="16, 16, 16, 16">
+								<Image Source="/Assets/arrow-up.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7"></Image>
+							</Button>
+						</Grid>
+						<Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+							<ScrollViewer Background="White" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+								<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="0, 8, 0, 8">
+									
+								</StackPanel>
+							</ScrollViewer>
+							<!-- Transitions -->
+							<Grid HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="10" Width="10">
+								<Grid.RenderTransform>
+									<TransformGroup>
+										<ScaleTransform ScaleX="1.0" ScaleY="8.4"></ScaleTransform>
+										<TranslateTransform X="0" Y="0"></TranslateTransform>
+										<RotateTransform CenterX="0" CenterY="0" Angle="90"></RotateTransform>
+									</TransformGroup>
+								</Grid.RenderTransform>
+								<Image Source="/Assets/menubar-background-transition.png" Stretch="Fill" RenderOptions.BitmapInterpolationMode="HighQuality"></Image>
+							</Grid>
+							<Grid HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="10" Width="10">
+								<Grid.RenderTransform>
+									<TransformGroup>
+										<ScaleTransform ScaleX="1.0" ScaleY="8.4"></ScaleTransform>
+										<TranslateTransform X="0"  Y="0"></TranslateTransform>
+										<RotateTransform CenterX="0" CenterY="0" Angle="-90"></RotateTransform>
+									</TransformGroup>
+								</Grid.RenderTransform>
+								<Image Source="/Assets/menubar-background-transition.png" Stretch="Fill" RenderOptions.BitmapInterpolationMode="HighQuality"></Image>
+							</Grid>
+						</Grid>
+						<Grid Grid.Row="2" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+							<Button Name="rollMenuDown" HorizontalAlignment="Center" VerticalAlignment="Stretch" Width="72" CornerRadius="16" Background="#ededed" Padding="16, 16, 16, 16">
+								<Image Source="/Assets/arrow-down.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7"></Image>
+							</Button>
+						</Grid>
+					</Grid>
 				</Grid>
 				<!-- Mid Area Divisor -->
 				<Grid Grid.Row="0" Grid.Column="1" Background="#ababab"></Grid>
@@ -86,10 +143,40 @@
 							</Border>
 						</Grid>
 					</Grid>
+					<!-- Update Notification -->
+					<Button Name="updateAppButton" HorizontalAlignment="Right" VerticalAlignment="Top" Width="32" Height="32" Padding="6, 6, 6, 6">
+						<Image Source="/Assets/update-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+					</Button>
 					<!-- Tasks Display -->
 					<gif:GifImage Name="runningTasksIndicator" HorizontalAlignment="Right" VerticalAlignment="Top" IsVisible="True" Width="32" Height="32" Source="avares://Motoplay/Assets/running-tasks-2.gif" Stretch="Fill" />
 				</StackPanel>
 			</Grid>
+
+			<!-- Toast Notification -->
+			<Grid Name="toastNotificationRoot" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="0, 0, 0, 0">
+				<Border Name="toastNotificationBg" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="128, 8, 128, 0" CornerRadius="8" Background="#429ebd" BorderBrush="#32778f" BorderThickness="2" BoxShadow="0 4 5 0 #d1d1d1">
+					<Grid RowDefinitions="*,2" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+						<Grid Grid.Row="0" Grid.Column="0" ColumnDefinitions="*,8,80" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="8,8,8,8">
+							<Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+								<TextBlock Name="toastNotificationText" Text="Place Holder." TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White"></TextBlock>
+							</Grid>
+							<Grid Grid.Row="0" Grid.Column="1"></Grid>
+							<Grid Grid.Row="0" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+								<Button Name="toastNotificationDismissButton" Content="{DynamicResource ResourceKey=toastNotification_dismissButton}" HorizontalAlignment="Stretch" VerticalAlignment="Top" HorizontalContentAlignment="Center" Foreground="White"></Button>
+							</Grid>
+						</Grid>
+						<Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="3, 0, 3, 0">
+							<Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch" CornerRadius="0, 0, 8, 8" ClipToBounds="True">
+								<ProgressBar Name="toastNotificationTimeBar" Maximum="100" Value="50" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Foreground="#00cefc" MinHeight="0" CornerRadius="0"></ProgressBar>
+							</Border>
+						</Grid>
+					</Grid>
+				</Border>
+			</Grid>
+
+			<!-- Interaction Blocker -->
+			<Grid Name="appInteractionBlocker" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#000000" Opacity="0.75"></Grid>
+			
 		</Grid>
 		<!-- Bottom Divisor -->
 		<Grid Grid.Row="2" Grid.Column="0" Background="LightGray" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Grid>

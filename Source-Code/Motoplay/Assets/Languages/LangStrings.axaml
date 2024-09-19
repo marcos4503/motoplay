@@ -3,5 +3,9 @@
 
 	<!-- Status Bar -->
 	<x:String x:Key="statusBar_toggleKeyboardTipText">Use CTRL + MENU to simulate Right Mouse Click. The F0 to F10 keys can be simulated using ALTGR + Num.</x:String>
+	<x:String x:Key="statusBar_updateAvailable">There is a new update available for the Motoplay App! Click the button next to the Keyboard Button to install the update.</x:String>
+	
+	<!-- Toast Notification -->
+	<x:String x:Key="toastNotification_dismissButton">Dismiss</x:String>
 	
 </ResourceDictionary>

@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Markup.Xaml.Styling;
@@ -8,6 +9,7 @@ using Avalonia.Platform;
 using Avalonia.Threading;
 using Coroutine;
 using MarcosTomaz.ATS;
+using Motoplay.Scripts;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
 using System;
@@ -15,6 +17,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +31,18 @@ namespace Motoplay.Views;
 
 public partial class MainWindow : Window
 {
+    //Enums of script
+    public enum ToastDuration
+    {
+        Short,
+        Long
+    }
+    public enum ToastType
+    {
+        Normal,
+        Problem
+    }
+
     //Cache variables
     private Process terminalCliProcess = null;
     private List<string> terminalReceivedOutputLines = new List<string>();
@@ -36,11 +52,14 @@ public partial class MainWindow : Window
     private KeyFeedbackWindow wvkbdFeedbackWindow = null;
     private ActiveCoroutine wvkbdFeedbackRoutine = null;
     private ActiveCoroutine openKeyboardTipRoutine = null;
+    private ActiveCoroutine showToastNotificationRoutine = null;
+    private ActiveCoroutine hideToastNotificationRoutine = null;
 
     //Private variables
     private string[] receivedCliArgs = null;
     private string systemCurrentUsername = "";
     private string motoplayRootPath = "";
+    private string originalWindowTitle = "";
     private string applicationVersion = "";
 
     //Core methods
@@ -127,6 +146,9 @@ public partial class MainWindow : Window
                 Directory.CreateDirectory(motoplayRootPath);
         }
 
+        //Get the original title of this window
+        originalWindowTitle = this.Title;
+
         //Recover the version of the application
         System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
         FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
@@ -156,6 +178,11 @@ public partial class MainWindow : Window
         //Prepare the UI
         toggleKeyboardButton.IsVisible = false;
         toggleKeyboardButton.Click += (s, e) => { ToggleVirtualKeyboard(); };
+        toastNotificationRoot.IsVisible = false;
+        toastNotificationDismissButton.IsEnabled = false;
+        toastNotificationDismissButton.Click += (s, e) => { HideToastNow(); };
+        updateAppButton.IsVisible = false;
+        updateAppButton.Click += (s, e) => { InstallUpdateForApp(); };
 
         //Start a terminal for CLI process
         StartBindedCliTerminalProcess();
@@ -264,6 +291,9 @@ public partial class MainWindow : Window
 
         //Start the process of setup for "unclutter"
         CoroutineHandler.Start(SetupTheUnclutterCursorHider());
+
+        //Check if have updates for Motoplay App
+        CoroutineHandler.Start(CheckIfHaveUpdatesForApp());
     }
 
     private IEnumerator<Wait> KillPossibleExistingVirtualKeyboardProcess()
@@ -380,6 +410,261 @@ public partial class MainWindow : Window
 
         //Remove the task running
         RemoveTask("unclutter_setup");
+    }
+
+    private IEnumerator<Wait> CheckIfHaveUpdatesForApp()
+    {
+        //Add this task running
+        AddTask("updateCheck", "Check if have update available for Motoplay App.");
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+        //Start a new thread to check if have updates for app
+        AsyncTaskSimplified asyncTask = new AsyncTaskSimplified(null, new string[] { motoplayRootPath });
+        asyncTask.onStartTask_RunMainThread += (callerWindow, startParams) => { };
+        asyncTask.onExecuteTask_RunBackground += (callerWindow, startParams, threadTools) =>
+        {
+            //Wait some time
+            threadTools.MakeThreadSleep(1000);
+
+            //Get the needed params
+            string rootPath = startParams[0];
+
+            //Try to do the task
+            try
+            {
+                //------------- START -------------//
+
+                //-------------------------- REPOSITORY INFO DOWNLOAD --------------------------//
+
+                //Wait some time
+                threadTools.MakeThreadSleep(1000);
+
+                //If the folder of persistent data don't exists, create it
+                if (Directory.Exists((rootPath + "/PersistentData")) == false)
+                    Directory.CreateDirectory((rootPath + "/PersistentData"));
+
+                //If the file already exists, delete it
+                if (File.Exists((rootPath + "/PersistentData/app-repository-info.json")) == true)
+                    File.Delete((rootPath + "/PersistentData/app-repository-info.json"));
+
+                //Prepare the target download URL
+                string downloadUrl = @"https://marcos4503.github.io/motoplay/Repository-Pages/motoplay-data-info.json";
+                string saveAsPath = (rootPath + "/PersistentData/app-repository-info.json");
+                //Download the data sync
+                HttpClient httpClient = new HttpClient();
+                HttpResponseMessage httpRequestResult = httpClient.GetAsync(downloadUrl).Result;
+                httpRequestResult.EnsureSuccessStatusCode();
+                Stream downloadStream = httpRequestResult.Content.ReadAsStreamAsync().Result;
+                FileStream fileStream = new FileStream(saveAsPath, FileMode.Create, FileAccess.Write, FileShare.None);
+                downloadStream.CopyTo(fileStream);
+                httpClient.Dispose();
+                fileStream.Dispose();
+                fileStream.Close();
+                downloadStream.Dispose();
+                downloadStream.Close();
+
+                //-------------------------- DATA INTERPRETATION --------------------------//
+
+                //Load the repository info
+                AppRepositoryInfo appInfo = new AppRepositoryInfo((rootPath + "/PersistentData/app-repository-info.json"));
+
+                //Recover the server version of the app
+                string serverVersion = appInfo.loadedData.version;
+
+                //-------------- END --------------//
+
+                //Wait some time
+                threadTools.MakeThreadSleep(1000);
+
+                //Return a success response
+                return new string[] { "success", serverVersion };
+            }
+
+            catch (Exception ex)
+            {
+                //Return a error response
+                return new string[] { "error", "" };
+            }
+
+            //Finish the thread...
+            return new string[] { "none", "" };
+        };
+        asyncTask.onDoneTask_RunMainThread += (callerWindow, backgroundResult) =>
+        {
+            //Remove the task running
+            RemoveTask("updateCheck");
+
+            //If have a error, cancel here
+            if (backgroundResult[0] != "success")
+                return;
+
+            //If the app version and server version are differents, notify the user about the update
+            if (applicationVersion != backgroundResult[1])
+            {
+                ShowToast(GetStringApplicationResource("statusBar_updateAvailable"), ToastDuration.Long, ToastType.Normal);
+                updateAppButton.IsVisible = true;
+            }
+        };
+        asyncTask.Execute(AsyncTaskSimplified.ExecutionMode.NewDefaultThread);
+    }
+
+    //Interaction Blocker Manager
+
+    public void SetActiveInteractionBlocker(bool enabled)
+    {
+        //If is enabled...
+        if (enabled == true)
+            appInteractionBlocker.IsVisible = true;
+
+        //If is disabled
+        if (enabled == false)
+            appInteractionBlocker.IsVisible = false;
+    }
+
+    //Toast manager
+
+    public void ShowToast(string message, ToastDuration duration, ToastType tType)
+    {
+        //If is already running a toast notification, stop the routine
+        if (showToastNotificationRoutine != null)
+        {
+            showToastNotificationRoutine.Cancel();
+            showToastNotificationRoutine = null;
+        }
+        //If is already running a toas exit, stop the routine
+        if (hideToastNotificationRoutine != null)
+        {
+            hideToastNotificationRoutine.Cancel();
+            hideToastNotificationRoutine = null;
+        }
+
+        //Start the toast notification
+        showToastNotificationRoutine = CoroutineHandler.Start(ShowToastRoutine(message, duration, tType));
+    }
+
+    public void HideToastNow()
+    {
+        //If is already running a toast notification, stop the routine
+        if (showToastNotificationRoutine != null)
+        {
+            showToastNotificationRoutine.Cancel();
+            showToastNotificationRoutine = null;
+        }
+        //If is already running a toas exit, stop the routine
+        if (hideToastNotificationRoutine != null)
+        {
+            hideToastNotificationRoutine.Cancel();
+            hideToastNotificationRoutine = null;
+        }
+
+        //Stop the toast notification now
+        hideToastNotificationRoutine = CoroutineHandler.Start(HideToastRoutine());
+    }
+
+    private IEnumerator<Wait> ShowToastRoutine(string message, ToastDuration duration, ToastType type)
+    {
+        //Enable the dismiss button
+        toastNotificationDismissButton.IsEnabled = true;
+
+        //Reset the toast notification
+        toastNotificationRoot.Margin = new Thickness(0, -256.0f, 0, 0);
+        toastNotificationTimeBar.Value = 100.0f;
+        toastNotificationRoot.IsVisible = true;
+
+        //Set the color for the notification
+        if (type == ToastType.Normal)
+        {
+            toastNotificationBg.Background = new SolidColorBrush(new Color(255, 66, 158, 189));
+            toastNotificationBg.BorderBrush = new SolidColorBrush(new Color(255, 50, 119, 143));
+            toastNotificationTimeBar.Foreground = new SolidColorBrush(new Color(255, 0, 206, 252));
+        }
+        if (type == ToastType.Problem)
+        {
+            toastNotificationBg.Background = new SolidColorBrush(new Color(255, 138, 11, 11));
+            toastNotificationBg.BorderBrush = new SolidColorBrush(new Color(255, 89, 1, 1));
+            toastNotificationTimeBar.Foreground = new SolidColorBrush(new Color(255, 255, 0, 0));
+        }
+
+        //Set the message
+        toastNotificationText.Text = message;
+
+        //Call the entry animation
+        ((Animation)this.Resources["toastNotificationEntry"]).RunAsync(toastNotificationRoot);
+
+        //Wait until the end of the animation
+        yield return new Wait(0.5f);
+
+        //Prepare the timer data
+        long startTime = DateTime.Now.Ticks;
+        long currentTime = startTime;
+        float durationTime = ((duration == ToastDuration.Long) ? 10.0f : 5.0f);
+        float elapsedTime = 0;
+        int lastFilledBarsCount = -1;
+        //Start a loop of regressive count
+        while (elapsedTime < durationTime)
+        {
+            //Update the current time
+            currentTime = DateTime.Now.Ticks;
+
+            //Update elapsed time
+            elapsedTime += (float)((new TimeSpan((currentTime - startTime))).TotalMilliseconds / 1000.0f);
+
+            //Update starttime
+            startTime = currentTime;
+
+            //Update the progressbar
+            toastNotificationTimeBar.Value = (float)(100.0f - (elapsedTime / durationTime) * 100.0f);
+
+            //Update the window title
+            string buildedTitle = "";
+            int countOfTitleBarChars = 12;
+            int filledBarChars = (int)((float)(1.0f - (elapsedTime / durationTime)) * (float)countOfTitleBarChars);
+            if (filledBarChars != lastFilledBarsCount)
+            {
+                while (buildedTitle.Length < filledBarChars)
+                    buildedTitle += "▮";
+                while ((buildedTitle.Length - filledBarChars) < (countOfTitleBarChars - filledBarChars))
+                    buildedTitle += "▯";
+                this.Title = buildedTitle;
+
+                //Update the last filled bars count
+                lastFilledBarsCount = filledBarChars;
+            }
+
+            //Wait some time
+            yield return new Wait(0.033f);
+        }
+
+        //Start the coroutine to hide the toast notification
+        hideToastNotificationRoutine = CoroutineHandler.Start(HideToastRoutine());
+
+        //Inform that the routine was finished
+        showToastNotificationRoutine = null;
+    }
+
+    private IEnumerator<Wait> HideToastRoutine()
+    {
+        //Disable the dismiss button
+        toastNotificationDismissButton.IsEnabled = false;
+
+        //Restore the window title
+        this.Title = originalWindowTitle;
+
+        //Call the exit animation
+        ((Animation)this.Resources["toastNotificationExit"]).RunAsync(toastNotificationRoot);
+
+        //Wait until the end of the animation
+        yield return new Wait(0.5f);
+
+        //Reset the toast notification
+        toastNotificationRoot.Margin = new Thickness(0, -256.0f, 0, 0);
+        toastNotificationTimeBar.Value = 100.0f;
+        toastNotificationRoot.IsVisible = false;
+
+        //Inform that the routine was finished
+        hideToastNotificationRoutine = null;
     }
 
     //Tasks manager
@@ -706,5 +991,31 @@ public partial class MainWindow : Window
 
     //Auxiliar methods
 
-    //...
+    public string GetStringApplicationResource(string resourceKey)
+    {
+        //Prepare the string to return
+        string toReturn = "###";
+
+        //Get the resource
+        bool foundResource = (this.Resources.MergedDictionaries[0].TryGetResource(resourceKey, this.ActualThemeVariant, out object? resourceGetted));
+        if (foundResource == true)
+            if (resourceGetted != null)
+                toReturn = (string)resourceGetted;
+
+        //Return the string
+        return toReturn;
+    }
+
+    private void InstallUpdateForApp()
+    {
+        //Block interactions
+        SetActiveInteractionBlocker(true);
+
+        //Disable the button
+        updateAppButton.IsEnabled = false;
+
+        //Start the process of Motoplay Installer
+        Process updaterProcess = new Process() { StartInfo = new ProcessStartInfo() { FileName = (motoplayRootPath + "/Installer/InstallerMotoplay.Desktop"), Arguments = "online" }};
+        updaterProcess.Start();
+    }
 }
