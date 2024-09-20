@@ -42,6 +42,21 @@ public partial class MainWindow : Window
         Normal,
         Problem
     }
+    public enum ScrollDirection
+    {
+        Up,
+        Down
+    }
+    public enum AppPage
+    {
+        VehiclePanel,
+        GeneralMetrics,
+        MusicPlayer,
+        WebBrowser,
+        UsbCamera,
+        MirrorPhone,
+        AppPreferences
+    }
 
     //Cache variables
     private Process terminalCliProcess = null;
@@ -59,6 +74,7 @@ public partial class MainWindow : Window
     private string[] receivedCliArgs = null;
     private string systemCurrentUsername = "";
     private string motoplayRootPath = "";
+    private Preferences appPrefs = null;
     private string originalWindowTitle = "";
     private string applicationVersion = "";
 
@@ -146,6 +162,11 @@ public partial class MainWindow : Window
                 Directory.CreateDirectory(motoplayRootPath);
         }
 
+        //Load the preferences
+        appPrefs = new Preferences((motoplayRootPath + "/PersistentData/preferences.json"));
+        //Update the preferences on UI
+        UpdatePreferencesOnUI();
+
         //Get the original title of this window
         originalWindowTitle = this.Title;
 
@@ -157,7 +178,7 @@ public partial class MainWindow : Window
         //Load the correct language resource file for the app
         this.Resources.MergedDictionaries.Clear();
         string resourceDictionaryUri = "";
-        switch ("en-us")
+        switch (appPrefs.loadedData.appLang)
         {
             case "en-us":
                 resourceDictionaryUri = "avares://Motoplay/Assets/Languages/LangStrings.axaml";
@@ -183,9 +204,25 @@ public partial class MainWindow : Window
         toastNotificationDismissButton.Click += (s, e) => { HideToastNow(); };
         updateAppButton.IsVisible = false;
         updateAppButton.Click += (s, e) => { InstallUpdateForApp(); };
+        rollMenuUp.Click += (s, e) => { ScrollMenuTo(ScrollDirection.Up); };
+        rollMenuDown.Click += (s, e) => { ScrollMenuTo(ScrollDirection.Down); };
+        menuQuitButton.Click += (s, e) => { QuitApplication(); };
+        menuPanelButton.Click += (s, e) => { SwitchAppPage(AppPage.VehiclePanel); };
+        menuMetricsButton.Click += (s, e) => { SwitchAppPage(AppPage.GeneralMetrics); };
+        menuPlayerButton.Click += (s, e) => { SwitchAppPage(AppPage.MusicPlayer); };
+        menuBrowserButton.Click += (s, e) => { SwitchAppPage(AppPage.WebBrowser); };
+        menuCameraButton.Click += (s, e) => { SwitchAppPage(AppPage.UsbCamera); };
+        menuPhoneButton.Click += (s, e) => { SwitchAppPage(AppPage.MirrorPhone); };
+        menuPreferencesButton.Click += (s, e) => { SwitchAppPage(AppPage.AppPreferences); };
+
+        //Switch to Panel page
+        SwitchAppPage(AppPage.VehiclePanel);
 
         //Start a terminal for CLI process
         StartBindedCliTerminalProcess();
+
+        //Run the hook of finished preparation of UI
+        OnDonePreparationOfUI();
     }
 
     private void StartBindedCliTerminalProcess()
@@ -508,6 +545,114 @@ public partial class MainWindow : Window
             }
         };
         asyncTask.Execute(AsyncTaskSimplified.ExecutionMode.NewDefaultThread);
+    }
+
+    private void OnDonePreparationOfUI()
+    {
+        //Prepare the UI for Vehicle Panel
+        PrepareTheVehiclePanel();
+    }
+
+    //Vehicle Panel methods
+
+    public void PrepareTheVehiclePanel()
+    {
+        //If don't have a configured OBD adapter, start the setup and stop here
+        if (appPrefs.loadedData.configuredObdBtAdapter.haveConfigured == false)
+        {
+            StartObdBluetoothSetup();
+            return;
+        }
+
+        //....
+    }
+
+    public void StartObdBluetoothSetup()
+    {
+
+    }
+
+    //Pages Manager
+
+    private void SwitchAppPage(AppPage targetPage)
+    {
+        //Build a list of page menu buttons
+        List<Button> pageButtons = new List<Button>();
+        pageButtons.Add(menuPanelButton);
+        pageButtons.Add(menuMetricsButton);
+        pageButtons.Add(menuPlayerButton);
+        pageButtons.Add(menuBrowserButton);
+        pageButtons.Add(menuCameraButton);
+        pageButtons.Add(menuPhoneButton);
+        pageButtons.Add(menuPreferencesButton);
+
+        //Build a list of page backgrounds
+        List<Grid> pageBackgrounds = new List<Grid>();
+        pageBackgrounds.Add(pageBgForPanel);
+        pageBackgrounds.Add(pageBgForMetrics);
+        pageBackgrounds.Add(pageBgForPlayer);
+        pageBackgrounds.Add(pageBgForBrowser);
+        pageBackgrounds.Add(pageBgForCamera);
+        pageBackgrounds.Add(pageBgForPhone);
+        pageBackgrounds.Add(pageBgForPreferences);
+
+        //Build a list of page contents
+        List<Grid> pageContents = new List<Grid>();
+        pageContents.Add(pageContentForPanel);
+        pageContents.Add(pageContentForMetrics);
+        pageContents.Add(pageContentForPlayer);
+        pageContents.Add(pageContentForBrowser);
+        pageContents.Add(pageContentForCamera);
+        pageContents.Add(pageContentForPhone);
+        pageContents.Add(pageContentForPreferences);
+
+        //Set all menu buttons as default
+        foreach (Button item in pageButtons)
+        {
+            item.BorderThickness = new Thickness(0.0f, 0.0f, 0.0f, 0.0f);
+            item.BorderBrush = new SolidColorBrush(new Color(255, 255, 255, 255));
+        }
+        //Disable all page backgrounds
+        foreach (Grid item in pageBackgrounds)
+            item.IsVisible = false;
+        //Disable all page contents
+        foreach (Grid item in pageContents)
+            item.IsVisible = false;
+
+        //Prepare the target page int ID
+        int targetPageIndex = -1;
+        //Translate the target page from enum to int ID
+        switch (targetPage)
+        {
+            case AppPage.VehiclePanel: targetPageIndex = 0; break;
+            case AppPage.GeneralMetrics: targetPageIndex = 1; break;
+            case AppPage.MusicPlayer: targetPageIndex = 2; break;
+            case AppPage.WebBrowser: targetPageIndex = 3; break;
+            case AppPage.UsbCamera: targetPageIndex = 4; break;
+            case AppPage.MirrorPhone: targetPageIndex = 5; break;
+            case AppPage.AppPreferences: targetPageIndex = 6; break;
+        }
+
+        //Set color for the selected page menu item
+        pageButtons[targetPageIndex].BorderThickness = new Thickness(4.0f, 4.0f, 4.0f, 4.0f);
+        pageButtons[targetPageIndex].BorderBrush = new SolidColorBrush(new Color(255, 35, 161, 207));
+        pageBackgrounds[targetPageIndex].IsVisible = true;
+        pageContents[targetPageIndex].IsVisible = true;
+    }
+
+    //Preferences manager
+
+    private void UpdatePreferencesOnUI()
+    {
+        //...
+    }
+
+    private void SaveAllPreferences()
+    {
+        //...
+
+        //Save the preferences to file
+        appPrefs.Save();
     }
 
     //Interaction Blocker Manager
@@ -1017,5 +1162,96 @@ public partial class MainWindow : Window
         //Start the process of Motoplay Installer
         Process updaterProcess = new Process() { StartInfo = new ProcessStartInfo() { FileName = (motoplayRootPath + "/Installer/InstallerMotoplay.Desktop"), Arguments = "online" }};
         updaterProcess.Start();
+    }
+    
+    private void ScrollMenuTo(ScrollDirection direction)
+    {
+        //Start the routine of scroll
+        CoroutineHandler.Start(ScrollMenuToRoutine(direction));
+    }
+
+    private IEnumerator<Wait> ScrollMenuToRoutine(ScrollDirection direction)
+    {
+        //Disable the buttons
+        rollMenuUp.IsEnabled = false;
+        rollMenuUp.Opacity = 0.35;
+        rollMenuDown.IsEnabled = false;
+        rollMenuDown.Opacity = 0.35;
+
+        //Prepare the data
+        float incrementScrollValue = 200.0f;
+        float originScrollValue = (float) menuItensScroll.Offset.Y;
+
+        //Prepare the timer data
+        long startTime = DateTime.Now.Ticks;
+        long currentTime = startTime;
+        float durationTime = 0.25f;
+        float elapsedTime = 0;
+        //Start a loop of regressive count
+        while (elapsedTime < durationTime)
+        {
+            //Update the current time
+            currentTime = DateTime.Now.Ticks;
+
+            //Update elapsed time
+            elapsedTime += (float)((new TimeSpan((currentTime - startTime))).TotalMilliseconds / 1000.0f);
+
+            //Update starttime
+            startTime = currentTime;
+
+            //If is to scroll to up...
+            if (direction == ScrollDirection.Up)
+                menuItensScroll.Offset = new Vector(0, (originScrollValue - (incrementScrollValue * (elapsedTime / durationTime))));
+            //If is to scroll to down...
+            if (direction == ScrollDirection.Down)
+                menuItensScroll.Offset = new Vector(0, (originScrollValue + (incrementScrollValue * (elapsedTime / durationTime))));
+
+            //Wait some time
+            yield return new Wait(0.01f);
+        }
+
+        //Fix the scroll values
+        if (menuItensScroll.Offset.Y < 0.0f)
+            menuItensScroll.Offset = new Vector(0, 0);
+        if (menuItensScroll.Offset.Y > menuItensScroll.ScrollBarMaximum.Y)
+            menuItensScroll.Offset = new Vector(0, menuItensScroll.ScrollBarMaximum.Y);
+
+        //Enable the buttons
+        rollMenuUp.IsEnabled = true;
+        rollMenuUp.Opacity = 1.0;
+        rollMenuDown.IsEnabled = true;
+        rollMenuDown.Opacity = 1.0;
+    }
+    
+    private void QuitApplication()
+    {
+        //Enable the iteraction blocker
+        SetActiveInteractionBlocker(true);
+
+        //Show the confirmation dialog
+        var dialogResult = MessageBoxManager.GetMessageBoxStandard(GetStringApplicationResource("quitApplication_dialogTitle"),
+                                                                   GetStringApplicationResource("quitApplication_dialogText"),
+                                                                   ButtonEnum.YesNo, MsBox.Avalonia.Enums.Icon.Question).ShowAsync();
+
+        //Register on finish dialog event
+        dialogResult.GetAwaiter().OnCompleted(() => 
+        {
+            //Process the result
+            if (dialogResult.Result == ButtonResult.Yes)
+            {
+                OnAboutToQuitApplication();
+                this.Close();
+            }
+            if (dialogResult.Result != ButtonResult.Yes)
+                SetActiveInteractionBlocker(false);
+        });
+    }
+
+    private void OnAboutToQuitApplication()
+    {
+        //Warn that is quiting the application
+        AvaloniaDebug.WriteLine("Closing Motoplay App...");
+
+        //...
     }
 }

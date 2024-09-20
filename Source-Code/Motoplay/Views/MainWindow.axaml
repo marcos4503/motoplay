@@ -54,7 +54,34 @@
 			<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 				<!-- Pages Background Area -->
 				<Grid Background="White" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-					
+					<!-- Vehicle Panel Background -->
+					<Grid Name="pageBgForPanel" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<Grid Background="Blue"></Grid>
+					</Grid>
+					<!-- General Metrics Button -->
+					<Grid Name="pageBgForMetrics" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<Grid Background="Yellow"></Grid>
+					</Grid>
+					<!-- Music Player Button -->
+					<Grid Name="pageBgForPlayer" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<Grid Background="Pink"></Grid>
+					</Grid>
+					<!-- Web Browser Button -->
+					<Grid Name="pageBgForBrowser" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<Grid Background="Orange"></Grid>
+					</Grid>
+					<!-- USB Camera Button -->
+					<Grid Name="pageBgForCamera" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<Grid Background="Red"></Grid>
+					</Grid>
+					<!-- Mirror Phone Button -->
+					<Grid Name="pageBgForPhone" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<Grid Background="Green"></Grid>
+					</Grid>
+					<!-- App Preferences Button -->
+					<Grid Name="pageBgForPreferences" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<Grid Background="Gray"></Grid>
+					</Grid>
 				</Grid>
 				<!-- Menu Bar Background Area -->
 				<Grid ColumnDefinitions="15.5*,85.0*" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -75,17 +102,48 @@
 							</Button>
 						</Grid>
 						<Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-							<ScrollViewer Background="White" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+							<ScrollViewer Name="menuItensScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Hidden" Offset="0, 0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 8, 0, 8">
 								<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="0, 8, 0, 8">
-									
+									<!-- Vehicle Panel Button -->
+									<Button Name="menuPanelButton" HorizontalAlignment="Center" VerticalAlignment="Top" Width="72" Height="72" CornerRadius="16" Background="#ededed" Padding="16, 16, 16, 16" BorderThickness="0" BorderBrush="White">
+										<Image Source="/Assets/menu-panel-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7"></Image>
+									</Button>
+									<!-- General Metrics Button -->
+									<Button Name="menuMetricsButton" HorizontalAlignment="Center" VerticalAlignment="Top" Width="72" Height="72" CornerRadius="16" Background="#ededed" Padding="16, 16, 16, 16" BorderThickness="0" BorderBrush="White">
+										<Image Source="/Assets/menu-metrics-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7"></Image>
+									</Button>
+									<!-- Music Player Button -->
+									<Button Name="menuPlayerButton" HorizontalAlignment="Center" VerticalAlignment="Top" Width="72" Height="72" CornerRadius="16" Background="#ededed" Padding="16, 16, 16, 16" BorderThickness="0" BorderBrush="White">
+										<Image Source="/Assets/menu-musics-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7"></Image>
+									</Button>
+									<!-- Web Browser Button -->
+									<Button Name="menuBrowserButton" HorizontalAlignment="Center" VerticalAlignment="Top" Width="72" Height="72" CornerRadius="16" Background="#ededed" Padding="16, 16, 16, 16" BorderThickness="0" BorderBrush="White">
+										<Image Source="/Assets/menu-browser-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7"></Image>
+									</Button>
+									<!-- USB Camera Button -->
+									<Button Name="menuCameraButton" HorizontalAlignment="Center" VerticalAlignment="Top" Width="72" Height="72" CornerRadius="16" Background="#ededed" Padding="16, 16, 16, 16" BorderThickness="0" BorderBrush="White">
+										<Image Source="/Assets/menu-camera-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7"></Image>
+									</Button>
+									<!-- Mirror Phone Button -->
+									<Button Name="menuPhoneButton" HorizontalAlignment="Center" VerticalAlignment="Top" Width="72" Height="72" CornerRadius="16" Background="#ededed" Padding="16, 16, 16, 16" BorderThickness="0" BorderBrush="White">
+										<Image Source="/Assets/menu-phone-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7"></Image>
+									</Button>
+									<!-- App Preferences Button -->
+									<Button Name="menuPreferencesButton" HorizontalAlignment="Center" VerticalAlignment="Top" Width="72" Height="72" CornerRadius="16" Background="#ededed" Padding="16, 16, 16, 16" BorderThickness="0" BorderBrush="White">
+										<Image Source="/Assets/menu-preferences-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7"></Image>
+									</Button>
+									<!-- App Quit Button -->
+									<Button Name="menuQuitButton" HorizontalAlignment="Center" VerticalAlignment="Top" Width="72" Height="72" CornerRadius="16" Background="#ededed" Padding="16, 16, 16, 16">
+										<Image Source="/Assets/menu-quit-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7"></Image>
+									</Button>
 								</StackPanel>
 							</ScrollViewer>
-							<!-- Transitions -->
+							<!-- Gradients of Border of Menu Itens -->
 							<Grid HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="10" Width="10">
 								<Grid.RenderTransform>
 									<TransformGroup>
 										<ScaleTransform ScaleX="1.0" ScaleY="8.4"></ScaleTransform>
-										<TranslateTransform X="0" Y="0"></TranslateTransform>
+										<TranslateTransform X="8" Y="0"></TranslateTransform>
 										<RotateTransform CenterX="0" CenterY="0" Angle="90"></RotateTransform>
 									</TransformGroup>
 								</Grid.RenderTransform>
@@ -95,7 +153,7 @@
 								<Grid.RenderTransform>
 									<TransformGroup>
 										<ScaleTransform ScaleX="1.0" ScaleY="8.4"></ScaleTransform>
-										<TranslateTransform X="0"  Y="0"></TranslateTransform>
+										<TranslateTransform X="8"  Y="0"></TranslateTransform>
 										<RotateTransform CenterX="0" CenterY="0" Angle="-90"></RotateTransform>
 									</TransformGroup>
 								</Grid.RenderTransform>
@@ -113,7 +171,34 @@
 				<Grid Grid.Row="0" Grid.Column="1" Background="#ababab"></Grid>
 				<!-- Page Area -->
 				<Grid Grid.Row="0" Grid.Column="2">
-					
+					<!-- Vehicle Panel Page Content -->
+					<Grid Name="pageContentForPanel" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<TextBlock Text="Panel"></TextBlock>
+					</Grid>
+					<!-- General Metrics Page Content -->
+					<Grid Name="pageContentForMetrics" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<TextBlock Text="Metrics"></TextBlock>
+					</Grid>
+					<!-- Music Player Page Content -->
+					<Grid Name="pageContentForPlayer" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<TextBlock Text="Player"></TextBlock>
+					</Grid>
+					<!-- Web Browser Page Content -->
+					<Grid Name="pageContentForBrowser" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<TextBlock Text="Browser"></TextBlock>
+					</Grid>
+					<!-- USB Camera Page Content -->
+					<Grid Name="pageContentForCamera" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<TextBlock Text="Camera"></TextBlock>
+					</Grid>
+					<!-- Mirror Phone Page Content -->
+					<Grid Name="pageContentForPhone" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<TextBlock Text="Phone"></TextBlock>
+					</Grid>
+					<!-- App Preferences Page Content -->
+					<Grid Name="pageContentForPreferences" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<TextBlock Text="Preferences"></TextBlock>
+					</Grid>
 				</Grid>
 			</Grid>
 

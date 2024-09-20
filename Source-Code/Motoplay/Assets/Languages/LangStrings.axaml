@@ -7,5 +7,9 @@
 	
 	<!-- Toast Notification -->
 	<x:String x:Key="toastNotification_dismissButton">Dismiss</x:String>
+
+	<!-- Quit Application -->
+	<x:String x:Key="quitApplication_dialogTitle">Close Motoplay?</x:String>
+	<x:String x:Key="quitApplication_dialogText">Are you sure you want to close Motoplay?</x:String>
 	
 </ResourceDictionary>

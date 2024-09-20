@@ -64,7 +64,7 @@ public partial class App : Application
 
 
         //Prepare a new application thread for update loop of Coroutines
-        coroutinesLoop_Timer = new Timer(33);      //<- Targeting 30 FPS
+        coroutinesLoop_Timer = new Timer(22);      //<- Targeting 45 FPS
         coroutinesLoop_Timer.Elapsed += (s, e) => {
             //Get current time
             coroutinesLoop_currentTime = DateTime.Now;
