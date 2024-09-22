@@ -11,5 +11,34 @@
 	<!-- Quit Application -->
 	<x:String x:Key="quitApplication_dialogTitle">Close Motoplay?</x:String>
 	<x:String x:Key="quitApplication_dialogText">Are you sure you want to close Motoplay?</x:String>
-	
+
+	<!-- Vehicle Panel Page -->
+	<x:String x:Key="vehiclePanel_setupIntroText">Oops! It looks like there is no Bluetooth OBD Adapter device configured for use by the Panel. You will need to configure one. Make sure the vehicle have the engine working and the Bluetooth OBD Adapter is plugged to the vehicle OBD-II port.
+
+Note that in order for this to work, no other device must already be connected to the OBD Adapter, and the Adapter must be in Bluetooth pairing mode. Some devices have a button on their case that you can press to enter pairing mode.
+
+When you are ready, click the button below to get started!</x:String>
+	<x:String x:Key="vehiclePanel_setupIntroButton">Start Setup</x:String>
+	<x:String x:Key="vehiclePanel_setupEnableBluetoothError">There was a problem on preparing Bluetooth. Make sure your Raspberry Pi Bluetooth is turned on!</x:String>
+	<x:String x:Key="vehiclePanel_setupSearchTitle">Searching for Nearby Bluetooth Devices</x:String>
+	<x:String x:Key="vehiclePanel_setupSearchNotFound">No Bluetooth Devices Found So Far!</x:String>
+	<x:String x:Key="vehiclePanel_setupRefreshScanButton">Refresh Devices</x:String>
+	<x:String x:Key="vehiclePanel_setupPasswordTitle">Device Information</x:String>
+	<x:String x:Key="vehiclePanel_setupPasswordName">Device Name</x:String>
+	<x:String x:Key="vehiclePanel_setupPasswordMac">Device MAC Address</x:String>
+	<x:String x:Key="vehiclePanel_setupPasswordPassword">Device Password</x:String>
+	<x:String x:Key="vehiclePanel_setupPasswordHint">Enter the device PIN, if necessary!</x:String>
+	<x:String x:Key="vehiclePanel_setupPasswordHint2">TIP: Usually the PIN for OBD Adapters is 0000 or 1234.</x:String>
+	<x:String x:Key="vehiclePanel_setupPasswordGoBack">Go Back</x:String>
+	<x:String x:Key="vehiclePanel_setupPasswordGoPair">Pair</x:String>
+	<x:String x:Key="vehiclePanel_setupPairingTitle">Pairing With Selected Device</x:String>
+	<x:String x:Key="vehiclePanel_setupPairingError">Unable to pair with device "%d". Make sure the device is still available for Pairing, and that you have provided the correct PIN Code, if required.
+
+Error Code: "%e".</x:String>
+	<x:String x:Key="vehiclePanel_setupPairingSuccess">Pairing with device "%d" was successful! Now this device will be used as Bluetooth OBD Adapter by default!</x:String>
+	<x:String x:Key="vehiclePanel_odbConnectInitialStatus">Connecting to Bluetooth OBD Adapter</x:String>
+	<x:String x:Key="vehiclePanel_odbConnectUnpairButton">Cancel and Unpair</x:String>
+	<x:String x:Key="vehiclePanel_odbConnectTryStatus">Establishing Bluetooth Serial Connection With %d
+Attempt #%n</x:String>
+
 </ResourceDictionary>

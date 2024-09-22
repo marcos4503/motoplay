@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" x:Class="Motoplay.BluetoothDeviceItem"
+			 d:DesignWidth="800" d:DesignHeight="450">
+
+	<!-- Root Element -->
+	<Grid Name="rootElement" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+		<Border Background="White" HorizontalAlignment="Stretch" VerticalAlignment="Top" BorderThickness="2" BorderBrush="#e3e3e3" Padding="8, 8, 8, 8" CornerRadius="8">
+			<Grid Background="White" ColumnDefinitions="32,16,*,*" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+				<Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+					<Image Source="/Assets/bluetooth-device-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.75"></Image>
+				</Grid>
+				<Grid Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Grid>
+				<Grid Grid.Row="0" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+					<TextBlock Background="White" Name="btDeviceName" Text="Place Holder" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+				</Grid>
+				<Grid Grid.Row="0" Grid.Column="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+					<TextBlock Background="White" Name="btDeviceMac" Text="Place Holder" HorizontalAlignment="Right" VerticalAlignment="Center" Opacity="0.5"></TextBlock>
+				</Grid>
+			</Grid>
+		</Border>
+	</Grid>
+	
+</UserControl>

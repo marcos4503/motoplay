@@ -56,7 +56,11 @@
 				<Grid Background="White" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 					<!-- Vehicle Panel Background -->
 					<Grid Name="pageBgForPanel" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-						<Grid Background="Blue"></Grid>
+						<Grid Name="backgroundForPanelSetupAndConnect" IsVisible="False" Background="White" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						</Grid>
+						<Grid Name="backgroundForPanelContent" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+
+						</Grid>
 					</Grid>
 					<!-- General Metrics Button -->
 					<Grid Name="pageBgForMetrics" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -172,8 +176,79 @@
 				<!-- Page Area -->
 				<Grid Grid.Row="0" Grid.Column="2">
 					<!-- Vehicle Panel Page Content -->
-					<Grid Name="pageContentForPanel" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-						<TextBlock Text="Panel"></TextBlock>
+					<Grid Name="pageContentForPanel" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<!-- OBD Adapter Setup -->
+						<Grid Name="vehiclePanel_obdSetupScreen" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+							<Grid Name="vehiclePanel_obdSetup_InitialStep" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+								<StackPanel Orientation="Vertical" Spacing="16" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="550">
+									<Image Source="/Assets/obd-setup-image.png" HorizontalAlignment="Center" VerticalAlignment="Top" Width="128" Opacity="0.75"></Image>
+									<TextBlock Text="{DynamicResource ResourceKey=vehiclePanel_setupIntroText}" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Top" TextAlignment="Center"></TextBlock>
+									<Button Name="vehiclePanel_obdSetup_startButton" Content="{DynamicResource ResourceKey=vehiclePanel_setupIntroButton}" HorizontalAlignment="Center" VerticalAlignment="Top" Width="128" HorizontalContentAlignment="Center" Margin="0, 16, 0, 0"></Button>
+								</StackPanel>
+							</Grid>
+							<Grid Name="vehiclePanel_obdSetup_Search" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+								<TextBlock Text="{DynamicResource ResourceKey=vehiclePanel_setupSearchTitle}" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Medium" FontSize="16" LineHeight="32" Margin="16, 8, 0, 0"></TextBlock>
+								<Rectangle Fill="#ababab" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="1" Margin="0, 48, 0, 0" Opacity="0.5"></Rectangle>
+								<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Offset="0, 0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 48, 0, 48">
+									<StackPanel Name="vehiclePanel_obdSetup_devicesList" Orientation="Vertical" Spacing="8" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="128, 8, 128, 8">
+										<TextBlock Name="vehiclePanel_obdSetup_noDevice" Text="{DynamicResource ResourceKey=vehiclePanel_setupSearchNotFound}" HorizontalAlignment="Stretch" VerticalAlignment="Top" TextAlignment="Center" Opacity="0.5" Margin="0, 16, 0, 0"></TextBlock>
+									</StackPanel>
+								</ScrollViewer>
+								<Rectangle Fill="#ababab" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="1" Margin="0, 0, 0, 48" Opacity="0.5"></Rectangle>
+								<Button Name="vehiclePanel_obdSetup_refreshScanButton" IsEnabled="False" Content="{DynamicResource ResourceKey=vehiclePanel_setupRefreshScanButton}" HorizontalAlignment="Center" VerticalAlignment="Bottom" Height="32" Width="150" HorizontalContentAlignment="Center" Margin="0, 0, 0, 8"></Button>
+							</Grid>
+							<Grid Name="vehiclePanel_obdSetup_Password" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+								<TextBlock Text="{DynamicResource ResourceKey=vehiclePanel_setupPasswordTitle}" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Medium" FontSize="16" LineHeight="32" Margin="16, 8, 0, 0"></TextBlock>
+								<Rectangle Fill="#ababab" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="1" Margin="0, 48, 0, 0" Opacity="0.5"></Rectangle>
+								<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Offset="0, 0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 48, 0, 48">
+									<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Top" MaxWidth="256" Margin="0, 8, 0, 0">
+										<Image Source="/Assets/bluetooth-hd-icon.png" HorizontalAlignment="Center" VerticalAlignment="Top" Width="100" Opacity="0.75"></Image>
+										<StackPanel Orientation="Vertical" Spacing="4" HorizontalAlignment="Stretch" VerticalAlignment="Top" Width="256">
+											<TextBlock Text="{DynamicResource ResourceKey=vehiclePanel_setupPasswordName}" FontSize="12" Opacity="0.5"></TextBlock>
+											<TextBox Name="vehiclePanel_obdSetup_inputName" Text="Place Holder" IsEnabled="False"></TextBox>
+										</StackPanel>
+										<StackPanel Orientation="Vertical" Spacing="4" HorizontalAlignment="Stretch" VerticalAlignment="Top" Width="256">
+											<TextBlock Text="{DynamicResource ResourceKey=vehiclePanel_setupPasswordMac}" FontSize="12" Opacity="0.5"></TextBlock>
+											<TextBox Name="vehiclePanel_obdSetup_inputMac" Text="Place Holder" IsEnabled="False"></TextBox>
+										</StackPanel>
+										<StackPanel Orientation="Vertical" Spacing="4" HorizontalAlignment="Stretch" VerticalAlignment="Top" Width="256">
+											<TextBlock Text="{DynamicResource ResourceKey=vehiclePanel_setupPasswordPassword}" FontSize="12" Opacity="0.5"></TextBlock>
+											<TextBox Name="vehiclePanel_obdSetup_inputPin" Watermark="{DynamicResource ResourceKey=vehiclePanel_setupPasswordHint}" AcceptsReturn="False" AcceptsTab="False"></TextBox>
+											<TextBlock Text="{DynamicResource ResourceKey=vehiclePanel_setupPasswordHint2}" FontSize="10" Opacity="0.5"></TextBlock>
+										</StackPanel>
+									</StackPanel>
+								</ScrollViewer>
+								<Rectangle Fill="#ababab" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="1" Margin="0, 0, 0, 48" Opacity="0.5"></Rectangle>
+								<StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center" VerticalAlignment="Bottom" Height="32" Margin="0, 0, 0, 8">
+									<Button Name="vehiclePanel_obdSetup_backToSearch" Content="{DynamicResource ResourceKey=vehiclePanel_setupPasswordGoBack}" HorizontalAlignment="Left" VerticalAlignment="Center" Height="32" Width="150" HorizontalContentAlignment="Center"></Button>
+									<Button Name="vehiclePanel_obdSetup_goPair" Content="{DynamicResource ResourceKey=vehiclePanel_setupPasswordGoPair}" HorizontalAlignment="Left" VerticalAlignment="Center" Height="32" Width="150" HorizontalContentAlignment="Center"></Button>
+								</StackPanel>
+							</Grid>
+							<Grid Name="vehiclePanel_obdSetup_Pair" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+								<StackPanel Orientation="Vertical" Spacing="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+									<Grid HorizontalAlignment="Center" VerticalAlignment="Top" Width="150" Height="150">
+										<gif:GifImage HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="avares://Motoplay/Assets/bluetooth-pairing-gif.gif" Stretch="Fill" Opacity="0.8"/>
+										<Image Source="/Assets/bluetooth-device-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7" Margin="40, 40, 40, 40"></Image>
+									</Grid>
+									<TextBlock Text="{DynamicResource ResourceKey=vehiclePanel_setupPairingTitle}" HorizontalAlignment="Center" VerticalAlignment="Top"></TextBlock>
+								</StackPanel>
+							</Grid>
+						</Grid>
+						<!-- OBD Connect -->
+						<Grid Name="vehiclePanel_obdConnectScreen" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+							<StackPanel Orientation="Vertical" Spacing="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+								<Grid HorizontalAlignment="Center" VerticalAlignment="Top" Width="150" Height="150">
+									<gif:GifImage HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="avares://Motoplay/Assets/bluetooth-pairing-gif.gif" Stretch="Fill" Opacity="0.8"/>
+									<Image Source="/Assets/odb-connect-hd.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7" Margin="44, 44, 44, 44"></Image>
+								</Grid>
+								<TextBlock Name="vehiclePanel_odbConnect_statusText" Text="Place Holder" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Top"></TextBlock>
+								<Button Name="vehiclePanel_obdConnect_unpairButton" Content="{DynamicResource ResourceKey=vehiclePanel_odbConnectUnpairButton}" HorizontalAlignment="Center" VerticalAlignment="Top" Height="32" HorizontalContentAlignment="Center" Background="#940000" Foreground="#f2f2f2" Margin="0, 32, 0, 0"></Button>
+							</StackPanel>
+						</Grid>
+						<!-- Panel -->
+						<Grid Name="vehiclePanel_panelScreen" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+							
+						</Grid>
 					</Grid>
 					<!-- General Metrics Page Content -->
 					<Grid Name="pageContentForMetrics" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">

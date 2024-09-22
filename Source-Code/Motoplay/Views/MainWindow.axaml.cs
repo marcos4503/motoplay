@@ -8,6 +8,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
 using Coroutine;
+using HarfBuzzSharp;
 using MarcosTomaz.ATS;
 using Motoplay.Scripts;
 using MsBox.Avalonia;
@@ -57,6 +58,23 @@ public partial class MainWindow : Window
         MirrorPhone,
         AppPreferences
     }
+    public enum BluetoothDeviceAction
+    {
+        Unknown,
+        Appeared,
+        Disappeared
+    }
+
+    //Classes of script
+    private class BluetoothDeviceInScanLogs()
+    {
+        //This class stores information about a bluetooth device registered in logs of scan
+
+        //Public variables
+        public BluetoothDeviceAction action = BluetoothDeviceAction.Unknown;
+        public string deviceName = "";
+        public string deviceMac = "";
+    }
 
     //Cache variables
     private Process terminalCliProcess = null;
@@ -69,6 +87,13 @@ public partial class MainWindow : Window
     private ActiveCoroutine openKeyboardTipRoutine = null;
     private ActiveCoroutine showToastNotificationRoutine = null;
     private ActiveCoroutine hideToastNotificationRoutine = null;
+    private Process bluetoothctlCliProcess = null;
+    private List<string> bluetoothctlReceivedOutputLines = new List<string>();
+    private ActiveCoroutine bluetoothSearchRoutine = null;
+    private List<BluetoothDeviceItem> instantiatedBluetoothDevicesInUi = new List<BluetoothDeviceItem>();
+    private ActiveCoroutine unpairThePairedObdDeviceRoutine = null;
+    private int triesOfConnectionForBluetoothObdDevice = -1;
+    private ActiveCoroutine bluetoothObdDeviceConnectionRoutine = null;
 
     //Private variables
     private string[] receivedCliArgs = null;
@@ -77,6 +102,7 @@ public partial class MainWindow : Window
     private Preferences appPrefs = null;
     private string originalWindowTitle = "";
     private string applicationVersion = "";
+    private ObdAdapterHandler activeObdConnection = null;
 
     //Core methods
 
@@ -220,9 +246,6 @@ public partial class MainWindow : Window
 
         //Start a terminal for CLI process
         StartBindedCliTerminalProcess();
-
-        //Run the hook of finished preparation of UI
-        OnDonePreparationOfUI();
     }
 
     private void StartBindedCliTerminalProcess()
@@ -331,6 +354,11 @@ public partial class MainWindow : Window
 
         //Check if have updates for Motoplay App
         CoroutineHandler.Start(CheckIfHaveUpdatesForApp());
+
+
+
+        //Prepare the UI for Vehicle Panel
+        PrepareTheVehiclePanel();
     }
 
     private IEnumerator<Wait> KillPossibleExistingVirtualKeyboardProcess()
@@ -547,29 +575,788 @@ public partial class MainWindow : Window
         asyncTask.Execute(AsyncTaskSimplified.ExecutionMode.NewDefaultThread);
     }
 
-    private void OnDonePreparationOfUI()
-    {
-        //Prepare the UI for Vehicle Panel
-        PrepareTheVehiclePanel();
-    }
-
     //Vehicle Panel methods
 
-    public void PrepareTheVehiclePanel()
+    private void PrepareTheVehiclePanel()
     {
-        //If don't have a configured OBD adapter, start the setup and stop here
+        //Prepare the UI of Vehicle Panel
+        vehiclePanel_obdSetup_startButton.Click += (s, e) => { StartTheBluetoothctlBindedCliTerminal(); };
+        vehiclePanel_obdSetup_backToSearch.Click += (s, e) => { StartBluetoothDevicesSearch(); };
+        vehiclePanel_obdSetup_goPair.Click += (s, e) => { StartPairWithTargetBluetoothDevice(); };
+        vehiclePanel_obdConnect_unpairButton.Click += (s, e) => { UnpairTheCurrentlyPairedBluetoothObdDevice(); };
+
+        //Start the vehicle panel
+        StartVehiclePanel();
+    }
+
+    private void StartVehiclePanel()
+    {
+        //If don't have a configured OBD adapter, start the setup...
         if (appPrefs.loadedData.configuredObdBtAdapter.haveConfigured == false)
         {
-            StartObdBluetoothSetup();
+            StartBluetoothObdAdapterSetup();
             return;
         }
 
-        //....
+        //Reset the connect try count
+        triesOfConnectionForBluetoothObdDevice = 1;
+
+        //Connect to the paired Bluetooth OBD adapter
+        ConnectToPairedBluetoothObdDeviceAndStablishSerialPort();
     }
 
-    public void StartObdBluetoothSetup()
-    {
+    //Vehicle Panel methods: Setup Flow
 
+    private void StartBluetoothObdAdapterSetup()
+    {
+        //Change to background of setup and connect
+        backgroundForPanelSetupAndConnect.IsVisible = true;
+        backgroundForPanelContent.IsVisible = false;
+
+        //Change to screen of setup
+        vehiclePanel_obdSetupScreen.IsVisible = true;
+        vehiclePanel_obdConnectScreen.IsVisible = false;
+        vehiclePanel_panelScreen.IsVisible = false;
+
+        //Change to initial step of setup
+        vehiclePanel_obdSetup_InitialStep.IsVisible = true;
+        vehiclePanel_obdSetup_Search.IsVisible = false;
+        vehiclePanel_obdSetup_Password.IsVisible = false;
+        vehiclePanel_obdSetup_Pair.IsVisible = false;
+
+        //Wait until user click in "Start Setup" button...
+    }
+
+    private void StartTheBluetoothctlBindedCliTerminal()
+    {
+        //Start coroutine to start the Bluetoothctl Binded CLI Terminal
+        CoroutineHandler.Start(StartTheBluetoothctlBindedCliTerminalRoutine());
+    }
+
+    private IEnumerator<Wait> StartTheBluetoothctlBindedCliTerminalRoutine()
+    {
+        //Add this task running
+        AddTask("startBluetoothctl", "Start the Bluetoothctl binded CLI Process.");
+
+        //Disable the "Start Setup" button
+        vehiclePanel_obdSetup_startButton.IsEnabled = false;
+
+
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+        //Send command to stop the bluetooth service
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo systemctl stop bluetooth.service");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+        //Wait time
+        yield return new Wait(0.5f);
+
+        //Send command to start the bluetooth service
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo systemctl start bluetooth.service");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+        //Wait time
+        yield return new Wait(0.5f);
+
+        //Warn
+        AvaloniaDebug.WriteLine("Starting BluetoothCTL Binded Cli Terminal...");
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //Reset the received output lines
+        bluetoothctlReceivedOutputLines.Clear();
+
+        //Start the "bluetoothctl" direct terminal process
+        Process bluetoothctlProcess = new Process() { StartInfo = new ProcessStartInfo() { FileName = "/usr/bin/bluetoothctl", Arguments = "" } };
+        bluetoothctlProcess.StartInfo.UseShellExecute = false;
+        bluetoothctlProcess.StartInfo.CreateNoWindow = true;
+        bluetoothctlProcess.StartInfo.RedirectStandardInput = true;
+        bluetoothctlProcess.StartInfo.RedirectStandardOutput = true;
+        bluetoothctlProcess.StartInfo.RedirectStandardError = true;
+
+        //Register receivers of all outputs from terminal
+        bluetoothctlProcess.ErrorDataReceived += new DataReceivedEventHandler((s, e) =>
+        {
+            //Store the lines and resend to debug
+            bluetoothctlReceivedOutputLines.Add(e.Data);
+            AvaloniaDebug.WriteLine(("BindedBluetoothCTL -> " + e.Data));
+        });
+        bluetoothctlProcess.OutputDataReceived += new DataReceivedEventHandler((s, e) =>
+        {
+            //Store the lines and resend to debug
+            bluetoothctlReceivedOutputLines.Add(e.Data);
+            AvaloniaDebug.WriteLine(("BindedBluetoothCTL -> " + e.Data));
+        });
+
+        //Start the process
+        bluetoothctlProcess.Start();
+        bluetoothctlProcess.BeginOutputReadLine();
+        bluetoothctlProcess.BeginErrorReadLine();
+        //Store the process reference
+        bluetoothctlCliProcess = bluetoothctlProcess;
+
+        //Wait time
+        yield return new Wait(0.5f);
+
+        //Send command to enable the agent
+        bluetoothctlCliProcess.StandardInput.WriteLine("agent on");
+
+        //Wait time
+        yield return new Wait(0.5f);
+
+        //Send command to power on
+        bluetoothctlCliProcess.StandardInput.WriteLine("power on");
+
+        //Wait time
+        yield return new Wait(3.0f);
+
+        //Check if the bluetoothctl was started successfully
+        bool wasStartedSuccessfully = false;
+        foreach (string line in bluetoothctlReceivedOutputLines)
+            if (line.Contains("Changing power on succeeded") == true)
+                wasStartedSuccessfully = true;
+        
+        //If was not started successfully
+        if (wasStartedSuccessfully == false)
+        {
+            //Notify the user
+            ShowToast(GetStringApplicationResource("vehiclePanel_setupEnableBluetoothError"), ToastDuration.Short, ToastType.Problem);
+
+            //Stop the Bluetoothctl binded terminal
+            StopTheBluetoothctlBindedCliTerminal();
+        }
+
+        //If was started successfully...
+        if (wasStartedSuccessfully == true)
+        {
+            //Start the bluetooth devices search
+            StartBluetoothDevicesSearch();
+        }
+        
+
+
+        //Enable the "Start Setup" button
+        vehiclePanel_obdSetup_startButton.IsEnabled = true;
+
+        //Add this task running
+        RemoveTask("startBluetoothctl");
+    }
+
+    private void StopTheBluetoothctlBindedCliTerminal()
+    {
+        //Warn
+        AvaloniaDebug.WriteLine("Stopping BluetoothCTL Binded Cli Terminal...");
+
+        //Send comand to exit
+        bluetoothctlCliProcess.StandardInput.WriteLine("exit");
+
+        //Clear the received output lines
+        bluetoothctlReceivedOutputLines.Clear();
+
+        //Clear the reference for the process
+        bluetoothctlCliProcess = null;
+    }
+
+    private void StartBluetoothDevicesSearch()
+    {
+        //Change to background of setup and connect
+        backgroundForPanelSetupAndConnect.IsVisible = true;
+        backgroundForPanelContent.IsVisible = false;
+
+        //Change to screen of setup
+        vehiclePanel_obdSetupScreen.IsVisible = true;
+        vehiclePanel_obdConnectScreen.IsVisible = false;
+        vehiclePanel_panelScreen.IsVisible = false;
+
+        //Change to search step
+        vehiclePanel_obdSetup_InitialStep.IsVisible = false;
+        vehiclePanel_obdSetup_Search.IsVisible = true;
+        vehiclePanel_obdSetup_Password.IsVisible = false;
+        vehiclePanel_obdSetup_Pair.IsVisible = false;
+
+        //Start the bluetooth devices search routine, if is not running
+        if (bluetoothSearchRoutine == null)
+            bluetoothSearchRoutine = CoroutineHandler.Start(BluetoothDevicesSearchRoutine());
+    }
+
+    private IEnumerator<Wait> BluetoothDevicesSearchRoutine()
+    {
+        //Add this task running
+        AddTask("bluetoothDevicesSearch", "Search for nearby Bluetooth Devices.");
+
+        //Warn to debug
+        AvaloniaDebug.WriteLine("Starting Bluetooth Devices Search...");
+
+        //Enable the no devices found warn
+        vehiclePanel_obdSetup_noDevice.IsVisible = true;
+        //Clear the devices found in the UI
+        foreach (BluetoothDeviceItem item in instantiatedBluetoothDevicesInUi)
+            vehiclePanel_obdSetup_devicesList.Children.Remove(item);
+        instantiatedBluetoothDevicesInUi.Clear();
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+        //Send command to bluetoothctl start scanning devices
+        bluetoothctlCliProcess.StandardInput.WriteLine("scan on");
+
+        //Wait time
+        yield return new Wait(3.0f);
+
+        //Prepare the data
+        int lastNumberOfBtCtlLogsSinceLastUiUpdate = -1;
+        //Start the bluetooth devices UI update loop
+        while (true)
+        {
+            //If the number of logs of bluetoothctl was changed since last UI update, update the UI again
+            if(bluetoothctlReceivedOutputLines.Count != lastNumberOfBtCtlLogsSinceLastUiUpdate)
+            {
+                //Warn to debug
+                AvaloniaDebug.WriteLine("Updating found Bluetooth Devices to UI!");
+
+                //Clear the devices found in the UI
+                foreach (BluetoothDeviceItem item in instantiatedBluetoothDevicesInUi)
+                    vehiclePanel_obdSetup_devicesList.Children.Remove(item);
+                instantiatedBluetoothDevicesInUi.Clear();
+
+                //Prepare a dictionary of nearby found devices
+                Dictionary<string, string> nearbyDevices = new Dictionary<string, string>();
+
+                //Analyze each log of bluetoothctl output
+                foreach (string log in bluetoothctlReceivedOutputLines)
+                {
+                    //Analyze the log and get the bluetooth device, if have
+                    BluetoothDeviceInScanLogs potentialDevice = AnalyzeLogAndGetPossibleBluetoothDeviceInfo(log);
+
+                    //If is not a device, skip to next log
+                    if (potentialDevice.action == BluetoothDeviceAction.Unknown)
+                        continue;
+
+                    //If is to add...
+                    if (potentialDevice.action == BluetoothDeviceAction.Appeared && nearbyDevices.ContainsKey(potentialDevice.deviceMac) == false)
+                        nearbyDevices.Add(potentialDevice.deviceMac, potentialDevice.deviceName);
+                    //If is to remove...
+                    if (potentialDevice.action == BluetoothDeviceAction.Disappeared && nearbyDevices.ContainsKey(potentialDevice.deviceMac) == true)
+                        nearbyDevices.Remove(potentialDevice.deviceMac);
+                }
+
+                //Render all found devices in the UI
+                foreach (var key in nearbyDevices)
+                {
+                    //Instantiate and store reference for it
+                    BluetoothDeviceItem item = new BluetoothDeviceItem(this);
+                    instantiatedBluetoothDevicesInUi.Add(item);
+                    vehiclePanel_obdSetup_devicesList.Children.Add(item);
+                    //Set it up
+                    item.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
+                    item.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top;
+                    item.Width = double.NaN;
+                    item.Height = double.NaN;
+                    //Fill this item
+                    item.SetDeviceName(key.Value);
+                    item.SetDeviceMAC(key.Key);
+                    item.RegisterOnClickCallback((btDeviceInfo) => 
+                    {
+                        //Stop the Bluetooth Devices search routine
+                        StopBluetoothDevicesSearch();
+
+                        //Start the pre pairing with the target device
+                        GoToPrePairingWithTargetBluetoothDevice(btDeviceInfo.btDeviceName.Text, btDeviceInfo.btDeviceMac.Text);
+                    });
+                }
+
+                //If not found devices, show warn
+                if (nearbyDevices.Keys.Count == 0)
+                    vehiclePanel_obdSetup_noDevice.IsVisible = true;
+                //If found devices, hide warn
+                if (nearbyDevices.Keys.Count > 0)
+                    vehiclePanel_obdSetup_noDevice.IsVisible = false;
+
+                //Update the last number of logs
+                lastNumberOfBtCtlLogsSinceLastUiUpdate = bluetoothctlReceivedOutputLines.Count;
+            }
+
+            //Wait time
+            yield return new Wait(0.5f);
+        }
+
+        //...
+    }
+
+    private void StopBluetoothDevicesSearch()
+    {
+        //Warn to debug
+        AvaloniaDebug.WriteLine("Stopping Bluetooth Devices Search...");
+
+        //Stop the search routine
+        if (bluetoothSearchRoutine != null)
+            bluetoothSearchRoutine.Cancel();
+
+        //Reset the routine reference
+        bluetoothSearchRoutine = null;
+
+        //Enable the no devices found warn
+        vehiclePanel_obdSetup_noDevice.IsVisible = true;
+        //Clear the devices found in the UI
+        foreach (BluetoothDeviceItem item in instantiatedBluetoothDevicesInUi)
+            vehiclePanel_obdSetup_devicesList.Children.Remove(item);
+        instantiatedBluetoothDevicesInUi.Clear();
+
+        //Send command to bluetoothctl stop scanning devices
+        bluetoothctlCliProcess.StandardInput.WriteLine("scan off");
+
+        //Remove the task
+        RemoveTask("bluetoothDevicesSearch");
+    }
+
+    private void GoToPrePairingWithTargetBluetoothDevice(string deviceName, string deviceMac)
+    {
+        //Change to background of setup and connect
+        backgroundForPanelSetupAndConnect.IsVisible = true;
+        backgroundForPanelContent.IsVisible = false;
+
+        //Change to screen of setup
+        vehiclePanel_obdSetupScreen.IsVisible = true;
+        vehiclePanel_obdConnectScreen.IsVisible = false;
+        vehiclePanel_panelScreen.IsVisible = false;
+
+        //Change to password step
+        vehiclePanel_obdSetup_InitialStep.IsVisible = false;
+        vehiclePanel_obdSetup_Search.IsVisible = false;
+        vehiclePanel_obdSetup_Password.IsVisible = true;
+        vehiclePanel_obdSetup_Pair.IsVisible = false;
+
+        //Show the device info in the UI
+        vehiclePanel_obdSetup_inputName.Text = deviceName;
+        vehiclePanel_obdSetup_inputMac.Text = deviceMac;
+        vehiclePanel_obdSetup_inputPin.Text = "";
+    }
+
+    private void StartPairWithTargetBluetoothDevice()
+    {
+        //Change to background of setup and connect
+        backgroundForPanelSetupAndConnect.IsVisible = true;
+        backgroundForPanelContent.IsVisible = false;
+
+        //Change to screen of setup
+        vehiclePanel_obdSetupScreen.IsVisible = true;
+        vehiclePanel_obdConnectScreen.IsVisible = false;
+        vehiclePanel_panelScreen.IsVisible = false;
+
+        //Change to pair step
+        vehiclePanel_obdSetup_InitialStep.IsVisible = false;
+        vehiclePanel_obdSetup_Search.IsVisible = false;
+        vehiclePanel_obdSetup_Password.IsVisible = false;
+        vehiclePanel_obdSetup_Pair.IsVisible = true;
+
+        //Start the bluetooth pair routine
+        CoroutineHandler.Start(PairWithTargetBluetoothDeviceRoutine());
+    }
+
+    private IEnumerator<Wait> PairWithTargetBluetoothDeviceRoutine()
+    {
+        //Add this task running
+        AddTask("bluetoothObdPair", "Pair with the Bluetooth Device.");
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+        //Get device information
+        string targetDeviceName = vehiclePanel_obdSetup_inputName.Text;
+        string targetDeviceMac = vehiclePanel_obdSetup_inputMac.Text;
+        string targetDevicePin = vehiclePanel_obdSetup_inputPin.Text;
+
+        //Clear the output received from the bluetoothctl binded
+        bluetoothctlReceivedOutputLines.Clear();
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+        //Send command to bluetooothctl remove the target device, for the case of is already paired
+        //bluetoothctlCliProcess.StandardInput.WriteLine(("remove " + targetDeviceMac));
+
+        //Wait time
+        //yield return new Wait(1.0f);
+
+        //Send command to bluetoothctl pair with the target device
+        bluetoothctlCliProcess.StandardInput.WriteLine(("pair " + targetDeviceMac));
+
+        //Wait time to ensure a good response time
+        yield return new Wait(8.0f);
+
+        //Send PIN code if necessary
+        foreach (string line in bluetoothctlReceivedOutputLines)
+            if (line.Contains("Request PIN code") == true)
+            {
+                //Send command to inform the PIN code
+                bluetoothctlCliProcess.StandardInput.WriteLine(targetDevicePin);
+
+                //Wait time to ensure a good response time
+                yield return new Wait(8.0f);
+
+                //Stop here the loop
+                break;
+            }
+
+        //Send YES to confirm, if necessary
+        foreach (string line in bluetoothctlReceivedOutputLines)
+            if (line.Contains("Request confirmation") == true)
+            {
+                //Send command to confirm
+                bluetoothctlCliProcess.StandardInput.WriteLine("yes");
+
+                //Wait time to ensure a good response time
+                yield return new Wait(8.0f);
+
+                //Stop here the loop
+                break;
+            }
+
+        //Wait until finish the pairing and detect the pairing result
+        bool isFinishedPairing = false;
+        bool isPairingSuccessfull = false;
+        while (isFinishedPairing == false)
+        {
+            //If found the log informing fail on pair, inform that is finished
+            foreach (string line in bluetoothctlReceivedOutputLines)
+                if (line.Contains("Failed to pair") == true)
+                {
+                    isFinishedPairing = true;
+                    isPairingSuccessfull = false;
+                }
+
+            //If found the log informing device not available, inform that is finished
+            foreach (string line in bluetoothctlReceivedOutputLines)
+                if (line.Contains("Device ") == true && line.Contains(" not available") == true)
+                {
+                    isFinishedPairing = true;
+                    isPairingSuccessfull = false;
+                }
+
+            //If found the log informing success on pair, inform that is finished
+            foreach (string line in bluetoothctlReceivedOutputLines)
+                if (line.Contains("Pairing successful") == true)
+                {
+                    isFinishedPairing = true;
+                    isPairingSuccessfull = true;
+                }
+
+            //Wait time before continue
+            yield return new Wait(0.5f);
+        }
+
+        //If not paired, go back to previous screen
+        if (isPairingSuccessfull == false)
+        {
+            //Go back to previous screen
+            GoToPrePairingWithTargetBluetoothDevice(targetDeviceName, targetDeviceMac);
+
+            //Get the error string
+            string errorString = "notFoundErrorCodeOrUnvailableDevice";
+            foreach (string line in bluetoothctlReceivedOutputLines)
+                if (line.Contains("org.bluez.Error") == true)
+                {
+                    //Inform the error string
+                    errorString = line.Replace("Failed to pair: org.bluez.Error.", "");
+
+                    //Break the loop
+                    break;
+                }
+
+            //Notify the user
+            ShowToast(GetStringApplicationResource("vehiclePanel_setupPairingError").Replace("%d", targetDeviceName).Replace("%e", errorString), ToastDuration.Long, ToastType.Problem);
+        }
+
+        //If paired successfull, continues...
+        if (isPairingSuccessfull == true)
+        {
+            //Send command to bluetoothctl trust the target device
+            bluetoothctlCliProcess.StandardInput.WriteLine(("trust " + targetDeviceMac));
+
+            //Wait time
+            yield return new Wait(3.0f);
+
+            //Save the info about the device
+            appPrefs.loadedData.configuredObdBtAdapter.haveConfigured = true;
+            appPrefs.loadedData.configuredObdBtAdapter.deviceName = targetDeviceName;
+            appPrefs.loadedData.configuredObdBtAdapter.deviceMac = targetDeviceMac;
+            appPrefs.loadedData.configuredObdBtAdapter.devicePassword = targetDevicePin;
+            SaveAllPreferences();
+
+            //Notify the user
+            ShowToast(GetStringApplicationResource("vehiclePanel_setupPairingSuccess").Replace("%d", targetDeviceName), ToastDuration.Long, ToastType.Normal);
+
+            //Stop the binded bluetoothctl CLI terminal
+            StopTheBluetoothctlBindedCliTerminal();
+
+            //Restart the vehicle panel
+            StartVehiclePanel();
+        }
+
+        //Remove this task running
+        RemoveTask("bluetoothObdPair");
+    }
+
+    //Vehicle Panel methods: Unpair Flow
+
+    private void UnpairTheCurrentlyPairedBluetoothObdDevice()
+    {
+        //Start the unpair routine, if is not running
+        if (unpairThePairedObdDeviceRoutine == null)
+            unpairThePairedObdDeviceRoutine = CoroutineHandler.Start(UnpairTheCurrentlyPairedBluetoothObdDeviceRoutine());
+    }
+
+    private IEnumerator<Wait> UnpairTheCurrentlyPairedBluetoothObdDeviceRoutine()
+    {
+        //Add this task running
+        AddTask("unpairPairedObdDevice", "Unpair the currently saved and paired Bluetooth Obd Device.");
+
+        //Show the interaction blocker
+        SetActiveInteractionBlocker(true);
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+
+
+        //Stop the routine of connection, if is trying to connect to the device, now
+        if (bluetoothObdDeviceConnectionRoutine != null)
+        {
+            bluetoothObdDeviceConnectionRoutine.Cancel();
+            bluetoothObdDeviceConnectionRoutine = null;
+        }
+
+
+
+        //Send command to unpair the paired device
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, ("bluetoothctl remove " + appPrefs.loadedData.configuredObdBtAdapter.deviceMac));
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+        //Reset the data saved
+        appPrefs.loadedData.configuredObdBtAdapter.haveConfigured = false;
+        appPrefs.loadedData.configuredObdBtAdapter.deviceName = "";
+        appPrefs.loadedData.configuredObdBtAdapter.deviceMac = "";
+        appPrefs.loadedData.configuredObdBtAdapter.devicePassword = "";
+        SaveAllPreferences();
+
+        //Restart the panel
+        StartVehiclePanel();
+
+        //Hide the interaction blocker
+        SetActiveInteractionBlocker(false);
+
+        //Inform that was finished
+        unpairThePairedObdDeviceRoutine = null;
+
+
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //Remove the task
+        RemoveTask("unpairPairedObdDevice");
+    }
+
+    //Vehicle Panel methods: Connection Flow
+
+    private void ConnectToPairedBluetoothObdDeviceAndStablishSerialPort()
+    {
+        //Change to background of setup and connect
+        backgroundForPanelSetupAndConnect.IsVisible = true;
+        backgroundForPanelContent.IsVisible = false;
+
+        //Change to screen of connect
+        vehiclePanel_obdSetupScreen.IsVisible = false;
+        vehiclePanel_obdConnectScreen.IsVisible = true;
+        vehiclePanel_panelScreen.IsVisible = false;
+
+        //Set initial connect status
+        vehiclePanel_odbConnect_statusText.Text = GetStringApplicationResource("vehiclePanel_odbConnectInitialStatus");
+
+        //Start the bluetooth connection routine, if is not running
+        if (bluetoothObdDeviceConnectionRoutine == null)
+            bluetoothObdDeviceConnectionRoutine = CoroutineHandler.Start(ConnectToPairedBluetoothObdDeviceAndStablishSerialPortRoutine());
+    }
+
+    private IEnumerator<Wait> ConnectToPairedBluetoothObdDeviceAndStablishSerialPortRoutine()
+    {
+        //Add this task running
+        AddTask("bluetoothObdConnect", "Connect with the Paired Bluetooth OBD Adapter device and stablish a Serial Port.");
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+        //Send command to stop the bluetooth service
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo systemctl stop bluetooth.service");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+        //Wait time
+        yield return new Wait(0.5f);
+
+        //Send command to start the bluetooth service
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo systemctl start bluetooth.service");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+        //Wait time
+        yield return new Wait(0.5f);
+
+        //Send command to kill all rfcomm ports
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo killall rfcomm");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+        //Wait time
+        yield return new Wait(0.5f);
+
+        //Send command to release a possible already existing rfcomm port
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo rfcomm release /dev/rfcomm14");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+        //Wait time
+        yield return new Wait(0.5f);
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //Warn that is starting connection attempter
+        AvaloniaDebug.WriteLine("Starting Bluetooth OBD Device to Serial Port connection attempter...");
+
+        //Wait time
+        yield return new Wait(0.5f);
+
+        //Start the connection attempter
+        while (activeObdConnection == null)
+        {
+            //Show the attempt on status
+            vehiclePanel_odbConnect_statusText.Text = GetStringApplicationResource("vehiclePanel_odbConnectTryStatus").Replace("%d", appPrefs.loadedData.configuredObdBtAdapter.deviceName)
+                                                                                                                      .Replace("%n", triesOfConnectionForBluetoothObdDevice.ToString());
+
+            //Create a new OBD Adapter Handler
+            ObdAdapterHandler newObdAdapterHandlerConnection = new ObdAdapterHandler();
+
+            //Setup the OBD Adapter Handler
+            newObdAdapterHandlerConnection.SetRfcommSerialPortPath("/dev/rfcomm14");
+            newObdAdapterHandlerConnection.SetChannelToUseInRfcomm(1);
+            newObdAdapterHandlerConnection.SetPairedObdDeviceName(appPrefs.loadedData.configuredObdBtAdapter.deviceName);
+            newObdAdapterHandlerConnection.SetPairedObdDeviceMac(appPrefs.loadedData.configuredObdBtAdapter.deviceMac);
+
+            //Try to connect to OBD Adapter and Stablish a Serial Port
+            newObdAdapterHandlerConnection.TryConnect();
+
+            //Wait time
+            yield return new Wait(0.5f);
+
+            //Wait until exit from status of "Connecting"
+            while (newObdAdapterHandlerConnection.currentConnectionStatus == ObdAdapterHandler.ConnectionStatus.Connecting)
+                yield return new Wait(0.1f);
+
+            //If was failed to connect...
+            if (newObdAdapterHandlerConnection.currentConnectionStatus == ObdAdapterHandler.ConnectionStatus.Disconnected)
+            {
+                //Increase the connection try counter
+                triesOfConnectionForBluetoothObdDevice += 1;
+
+                //Wait time before continue
+                yield return new Wait(5.0f);
+            }
+
+            //If was successfull connect
+            if (newObdAdapterHandlerConnection.currentConnectionStatus == ObdAdapterHandler.ConnectionStatus.Connected)
+            {
+                //Register on lost connection callback
+                newObdAdapterHandlerConnection.RegisterOnLostConnectionCallback(() =>
+                {
+                    //Clear the reference for the active connection for OBD Adapter Handler
+                    activeObdConnection = null;
+
+                    //Call the callback for run needed code
+                    OnActiveConnectionForObdHandlerFinished();
+                });
+
+                //Store the reference and active connection for OBD Adapter Handler
+                activeObdConnection = newObdAdapterHandlerConnection;
+
+                //Start the final Panel
+                StartReadyVehiclePanel();
+            }
+        }
+
+        //Wait time
+        yield return new Wait(0.5f);
+
+        //Warn that is starting connection attempter
+        AvaloniaDebug.WriteLine("Stopping Bluetooth OBD Device to Serial Port connection attempter...");
+
+        //Inform that the routine was finished
+        bluetoothObdDeviceConnectionRoutine = null;
+
+
+
+        //Remove the task
+        RemoveTask("bluetoothObdConnect");
+    }
+
+    private void OnActiveConnectionForObdHandlerFinished()
+    {
+        //Clear the reference for the active connection for OBD Adapter Handler
+        activeObdConnection = null;
+
+        //Restart the vehicle panel
+        StartVehiclePanel();
+    }
+
+    //Vehicle Panel methods: Final Panel methods
+
+    private void StartReadyVehiclePanel()
+    {
+        //Change to background of panel
+        backgroundForPanelSetupAndConnect.IsVisible = false;
+        backgroundForPanelContent.IsVisible = true;
+
+        //Change to screen of panel
+        vehiclePanel_obdSetupScreen.IsVisible = false;
+        vehiclePanel_obdConnectScreen.IsVisible = false;
+        vehiclePanel_panelScreen.IsVisible = true;
+
+        //...
     }
 
     //Pages Manager
@@ -635,7 +1422,7 @@ public partial class MainWindow : Window
 
         //Set color for the selected page menu item
         pageButtons[targetPageIndex].BorderThickness = new Thickness(4.0f, 4.0f, 4.0f, 4.0f);
-        pageButtons[targetPageIndex].BorderBrush = new SolidColorBrush(new Color(255, 35, 161, 207));
+        pageButtons[targetPageIndex].BorderBrush = new SolidColorBrush(new Color(255, 38, 197, 255));
         pageBackgrounds[targetPageIndex].IsVisible = true;
         pageContents[targetPageIndex].IsVisible = true;
     }
@@ -1134,6 +1921,40 @@ public partial class MainWindow : Window
         return toReturn;
     }
 
+    //Quit methods
+
+    private void QuitApplication()
+    {
+        //Enable the iteraction blocker
+        SetActiveInteractionBlocker(true);
+
+        //Show the confirmation dialog
+        var dialogResult = MessageBoxManager.GetMessageBoxStandard(GetStringApplicationResource("quitApplication_dialogTitle"),
+                                                                   GetStringApplicationResource("quitApplication_dialogText"),
+                                                                   ButtonEnum.YesNo, MsBox.Avalonia.Enums.Icon.Question).ShowAsync();
+
+        //Register on finish dialog event
+        dialogResult.GetAwaiter().OnCompleted(() =>
+        {
+            //Process the result
+            if (dialogResult.Result == ButtonResult.Yes)
+            {
+                OnAboutToQuitApplication();
+                this.Close();
+            }
+            if (dialogResult.Result != ButtonResult.Yes)
+                SetActiveInteractionBlocker(false);
+        });
+    }
+
+    private void OnAboutToQuitApplication()
+    {
+        //Warn that is quiting the application
+        AvaloniaDebug.WriteLine("Closing Motoplay App...");
+
+        //...
+    }
+
     //Auxiliar methods
 
     public string GetStringApplicationResource(string resourceKey)
@@ -1223,35 +2044,28 @@ public partial class MainWindow : Window
         rollMenuDown.Opacity = 1.0;
     }
     
-    private void QuitApplication()
+    private BluetoothDeviceInScanLogs AnalyzeLogAndGetPossibleBluetoothDeviceInfo(string logToAnalyze)
     {
-        //Enable the iteraction blocker
-        SetActiveInteractionBlocker(true);
+        //Prepare the data to return
+        BluetoothDeviceInScanLogs toReturn = new BluetoothDeviceInScanLogs();
 
-        //Show the confirmation dialog
-        var dialogResult = MessageBoxManager.GetMessageBoxStandard(GetStringApplicationResource("quitApplication_dialogTitle"),
-                                                                   GetStringApplicationResource("quitApplication_dialogText"),
-                                                                   ButtonEnum.YesNo, MsBox.Avalonia.Enums.Icon.Question).ShowAsync();
-
-        //Register on finish dialog event
-        dialogResult.GetAwaiter().OnCompleted(() => 
+        //If is Bluetooth Device log
+        if (logToAnalyze.Contains(@"NEW") || logToAnalyze.Contains(@"DEL"))
         {
-            //Process the result
-            if (dialogResult.Result == ButtonResult.Yes)
-            {
-                OnAboutToQuitApplication();
-                this.Close();
-            }
-            if (dialogResult.Result != ButtonResult.Yes)
-                SetActiveInteractionBlocker(false);
-        });
-    }
+            //Discover the MAC of the device
+            toReturn.deviceMac = logToAnalyze.Split(" ")[2];
 
-    private void OnAboutToQuitApplication()
-    {
-        //Warn that is quiting the application
-        AvaloniaDebug.WriteLine("Closing Motoplay App...");
+            //Discover the Name of the device
+            toReturn.deviceName = logToAnalyze.Replace((" Device " + toReturn.deviceMac + " "), "").Split("]")[1];
 
-        //...
+            //Discover the action of the device
+            if (logToAnalyze.Contains("NEW") == true)
+                toReturn.action = BluetoothDeviceAction.Appeared;
+            if (logToAnalyze.Contains("DEL") == true)
+                toReturn.action = BluetoothDeviceAction.Disappeared;
+        }
+
+        //Return the data
+        return toReturn;
     }
 }
