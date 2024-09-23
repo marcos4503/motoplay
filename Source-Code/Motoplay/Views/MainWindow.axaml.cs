@@ -20,6 +20,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -94,6 +95,9 @@ public partial class MainWindow : Window
     private ActiveCoroutine unpairThePairedObdDeviceRoutine = null;
     private int triesOfConnectionForBluetoothObdDevice = -1;
     private ActiveCoroutine bluetoothObdDeviceConnectionRoutine = null;
+    private ActiveCoroutine postPreferencesSaveRoutine = null;
+    private bool isVehiclePanelDrawerOpen = false;
+    private ActiveCoroutine openCloseVehiclePanelDrawerRoutine = null;
 
     //Private variables
     private string[] receivedCliArgs = null;
@@ -369,6 +373,9 @@ public partial class MainWindow : Window
 
         //Prepare the UI for Vehicle Panel
         PrepareTheVehiclePanel();
+
+        //Prepare the UI for Preferences
+        PrepareThePreferences();
     }
 
     private IEnumerator<Wait> KillPossibleExistingVirtualKeyboardProcess()
@@ -594,6 +601,8 @@ public partial class MainWindow : Window
         vehiclePanel_obdSetup_backToSearch.Click += (s, e) => { StartBluetoothDevicesSearch(); };
         vehiclePanel_obdSetup_goPair.Click += (s, e) => { StartPairWithTargetBluetoothDevice(); };
         vehiclePanel_obdConnect_unpairButton.Click += (s, e) => { UnpairTheCurrentlyPairedBluetoothObdDevice(); };
+        vehiclePanel_drawerHandler.PointerPressed += (s, e) => { ToggleVehiclePanelDrawer(); };
+        vehiclePanel_drawerBackground.PointerPressed += (s, e) => { ToggleVehiclePanelDrawer(); };
 
         //Start the vehicle panel
         StartVehiclePanel();
@@ -1282,7 +1291,7 @@ public partial class MainWindow : Window
         yield return new Wait(0.5f);
 
         //Send command to release a possible already existing rfcomm port
-        SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo rfcomm release /dev/rfcomm14");
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, ("sudo rfcomm release " + appPrefs.loadedData.bluetoothSerialPortToUse));
         //Wait the end of command execution
         while (isLastCommandFinishedExecution(rKey) == false)
             yield return new Wait(0.1f);
@@ -1316,8 +1325,8 @@ public partial class MainWindow : Window
             ObdAdapterHandler newObdAdapterHandlerConnection = new ObdAdapterHandler();
 
             //Setup the OBD Adapter Handler
-            newObdAdapterHandlerConnection.SetRfcommSerialPortPath("/dev/rfcomm14");
-            newObdAdapterHandlerConnection.SetChannelToUseInRfcomm(1);
+            newObdAdapterHandlerConnection.SetRfcommSerialPortPath(appPrefs.loadedData.bluetoothSerialPortToUse);
+            newObdAdapterHandlerConnection.SetChannelToUseInRfcomm(appPrefs.loadedData.bluetoothSerialPortChannelToUse);
             newObdAdapterHandlerConnection.SetPairedObdDeviceName(appPrefs.loadedData.configuredObdBtAdapter.deviceName);
             newObdAdapterHandlerConnection.SetPairedObdDeviceMac(appPrefs.loadedData.configuredObdBtAdapter.deviceMac);
 
@@ -1350,7 +1359,7 @@ public partial class MainWindow : Window
 
                 //Start a loop to wait time before continue
                 int elapsedSeconds = 0;
-                int secondsToWait = 30;
+                int secondsToWait = appPrefs.loadedData.invervalOfObdConnectionRetry;
                 while (elapsedSeconds < secondsToWait)
                 {
                     //Warn to debug
@@ -1365,6 +1374,16 @@ public partial class MainWindow : Window
 
                 //Increase the connection try counter
                 triesOfConnectionForBluetoothObdDevice += 1;
+
+                //If excedeed the limite of attempts, stop this loop and continues...
+                if (triesOfConnectionForBluetoothObdDevice > appPrefs.loadedData.maxOfObdConnectionRetry)
+                {
+                    //Run the callback of excedeed connection attempts
+                    OnExceedLimitOfConnectionAttemptsToBluetoothObdDevice();
+
+                    //Break this loop
+                    break;
+                }
             }
 
             //If was successfull connect
@@ -1406,6 +1425,23 @@ public partial class MainWindow : Window
         RemoveTask("bluetoothObdConnect");
     }
 
+    private void OnExceedLimitOfConnectionAttemptsToBluetoothObdDevice()
+    {
+        //Notify the user
+        ShowToast(GetStringApplicationResource("vehiclePanel_odbConnectExcedeedTries").Replace("%d", appPrefs.loadedData.configuredObdBtAdapter.deviceName), ToastDuration.Long, ToastType.Problem);
+
+        //Disable all screens of the panel
+
+        //Change to background of none
+        backgroundForPanelSetupAndConnect.IsVisible = false;
+        backgroundForPanelContent.IsVisible = false;
+
+        //Change to screen of none
+        vehiclePanel_obdSetupScreen.IsVisible = false;
+        vehiclePanel_obdConnectScreen.IsVisible = false;
+        vehiclePanel_panelScreen.IsVisible = false;
+    }
+
     private void OnActiveConnectionForObdHandlerFinished()
     {
         //Clear the reference for the active connection for OBD Adapter Handler
@@ -1435,6 +1471,83 @@ public partial class MainWindow : Window
         vehiclePanel_panelScreen.IsVisible = true;
 
         //...
+    }
+
+    private void ToggleVehiclePanelDrawer()
+    {
+        //If the Drawer is opened
+        if (isVehiclePanelDrawerOpen == true)
+        {
+            //If the routine is not running, start it
+            if (openCloseVehiclePanelDrawerRoutine == null)
+                openCloseVehiclePanelDrawerRoutine = CoroutineHandler.Start(CloseVehiclePanelDrawerRoutine());
+
+            //Inform that is closed
+            isVehiclePanelDrawerOpen = false;
+
+            //Cancel
+            return;
+        }
+
+        //If the Drawer is closed
+        if (isVehiclePanelDrawerOpen == false)
+        {
+            //If the routine is not running, start it
+            if (openCloseVehiclePanelDrawerRoutine == null)
+                openCloseVehiclePanelDrawerRoutine = CoroutineHandler.Start(OpenVehiclePanelDrawerRoutine());
+
+            //Inform that is opened
+            isVehiclePanelDrawerOpen = true;
+
+            //Cancel
+            return;
+        }
+    }
+
+    private IEnumerator<Wait> OpenVehiclePanelDrawerRoutine()
+    {
+        //Enable the background
+        vehiclePanel_drawerBackground.IsVisible = true;
+        vehiclePanel_drawerBackground.Opacity = 0.7;
+
+        //Wait time
+        yield return new Wait(0.2f);
+
+        //Open the drawer
+        vehiclePanel_drawer.Margin = new Thickness(0.0f, 0.0f, 0.0f, 0.0f);
+
+        //Wait until animation finishes
+        yield return new Wait(0.3f);
+
+        //Change the drawer handler icon
+        vehiclePanel_drawerHandlerIcon.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/drawer-handler-foreground-close.png")));
+
+        //Inform that is finished
+        openCloseVehiclePanelDrawerRoutine = null;
+    }
+
+    private IEnumerator<Wait> CloseVehiclePanelDrawerRoutine()
+    {
+        //Close the drawer
+        vehiclePanel_drawer.Margin = new Thickness(0.0f, 0.0f, -352.0f, 0.0f);
+
+        //Wait until animation finishes
+        yield return new Wait(0.3f);
+
+        //Disable the background
+        vehiclePanel_drawerBackground.Opacity = 0.0;
+
+        //Wait until animation finishes
+        yield return new Wait(0.3f);
+
+        //Disable the background completely
+        vehiclePanel_drawerBackground.IsVisible = false;
+
+        //Change the drawer handler icon
+        vehiclePanel_drawerHandlerIcon.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/drawer-handler-foreground-open.png")));
+
+        //Inform that is finished
+        openCloseVehiclePanelDrawerRoutine = null;
     }
 
     //Pages Manager
@@ -1507,17 +1620,170 @@ public partial class MainWindow : Window
 
     //Preferences manager
 
+    private void PrepareThePreferences()
+    {
+        //Prepare the UI of Preferences
+        preferences_saveButton.Click += (s, e) => { SaveAllPreferences(); };
+    }
+
     private void UpdatePreferencesOnUI()
     {
-        //...
+        //Show all current settings of save file in the UI
+
+        //Keyboard Tab
+        //*** pref_keyboard_heightScreenPercent
+        if (appPrefs.loadedData.keyboardHeightScreenPercent == 0.2f)
+            pref_keyboard_heightScreenPercent.SelectedIndex = 0;
+        if (appPrefs.loadedData.keyboardHeightScreenPercent == 0.25f)
+            pref_keyboard_heightScreenPercent.SelectedIndex = 1;
+        if (appPrefs.loadedData.keyboardHeightScreenPercent == 0.35f)
+            pref_keyboard_heightScreenPercent.SelectedIndex = 2;
+        if (appPrefs.loadedData.keyboardHeightScreenPercent == 0.45f)
+            pref_keyboard_heightScreenPercent.SelectedIndex = 3;
+
+        //Panel Tab
+        //*** preferences_panel_serialPortToUse
+        if (appPrefs.loadedData.bluetoothSerialPortToUse == "/dev/rfcomm0")
+            pref_panel_serialPortToUse.SelectedIndex = 0;
+        if (appPrefs.loadedData.bluetoothSerialPortToUse == "/dev/rfcomm5")
+            pref_panel_serialPortToUse.SelectedIndex = 1;
+        if (appPrefs.loadedData.bluetoothSerialPortToUse == "/dev/rfcomm10")
+            pref_panel_serialPortToUse.SelectedIndex = 2;
+        if (appPrefs.loadedData.bluetoothSerialPortToUse == "/dev/rfcomm14")
+            pref_panel_serialPortToUse.SelectedIndex = 3;
+        if (appPrefs.loadedData.bluetoothSerialPortToUse == "/dev/rfcomm15")
+            pref_panel_serialPortToUse.SelectedIndex = 4;
+        if (appPrefs.loadedData.bluetoothSerialPortToUse == "/dev/rfcomm20")
+            pref_panel_serialPortToUse.SelectedIndex = 5;
+        if (appPrefs.loadedData.bluetoothSerialPortToUse == "/dev/rfcomm25")
+            pref_panel_serialPortToUse.SelectedIndex = 6;
+        if (appPrefs.loadedData.bluetoothSerialPortToUse == "/dev/rfcomm30")
+            pref_panel_serialPortToUse.SelectedIndex = 7;
+        if (appPrefs.loadedData.bluetoothSerialPortToUse == "/dev/rfcomm40")
+            pref_panel_serialPortToUse.SelectedIndex = 8;
+        if (appPrefs.loadedData.bluetoothSerialPortToUse == "/dev/rfcomm50")
+            pref_panel_serialPortToUse.SelectedIndex = 9;
+        //*** pref_panel_serialPortChannelToUse
+        if (appPrefs.loadedData.bluetoothSerialPortChannelToUse == 1)
+            pref_panel_serialPortChannelToUse.SelectedIndex = 0;
+        if (appPrefs.loadedData.bluetoothSerialPortChannelToUse == 2)
+            pref_panel_serialPortChannelToUse.SelectedIndex = 1;
+        if (appPrefs.loadedData.bluetoothSerialPortChannelToUse == 3)
+            pref_panel_serialPortChannelToUse.SelectedIndex = 2;
+        if (appPrefs.loadedData.bluetoothSerialPortChannelToUse == 4)
+            pref_panel_serialPortChannelToUse.SelectedIndex = 3;
+        if (appPrefs.loadedData.bluetoothSerialPortChannelToUse == 5)
+            pref_panel_serialPortChannelToUse.SelectedIndex = 4;
+        //*** pref_panel_intervalObdConnectTries
+        if (appPrefs.loadedData.invervalOfObdConnectionRetry == 30)
+            pref_panel_intervalObdConnectTries.SelectedIndex = 0;
+        if (appPrefs.loadedData.invervalOfObdConnectionRetry == 60)
+            pref_panel_intervalObdConnectTries.SelectedIndex = 1;
+        if (appPrefs.loadedData.invervalOfObdConnectionRetry == 300)
+            pref_panel_intervalObdConnectTries.SelectedIndex = 2;
+        //*** pref_panel_maxObdConnectTries
+        if (appPrefs.loadedData.maxOfObdConnectionRetry == 5)
+            pref_panel_maxObdConnectTries.SelectedIndex = 0;
+        if (appPrefs.loadedData.maxOfObdConnectionRetry == 15)
+            pref_panel_maxObdConnectTries.SelectedIndex = 1;
+        if (appPrefs.loadedData.maxOfObdConnectionRetry == 999999999)
+            pref_panel_maxObdConnectTries.SelectedIndex = 2;
     }
 
     private void SaveAllPreferences()
     {
-        //...
+        //Save all the settings of the UI to the save file
+
+        //Keyboard Tab
+        //*** pref_keyboard_heightScreenPercent
+        if (pref_keyboard_heightScreenPercent.SelectedIndex == 0)
+            appPrefs.loadedData.keyboardHeightScreenPercent = 0.2f;
+        if (pref_keyboard_heightScreenPercent.SelectedIndex == 1)
+            appPrefs.loadedData.keyboardHeightScreenPercent = 0.25f;
+        if (pref_keyboard_heightScreenPercent.SelectedIndex == 2)
+            appPrefs.loadedData.keyboardHeightScreenPercent = 0.35f;
+        if (pref_keyboard_heightScreenPercent.SelectedIndex == 3)
+            appPrefs.loadedData.keyboardHeightScreenPercent = 0.45f;
+
+        //Panel Tab
+        //*** preferences_panel_serialPortToUse
+        if (pref_panel_serialPortToUse.SelectedIndex == 0)
+            appPrefs.loadedData.bluetoothSerialPortToUse = "/dev/rfcomm0";
+        if (pref_panel_serialPortToUse.SelectedIndex == 1)
+            appPrefs.loadedData.bluetoothSerialPortToUse = "/dev/rfcomm5";
+        if (pref_panel_serialPortToUse.SelectedIndex == 2)
+            appPrefs.loadedData.bluetoothSerialPortToUse = "/dev/rfcomm10";
+        if (pref_panel_serialPortToUse.SelectedIndex == 3)
+            appPrefs.loadedData.bluetoothSerialPortToUse = "/dev/rfcomm14";
+        if (pref_panel_serialPortToUse.SelectedIndex == 4)
+            appPrefs.loadedData.bluetoothSerialPortToUse = "/dev/rfcomm15";
+        if (pref_panel_serialPortToUse.SelectedIndex == 5)
+            appPrefs.loadedData.bluetoothSerialPortToUse = "/dev/rfcomm20";
+        if (pref_panel_serialPortToUse.SelectedIndex == 6)
+            appPrefs.loadedData.bluetoothSerialPortToUse = "/dev/rfcomm25";
+        if (pref_panel_serialPortToUse.SelectedIndex == 7)
+            appPrefs.loadedData.bluetoothSerialPortToUse = "/dev/rfcomm30";
+        if (pref_panel_serialPortToUse.SelectedIndex == 8)
+            appPrefs.loadedData.bluetoothSerialPortToUse = "/dev/rfcomm40";
+        if (pref_panel_serialPortToUse.SelectedIndex == 9)
+            appPrefs.loadedData.bluetoothSerialPortToUse = "/dev/rfcomm50";
+        //*** pref_panel_serialPortChannelToUse
+        if (pref_panel_serialPortChannelToUse.SelectedIndex == 0)
+            appPrefs.loadedData.bluetoothSerialPortChannelToUse = 1;
+        if (pref_panel_serialPortChannelToUse.SelectedIndex == 1)
+            appPrefs.loadedData.bluetoothSerialPortChannelToUse = 2;
+        if (pref_panel_serialPortChannelToUse.SelectedIndex == 2)
+            appPrefs.loadedData.bluetoothSerialPortChannelToUse = 3;
+        if (pref_panel_serialPortChannelToUse.SelectedIndex == 3)
+            appPrefs.loadedData.bluetoothSerialPortChannelToUse = 4;
+        if (pref_panel_serialPortChannelToUse.SelectedIndex == 4)
+            appPrefs.loadedData.bluetoothSerialPortChannelToUse = 5;
+        //*** pref_panel_intervalObdConnectTries
+        if (pref_panel_intervalObdConnectTries.SelectedIndex == 0)
+            appPrefs.loadedData.invervalOfObdConnectionRetry = 30;
+        if (pref_panel_intervalObdConnectTries.SelectedIndex == 1)
+            appPrefs.loadedData.invervalOfObdConnectionRetry = 60;
+        if (pref_panel_intervalObdConnectTries.SelectedIndex == 2)
+            appPrefs.loadedData.invervalOfObdConnectionRetry = 300;
+        //*** pref_panel_maxObdConnectTries
+        if (pref_panel_maxObdConnectTries.SelectedIndex == 0)
+            appPrefs.loadedData.maxOfObdConnectionRetry = 5;
+        if (pref_panel_maxObdConnectTries.SelectedIndex == 1)
+            appPrefs.loadedData.maxOfObdConnectionRetry = 15;
+        if (pref_panel_maxObdConnectTries.SelectedIndex == 2)
+            appPrefs.loadedData.maxOfObdConnectionRetry = 999999999;
 
         //Save the preferences to file
         appPrefs.Save();
+
+        //If the post save routine is not running, run it
+        if (postPreferencesSaveRoutine == null)
+            postPreferencesSaveRoutine = CoroutineHandler.Start(DoPostPreferencesSaveRoutine());
+    }
+
+    private IEnumerator<Wait> DoPostPreferencesSaveRoutine()
+    {
+        //Add this task running
+        AddTask("postSavePreferences", "Post-save preferences task.");
+
+        //Disable the save preferences button
+        preferences_saveButton.IsEnabled = false;
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+        //Renable the save preferences button
+        preferences_saveButton.IsEnabled = true;
+
+        //If the preferences page is enabled, notify the user
+        if (pageContentForPreferences.IsVisible == true)
+            ShowToast(GetStringApplicationResource("appPreferences_saveNotification"), ToastDuration.Long, ToastType.Normal);
+
+        //Inform that the routine was finished
+        postPreferencesSaveRoutine = null;
+
+        //Remove the task running
+        RemoveTask("postSavePreferences");
     }
 
     //Interaction Blocker Manager
@@ -1731,7 +1997,7 @@ public partial class MainWindow : Window
 
             //Build the string of keyboard parameters
             StringBuilder keyboardParams = new StringBuilder();
-            keyboardParams.Append(("-L " + (int)((float)Screens.Primary.Bounds.Height * 0.45f)));
+            keyboardParams.Append(("-L " + (int)((float)Screens.Primary.Bounds.Height * appPrefs.loadedData.keyboardHeightScreenPercent)));
             keyboardParams.Append(" --fn \"Segoe UI 16\"");
             keyboardParams.Append(" --bg 000000AA");
             keyboardParams.Append(" --fg 323333F0");

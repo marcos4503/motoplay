@@ -47,6 +47,33 @@ Error Code: "%e".</x:String>
 	<x:String x:Key="vehiclePanel_odbConnectTryStatus">Establishing Bluetooth Serial Connection With %d
 Attempt #%n</x:String>
 	<x:String x:Key="vehiclePanel_odbConnectErrorMsg">Connection to Bluetooth OBD Adapter: %e.</x:String>
+	<x:String x:Key="vehiclePanel_odbConnectExcedeedTries">The maximum number of attempts to connect to Bluetooth OBD Adapter "%d" has been reached. Please restart Motoplay to continue trying.</x:String>
 	<x:String x:Key="vehiclePanel_odbConnectLostConnection">The connection to the Bluetooth OBD Adapter "%d" has been lost. Please make sure the device is still available for connection!</x:String>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<!-- Preferences Page -->
+	<x:String x:Key="appPreferences_title">Motoplay Preferences</x:String>
+	<x:String x:Key="appPreferences_saveButton">Save Preferences</x:String>
+	<x:String x:Key="appPreferences_saveNotification">Your Preferences have been saved! You may need to restart the Motoplay for some of them to take effect.</x:String>
+	<x:String x:Key="appPreferences_keyboardTab_title">Keyboard</x:String>
+	<x:String x:Key="appPreferences_keyboardTab_heightScreenPercent">Keyboard Height as a Percentage of Screen</x:String>
+	<x:String x:Key="appPreferences_panelTab_title">Panel</x:String>
+	<x:String x:Key="appPreferences_panelTab_serialPortToUseTitle">Bluetooth Serial Port To Use</x:String>
+	<x:String x:Key="appPreferences_panelTab_serialPortChannelToUseTitle">Bluetooth Serial Port Channel To Use</x:String>
+	<x:String x:Key="appPreferences_panelTab_intervalObdConnectTries">Bluetooth OBD Adapter Connection Retry Interval</x:String>
+	<x:String x:Key="appPreferences_panelTab_maxObdConnectTries">Bluetooth OBD Adapter Connection Max Attempts</x:String>
 
 </ResourceDictionary>

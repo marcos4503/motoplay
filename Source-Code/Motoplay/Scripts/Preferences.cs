@@ -23,6 +23,13 @@ namespace Motoplay.Scripts
 
             public string appLang = "en-us";
             public ConfiguredObdBtAdapter configuredObdBtAdapter = new ConfiguredObdBtAdapter();
+
+            public float keyboardHeightScreenPercent = 0.45f;
+
+            public string bluetoothSerialPortToUse = "/dev/rfcomm14";
+            public int bluetoothSerialPortChannelToUse = 1;
+            public int invervalOfObdConnectionRetry = 30;
+            public int maxOfObdConnectionRetry = 999999999;
         }
 
         //Private variables
