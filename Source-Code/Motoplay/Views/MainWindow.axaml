@@ -175,6 +175,10 @@
 				<Grid Grid.Row="0" Grid.Column="1" Background="#ababab"></Grid>
 				<!-- Page Area -->
 				<Grid Grid.Row="0" Grid.Column="2">
+					<!-- Temporary Initialization Logo -->
+					<Grid Name="tempInitializationLogo" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<Image Source="/Assets/background-motoplay-logo.png" HorizontalAlignment="Center" VerticalAlignment="Center" Width="256" Height="256" Opacity="0.05"></Image>
+					</Grid>
 					<!-- Vehicle Panel Page Content -->
 					<Grid Name="pageContentForPanel" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 						<!-- OBD Adapter Setup -->
@@ -235,7 +239,7 @@
 							</Grid>
 						</Grid>
 						<!-- OBD Connect -->
-						<Grid Name="vehiclePanel_obdConnectScreen" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<Grid Name="vehiclePanel_obdConnectScreen" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 							<StackPanel Orientation="Vertical" Spacing="24" HorizontalAlignment="Center" VerticalAlignment="Center">
 								<Grid HorizontalAlignment="Center" VerticalAlignment="Top" Width="150" Height="150">
 									<gif:GifImage HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="avares://Motoplay/Assets/bluetooth-pairing-gif.gif" Stretch="Fill" Opacity="0.8"/>
@@ -246,7 +250,7 @@
 							</StackPanel>
 						</Grid>
 						<!-- Panel -->
-						<Grid Name="vehiclePanel_panelScreen" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<Grid Name="vehiclePanel_panelScreen" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 							
 						</Grid>
 					</Grid>
@@ -281,7 +285,7 @@
 			<Grid HorizontalAlignment="Right" VerticalAlignment="Top" Height="32" Width="2" Margin="0, 8, 8, 0">
 				<StackPanel Orientation="Horizontal" Spacing="4" FlowDirection="RightToLeft">
 					<!-- Keyboard Toggle Button -->
-					<Button Name="toggleKeyboardButton" HorizontalAlignment="Right" VerticalAlignment="Top" Width="32" Height="32" Padding="6, 6, 6, 6">
+					<Button Name="toggleKeyboardButton" HorizontalAlignment="Right" VerticalAlignment="Top" Width="32" Height="32" Padding="6, 6, 6, 6" ToolTip.Tip="{DynamicResource ResourceKey=statusBar_toggleKeyboardTooltip}">
 						<Image Name="toggleKeyboardButtonImg" Source="/Assets/keyboard-on.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
 					</Button>
 					<!-- Keyboard Notification -->
@@ -304,8 +308,24 @@
 						</Grid>
 					</Grid>
 					<!-- Update Notification -->
-					<Button Name="updateAppButton" HorizontalAlignment="Right" VerticalAlignment="Top" Width="32" Height="32" Padding="6, 6, 6, 6">
+					<Button Name="updateAppButton" HorizontalAlignment="Right" VerticalAlignment="Top" Width="32" Height="32" Padding="6, 6, 6, 6" ToolTip.Tip="{DynamicResource ResourceKey=statusBar_updateTooltip}">
 						<Image Source="/Assets/update-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+					</Button>
+					<!-- Binded CLI Notification -->
+					<Button Name="bindedCliButton" HorizontalAlignment="Right" VerticalAlignment="Top" Width="32" Height="32" Padding="6, 6, 6, 6" ToolTip.Tip="{DynamicResource ResourceKey=statusBar_bindedCliTooltip}">
+						<Image Source="/Assets/binded-cli-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+					</Button>
+					<!-- Binded BluetoothCTL Notification -->
+					<Button Name="bindedbluetoothCtlButton" HorizontalAlignment="Right" VerticalAlignment="Top" Width="32" Height="32" Padding="6, 6, 6, 6" ToolTip.Tip="{DynamicResource ResourceKey=statusBar_bindedBluetoothCtlTooltip}">
+						<Image Source="/Assets/binded-bluetoothctl-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+					</Button>
+					<!-- Trying to Connect to Paired OBD Adapter Notification -->
+					<Button Name="tryingConnectToObdButton" HorizontalAlignment="Right" VerticalAlignment="Top" Width="32" Height="32" Padding="6, 6, 6, 6" ToolTip.Tip="{DynamicResource ResourceKey=statusBar_tryingToConnecToObdTooltip}">
+						<Image Source="/Assets/connecting-to-obd-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+					</Button>
+					<!-- Connected To OBD Adapter Notification -->
+					<Button Name="connectedToObdButton" HorizontalAlignment="Right" VerticalAlignment="Top" Width="32" Height="32" Padding="6, 6, 6, 6" ToolTip.Tip="{DynamicResource ResourceKey=statusBar_connectedToObdTooltip}">
+						<Image Source="/Assets/connected-to-obd-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
 					</Button>
 					<!-- Tasks Display -->
 					<gif:GifImage Name="runningTasksIndicator" HorizontalAlignment="Right" VerticalAlignment="Top" IsVisible="True" Width="32" Height="32" Source="avares://Motoplay/Assets/running-tasks-2.gif" Stretch="Fill" />

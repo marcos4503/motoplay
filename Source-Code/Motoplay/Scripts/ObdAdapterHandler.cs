@@ -4,6 +4,7 @@ using Coroutine;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -52,21 +53,6 @@ namespace Motoplay.Scripts
         {
             //Warn to debug
             AvaloniaDebug.WriteLine("Creating a new OBD Adapter Handler!");
-        }
-
-        private void OnConnectionSuccessAndStablishedSerialPort()
-        {
-
-        }
-
-        private void OnConnectionFailAndNotStablishedSerialPort()
-        {
-
-        }
-
-        private void OnLostConnection()
-        {
-
         }
 
         //Setup methods
@@ -159,62 +145,47 @@ namespace Motoplay.Scripts
                 rfcommCliProcess.BeginOutputReadLine();
                 rfcommCliProcess.BeginErrorReadLine();
 
-                //Wait time
-                Thread.Sleep(250);
+                //Warn to debug
+                AvaloniaDebug.WriteLine("Trying to connect to Bluetooth Device \"" + pairedObdDeviceName + "\"...");
 
-                //Wait until finish the connection try and detect the result
-                bool isFinishedTry = false;
-                bool isSuccessfully = false;
-                while (isFinishedTry == false)
-                {
-                    //If found the log informing that can't connect, inform that is finished
-                    foreach (string line in rfcommReceivedOutputLines)
-                        if (line.Contains("Can't connect RFCOMM socket") == true)
-                        {
-                            isFinishedTry = true;
-                            isSuccessfully = false;
-                        }
+                //Wait time to ensure a minimum response time
+                Thread.Sleep(8000);
 
-                    //If found the log informing that is connected, inform that is finished
-                    foreach (string line in rfcommReceivedOutputLines)
-                        if (line.Contains("Connected ") == true && line.Contains(" on channel") == true)
-                        {
-                            isFinishedTry = true;
-                            isSuccessfully = true;
-                        }
-
-                    //Wait time before continue
-                    Thread.Sleep(500);
-                }
+                //Prepare the connection try result info
+                bool isConnectionSuccessfully = false;
+                if (rfcommCliProcess.HasExited == true)   //<- If the process was finished, means the connection was not maintained (device offline or other connection errors)
+                    isConnectionSuccessfully = false;
+                if (rfcommCliProcess.HasExited == false)  //<- If the process continues running, means the connection was successful and is still active
+                    isConnectionSuccessfully = true;
 
                 //If is not connected
-                if (isSuccessfully == false)
+                if (isConnectionSuccessfully == false)
                 {
                     //Change connection status to disconnected
                     currentConnectionStatus = ConnectionStatus.Disconnected;
 
                     //Warn to debug
-                    AvaloniaDebug.WriteLine("Failed to connect to Bluetooth Device \"" + pairedObdDeviceName + "\" and Stablish a Serial Port!");
+                    AvaloniaDebug.WriteLine("Failed to connect to Bluetooth Device \"" + pairedObdDeviceName + "\"!");
 
                     //Run the internal hook
                     OnConnectionFailAndNotStablishedSerialPort();
                 }
 
                 //If is connected
-                if (isSuccessfully == true)
+                if (isConnectionSuccessfully == true)
                 {
                     //Change connection status to connected
                     currentConnectionStatus = ConnectionStatus.Connected;
 
                     //Warn to debug
-                    AvaloniaDebug.WriteLine("Connection success to Bluetooth Device \"" + pairedObdDeviceName + "\" and Stablished a Serial Port!");
+                    AvaloniaDebug.WriteLine("Connection success to Bluetooth Device \"" + pairedObdDeviceName + "\"! Establishing Serial Port...");
 
                     //Run the internal hook
                     OnConnectionSuccessAndStablishedSerialPort();
                 }
 
                 //Warn to debug
-                AvaloniaDebug.WriteLine("Connection try for Bluetooth Device \"" + pairedObdDeviceName + "\" was finished.");
+                AvaloniaDebug.WriteLine(("Connection try for Bluetooth Device \"" + pairedObdDeviceName + "\" was finished, with status " + currentConnectionStatus.ToString().ToUpper() + "."));
 
 
 
@@ -242,12 +213,140 @@ namespace Motoplay.Scripts
                     }, DispatcherPriority.MaxValue);
 
                     //Warn to debug
-                    AvaloniaDebug.WriteLine("Disconnected from Bluetooth Device \"" + pairedObdDeviceName + "\" and stablished Serial Port!");
+                    AvaloniaDebug.WriteLine("Disconnected from Bluetooth Device \"" + pairedObdDeviceName + "\" and finished Serial Port!");
                 }
 
             }).Start();
         }
 
-        //...
+        public string[] GetConnectionTryLogs()
+        {
+            //Rerturn all logs returned by the rfcomm process of the Serial Port
+            return rfcommReceivedOutputLines.ToArray();
+        }
+
+        public void ForceDisconnect()
+        {
+            //Kill the rfcomm process that mantain the socket of Serial Port. This Disconnection is done as if the device were disconnecting.
+            rfcommCliProcess.Kill();
+        }
+
+        //Events methods
+
+        private void OnConnectionSuccessAndStablishedSerialPort()
+        {
+            Test();
+        }
+
+        private void OnConnectionFailAndNotStablishedSerialPort()
+        {
+
+        }
+
+        private void OnLostConnection()
+        {
+
+        }
+        
+        //Internal methods
+
+        private void Test()
+        {
+            //teste
+            new Thread(() => 
+            {
+                AvaloniaDebug.WriteLine("TEST> INITIALIZING...");
+                //Initialize
+                SerialPort serialPort = new SerialPort();
+                serialPort.PortName = "/dev/rfcomm14";
+                serialPort.BaudRate = 4096;
+                serialPort.Parity = Parity.None;
+                serialPort.Handshake = Handshake.None;
+                //serialPort.DataBits = 8;
+                //serialPort.StopBits = StopBits.One;
+                //serialPort.RtsEnable = true;
+                //serialPort.DtrEnable = true;
+                serialPort.WriteTimeout = 250;
+                serialPort.ReadTimeout = 250;
+                AvaloniaDebug.WriteLine("TEST> INITIALIZED!");
+
+                //Open
+                try
+                {
+                    serialPort.Open();
+                    AvaloniaDebug.WriteLine("TEST> PORT OPENED!");
+                }
+                catch (TimeoutException e)
+                {
+                    if (serialPort.IsOpen == true)
+                        serialPort.Close();
+                    AvaloniaDebug.WriteLine(("TEST> PORT OPEN TIME OUT.\n" + e.Message + "\n" + e.StackTrace));
+                    return;
+                }
+                catch (Exception e)
+                {
+                    if (serialPort.IsOpen == true)
+                        serialPort.Close();
+                    AvaloniaDebug.WriteLine(("TEST> PORT OPEN EXCEPTION GENERIC.\n" + e.Message + "\n" + e.StackTrace));
+                    return;
+                }
+
+                //Wait
+                Thread.Sleep(1000);
+
+                //Send
+                try
+                {
+                    serialPort.DiscardOutBuffer();
+                    serialPort.DiscardInBuffer();
+                    serialPort.Write(("AT Z" + "\r"));
+                    AvaloniaDebug.WriteLine("TEST> COMMAND \"AT Z\" SENDED!");
+                }
+                catch (Exception e) {
+                    AvaloniaDebug.WriteLine(("TEST> COMMAND \"AT Z\" EXCEPTION GENERIC.\n" + e.Message + "\n" + e.StackTrace));
+                }
+
+                //Receive
+                string buffer = "";
+                try
+                {
+                    int iteractionCount = 0;
+
+                    buffer = string.Empty;
+                    while (new string[] { ">" }.Any(x => buffer.EndsWith(x)) == false)
+                    {
+                        string received = serialPort.ReadExisting();
+                        buffer += received;
+
+                        AvaloniaDebug.WriteLine(("TEST> RECEIVING. ITERACTION " + iteractionCount));
+
+                        Thread.Sleep(5);
+
+                        iteractionCount += 1;
+                    }
+                    AvaloniaDebug.WriteLine("TEST> RECEIVED \"" + buffer.Replace("\r", "r").Replace("\n", "n") + "\"");
+                }
+                catch (Exception e) 
+                {
+                    buffer = string.Empty;
+                    AvaloniaDebug.WriteLine(("TEST> RECEIVE EXCEPTION GENERIC.\n" + e.Message + "\n" + e.StackTrace));
+                }
+
+                //Wait
+                Thread.Sleep(1000);
+
+                //Close
+                try
+                {
+                    if (serialPort.IsOpen == true)
+                        serialPort.Close();
+                    AvaloniaDebug.WriteLine("TEST> CLOSED!");
+                }
+                catch (Exception e) {
+                    AvaloniaDebug.WriteLine(("TEST> CLOSE EXCEPTION GENERIC.\n" + e.Message + "\n" + e.StackTrace));
+                }
+
+            }).Start();
+        }
     }
 }

@@ -240,6 +240,11 @@ public partial class MainWindow : Window
         menuCameraButton.Click += (s, e) => { SwitchAppPage(AppPage.UsbCamera); };
         menuPhoneButton.Click += (s, e) => { SwitchAppPage(AppPage.MirrorPhone); };
         menuPreferencesButton.Click += (s, e) => { SwitchAppPage(AppPage.AppPreferences); };
+        bindedCliButton.IsVisible = false;
+        bindedbluetoothCtlButton.IsVisible = false;
+        tryingConnectToObdButton.IsVisible = false;
+        connectedToObdButton.IsVisible = false;
+        tempInitializationLogo.IsVisible = true;
 
         //Switch to Panel page
         SwitchAppPage(AppPage.VehiclePanel);
@@ -354,6 +359,11 @@ public partial class MainWindow : Window
 
         //Check if have updates for Motoplay App
         CoroutineHandler.Start(CheckIfHaveUpdatesForApp());
+
+
+
+        //Hide the temporary background logo
+        tempInitializationLogo.IsVisible = false;
 
 
 
@@ -690,12 +700,20 @@ public partial class MainWindow : Window
         //Register receivers of all outputs from terminal
         bluetoothctlProcess.ErrorDataReceived += new DataReceivedEventHandler((s, e) =>
         {
+            //If don't have data, cancel
+            if (String.IsNullOrEmpty(e.Data) == true)
+                return;
+
             //Store the lines and resend to debug
             bluetoothctlReceivedOutputLines.Add(e.Data);
             AvaloniaDebug.WriteLine(("BindedBluetoothCTL -> " + e.Data));
         });
         bluetoothctlProcess.OutputDataReceived += new DataReceivedEventHandler((s, e) =>
         {
+            //If don't have data, cancel
+            if (String.IsNullOrEmpty(e.Data) == true)
+                return;
+
             //Store the lines and resend to debug
             bluetoothctlReceivedOutputLines.Add(e.Data);
             AvaloniaDebug.WriteLine(("BindedBluetoothCTL -> " + e.Data));
@@ -742,6 +760,9 @@ public partial class MainWindow : Window
         //If was started successfully...
         if (wasStartedSuccessfully == true)
         {
+            //Show the use in status bar
+            bindedbluetoothCtlButton.IsVisible = true;
+
             //Start the bluetooth devices search
             StartBluetoothDevicesSearch();
         }
@@ -759,6 +780,9 @@ public partial class MainWindow : Window
     {
         //Warn
         AvaloniaDebug.WriteLine("Stopping BluetoothCTL Binded Cli Terminal...");
+
+        //Hide the use in status bar
+        bindedbluetoothCtlButton.IsVisible = false;
 
         //Send comand to exit
         bluetoothctlCliProcess.StandardInput.WriteLine("exit");
@@ -1058,11 +1082,11 @@ public partial class MainWindow : Window
             yield return new Wait(0.5f);
         }
 
-        //If not paired, go back to previous screen
+        //If not paired, go back to search screen
         if (isPairingSuccessfull == false)
         {
-            //Go back to previous screen
-            GoToPrePairingWithTargetBluetoothDevice(targetDeviceName, targetDeviceMac);
+            //Go back to search screen
+            StartBluetoothDevicesSearch();
 
             //Get the error string
             string errorString = "notFoundErrorCodeOrUnvailableDevice";
@@ -1145,6 +1169,16 @@ public partial class MainWindow : Window
         {
             bluetoothObdDeviceConnectionRoutine.Cancel();
             bluetoothObdDeviceConnectionRoutine = null;
+            RemoveTask("bluetoothObdConnect");
+            AvaloniaDebug.WriteLine("Aborting Bluetooth OBD Device to Serial Port connection attempter...");
+        }
+
+        //Force disconnect the active connection OBD Adapter Handler, if have
+        if (activeObdConnection != null)
+        {
+            activeObdConnection.ForceDisconnect();
+            AvaloniaDebug.WriteLine("Forcing Disconnection of OBD Adapter Handler...");
+            activeObdConnection = null;
         }
 
 
@@ -1206,6 +1240,9 @@ public partial class MainWindow : Window
         //Add this task running
         AddTask("bluetoothObdConnect", "Connect with the Paired Bluetooth OBD Adapter device and stablish a Serial Port.");
 
+        //Disable the unpair button
+        vehiclePanel_obdConnect_unpairButton.IsVisible = false;
+
         //If the Binded CLI Process is already rented by another task, wait until release
         while (isBindedCliTerminalRented() == true)
             yield return new Wait(0.5f);
@@ -1265,9 +1302,15 @@ public partial class MainWindow : Window
         //Start the connection attempter
         while (activeObdConnection == null)
         {
+            //Show the atempt number on debug
+            AvaloniaDebug.WriteLine(("Bluetooth OBD Device to Serial Port connection attempt: #" + triesOfConnectionForBluetoothObdDevice.ToString()));
+
             //Show the attempt on status
             vehiclePanel_odbConnect_statusText.Text = GetStringApplicationResource("vehiclePanel_odbConnectTryStatus").Replace("%d", appPrefs.loadedData.configuredObdBtAdapter.deviceName)
                                                                                                                       .Replace("%n", triesOfConnectionForBluetoothObdDevice.ToString());
+
+            //Show the icon of trying to connect in status bar
+            tryingConnectToObdButton.IsVisible = true;
 
             //Create a new OBD Adapter Handler
             ObdAdapterHandler newObdAdapterHandlerConnection = new ObdAdapterHandler();
@@ -1288,14 +1331,40 @@ public partial class MainWindow : Window
             while (newObdAdapterHandlerConnection.currentConnectionStatus == ObdAdapterHandler.ConnectionStatus.Connecting)
                 yield return new Wait(0.1f);
 
+            //Hide the icon of trying to connect in status bar
+            tryingConnectToObdButton.IsVisible = false;
+
             //If was failed to connect...
             if (newObdAdapterHandlerConnection.currentConnectionStatus == ObdAdapterHandler.ConnectionStatus.Disconnected)
             {
+                //Reset the attempt status
+                vehiclePanel_odbConnect_statusText.Text = GetStringApplicationResource("vehiclePanel_odbConnectInitialStatus");
+
+                //Enable the unpair button
+                vehiclePanel_obdConnect_unpairButton.IsVisible = true;
+
+                //Analyse the logs of the connection try, and notify the user, if found the error string
+                foreach (string line in newObdAdapterHandlerConnection.GetConnectionTryLogs())
+                    if (line.Contains("Can't connect") == true)
+                        ShowToast(GetStringApplicationResource("vehiclePanel_odbConnectErrorMsg").Replace("%e", line.Split(": ")[1].ToUpper()), ToastDuration.Short, ToastType.Problem);
+
+                //Start a loop to wait time before continue
+                int elapsedSeconds = 0;
+                int secondsToWait = 30;
+                while (elapsedSeconds < secondsToWait)
+                {
+                    //Warn to debug
+                    AvaloniaDebug.WriteLine(("A new connection attempt to Bluetooth OBD Device to Serial Port will be done in " + (secondsToWait - elapsedSeconds) + " seconds."));
+
+                    //Wait one seconds
+                    yield return new Wait(1.0f);
+
+                    //Increase the seconds
+                    elapsedSeconds += 1;
+                }
+
                 //Increase the connection try counter
                 triesOfConnectionForBluetoothObdDevice += 1;
-
-                //Wait time before continue
-                yield return new Wait(5.0f);
             }
 
             //If was successfull connect
@@ -1313,6 +1382,9 @@ public partial class MainWindow : Window
 
                 //Store the reference and active connection for OBD Adapter Handler
                 activeObdConnection = newObdAdapterHandlerConnection;
+
+                //Show the connection symbol in status bar
+                connectedToObdButton.IsVisible = true;
 
                 //Start the final Panel
                 StartReadyVehiclePanel();
@@ -1338,6 +1410,12 @@ public partial class MainWindow : Window
     {
         //Clear the reference for the active connection for OBD Adapter Handler
         activeObdConnection = null;
+
+        //Hide the connection symbol in status bar
+        connectedToObdButton.IsVisible = false;
+
+        //Warn the user
+        ShowToast(GetStringApplicationResource("vehiclePanel_odbConnectLostConnection").Replace("%d", appPrefs.loadedData.configuredObdBtAdapter.deviceName), ToastDuration.Short, ToastType.Problem);
 
         //Restart the vehicle panel
         StartVehiclePanel();
@@ -1811,6 +1889,9 @@ public partial class MainWindow : Window
         //Register the current key
         currentTerminalCliRentKey = rentKey;
 
+        //Show the rent icon in status bar
+        Dispatcher.UIThread.Invoke(() => { bindedCliButton.IsVisible = true; });
+
         //Warn
         AvaloniaDebug.WriteLine("Renting the Binded CLI Process for Task of Key \"" + rentKey + "\"...");
 
@@ -1840,6 +1921,9 @@ public partial class MainWindow : Window
         }
 
 
+
+        //Hide the rent icon in status bar
+        Dispatcher.UIThread.Invoke(() => { bindedCliButton.IsVisible = false; });
 
         //Warn
         AvaloniaDebug.WriteLine("Releasing the Binded CLI Process for Task of Key \"" + currentRentKey + "\"!");
@@ -1919,40 +2003,6 @@ public partial class MainWindow : Window
 
         //Return the result
         return toReturn;
-    }
-
-    //Quit methods
-
-    private void QuitApplication()
-    {
-        //Enable the iteraction blocker
-        SetActiveInteractionBlocker(true);
-
-        //Show the confirmation dialog
-        var dialogResult = MessageBoxManager.GetMessageBoxStandard(GetStringApplicationResource("quitApplication_dialogTitle"),
-                                                                   GetStringApplicationResource("quitApplication_dialogText"),
-                                                                   ButtonEnum.YesNo, MsBox.Avalonia.Enums.Icon.Question).ShowAsync();
-
-        //Register on finish dialog event
-        dialogResult.GetAwaiter().OnCompleted(() =>
-        {
-            //Process the result
-            if (dialogResult.Result == ButtonResult.Yes)
-            {
-                OnAboutToQuitApplication();
-                this.Close();
-            }
-            if (dialogResult.Result != ButtonResult.Yes)
-                SetActiveInteractionBlocker(false);
-        });
-    }
-
-    private void OnAboutToQuitApplication()
-    {
-        //Warn that is quiting the application
-        AvaloniaDebug.WriteLine("Closing Motoplay App...");
-
-        //...
     }
 
     //Auxiliar methods
@@ -2067,5 +2117,44 @@ public partial class MainWindow : Window
 
         //Return the data
         return toReturn;
+    }
+
+    //Quit methods
+
+    private void QuitApplication()
+    {
+        //Enable the iteraction blocker
+        SetActiveInteractionBlocker(true);
+
+        //Show the confirmation dialog
+        var dialogResult = MessageBoxManager.GetMessageBoxStandard(GetStringApplicationResource("quitApplication_dialogTitle"),
+                                                                   GetStringApplicationResource("quitApplication_dialogText"),
+                                                                   ButtonEnum.YesNo, MsBox.Avalonia.Enums.Icon.Question).ShowAsync();
+
+        //Register on finish dialog event
+        dialogResult.GetAwaiter().OnCompleted(() =>
+        {
+            //Process the result
+            if (dialogResult.Result == ButtonResult.Yes)
+            {
+                OnAboutToQuitApplication();
+                this.Close();
+            }
+            if (dialogResult.Result != ButtonResult.Yes)
+                SetActiveInteractionBlocker(false);
+        });
+    }
+
+    private void OnAboutToQuitApplication()
+    {
+        //Warn that is quiting the application
+        AvaloniaDebug.WriteLine("Closing Motoplay App...");
+
+        //Force to disconnect the active OBD Adapter Handler, if have
+        if(activeObdConnection != null)
+        {
+            activeObdConnection.ForceDisconnect();
+            activeObdConnection = null;
+        }
     }
 }

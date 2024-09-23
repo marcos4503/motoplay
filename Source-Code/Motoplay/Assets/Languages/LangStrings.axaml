@@ -2,9 +2,15 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
 	<!-- Status Bar -->
+	<x:String x:Key="statusBar_toggleKeyboardTooltip">Motoplay Virtual Keyboard</x:String>
 	<x:String x:Key="statusBar_toggleKeyboardTipText">Use CTRL + MENU to simulate Right Mouse Click. The F0 to F10 keys can be simulated using ALTGR + Num.</x:String>
 	<x:String x:Key="statusBar_updateAvailable">There is a new update available for the Motoplay App! Click the button next to the Keyboard Button to install the update.</x:String>
-	
+	<x:String x:Key="statusBar_updateTooltip">There is an Update available for the Motoplay App!</x:String>
+	<x:String x:Key="statusBar_bindedCliTooltip">Binded CLI Terminal, in use...</x:String>
+	<x:String x:Key="statusBar_bindedBluetoothCtlTooltip">Binded BluetoothCTL Agent CLI Terminal, in use...</x:String>
+	<x:String x:Key="statusBar_tryingToConnecToObdTooltip">Trying to connect to Paired Bluetooth OBD Adapter...</x:String>
+	<x:String x:Key="statusBar_connectedToObdTooltip">Connected to Paired Bluetooth OBD Adapter</x:String>
+
 	<!-- Toast Notification -->
 	<x:String x:Key="toastNotification_dismissButton">Dismiss</x:String>
 
@@ -36,9 +42,11 @@ When you are ready, click the button below to get started!</x:String>
 
 Error Code: "%e".</x:String>
 	<x:String x:Key="vehiclePanel_setupPairingSuccess">Pairing with device "%d" was successful! Now this device will be used as Bluetooth OBD Adapter by default!</x:String>
-	<x:String x:Key="vehiclePanel_odbConnectInitialStatus">Connecting to Bluetooth OBD Adapter</x:String>
+	<x:String x:Key="vehiclePanel_odbConnectInitialStatus">Preparing to connect to Bluetooth OBD Adapter</x:String>
 	<x:String x:Key="vehiclePanel_odbConnectUnpairButton">Cancel and Unpair</x:String>
 	<x:String x:Key="vehiclePanel_odbConnectTryStatus">Establishing Bluetooth Serial Connection With %d
 Attempt #%n</x:String>
+	<x:String x:Key="vehiclePanel_odbConnectErrorMsg">Connection to Bluetooth OBD Adapter: %e.</x:String>
+	<x:String x:Key="vehiclePanel_odbConnectLostConnection">The connection to the Bluetooth OBD Adapter "%d" has been lost. Please make sure the device is still available for connection!</x:String>
 
 </ResourceDictionary>
