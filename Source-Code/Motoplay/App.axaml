@@ -8,13 +8,18 @@
         <FluentTheme />
     </Application.Styles>
 
-	<!-- Motoplay App default language to use in Editor -->
+	<!-- Application Resources -->
 	<Application.Resources>
+		<!-- Resources Dictionary -->
 		<ResourceDictionary>
 			<ResourceDictionary.MergedDictionaries>
 				<MergeResourceInclude Source="/Assets/Languages/LangStrings.axaml" />
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>
+
+		<!-- App font resources -->
+		<FontFamily x:Key="Panton">avares://Motoplay/Assets/Fonts#Panton</FontFamily>
+		<FontFamily x:Key="Nasalization">avares://Motoplay/Assets/Fonts#Nasalization</FontFamily>
 	</Application.Resources>
 	
 </Application>

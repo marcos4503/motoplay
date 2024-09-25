@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:gif="clr-namespace:Avalonia.Labs.Gif;assembly=Avalonia.Labs.Gif"
         xmlns:views="clr-namespace:Motoplay.Views"
+		xmlns:local="clr-namespace:Motoplay"
         mc:Ignorable="d" x:Class="Motoplay.Views.MainWindow"
 		Icon="/Assets/motoplay-logo.ico"
 		Title="Motoplay"
@@ -251,6 +252,23 @@
 						</Grid>
 						<!-- Panel -->
 						<Grid Name="vehiclePanel_panelScreen" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+							<!-- Panel Elements -->
+							<Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="400" Height="400">
+								<!-- RPM Gauge -->
+								<local:RpmGauge HorizontalAlignment="Stretch" VerticalAlignment="Stretch" PointerAngle="0"></local:RpmGauge>
+								<!-- Gear Gauge -->
+								<Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="128" Height="128">
+									<TextBlock Text="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="{StaticResource Nasalization}" FontWeight="Bold" FontSize="80" LineHeight="64" Margin="0, 0, 0, 0"></TextBlock>
+									<TextBlock Text="{DynamicResource ResourceKey=vehiclePanel_gearGauge_title}" HorizontalAlignment="Center" VerticalAlignment="Bottom" FontFamily="{StaticResource Panton}" FontSize="10" Margin="0, 0, 0, 0" Opacity="0.7"></TextBlock>
+								</Grid>
+								<!-- Speed Gauge -->
+								<Border HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="#d4d4d4" BorderThickness="2" CornerRadius="8" Width="178" Height="80" Margin="0, 242, 0, 0">
+									<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+										<TextBlock Text="000" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="{StaticResource Nasalization}" FontWeight="Bold" FontSize="60" LineHeight="48" Margin="0, 0, 0, 12"></TextBlock>
+										<TextBlock Text="{DynamicResource ResourceKey=vehiclePanel_speedGauge_titleMph}" HorizontalAlignment="Center" VerticalAlignment="Bottom" FontFamily="{StaticResource Panton}" FontSize="10" Margin="0, 0, 0, 2" LineHeight="12" Opacity="0.7"></TextBlock>
+									</Grid>
+								</Border>
+							</Grid>
 							<!-- Right Drawer -->
 							<Grid Name="vehiclePanel_drawerBackground" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Black" Opacity="0.0">
 								<Grid.Transitions>
@@ -259,7 +277,7 @@
 									</Transitions>
 								</Grid.Transitions>
 							</Grid>
-							<Grid Name="vehiclePanel_drawer" HorizontalAlignment="Right" VerticalAlignment="Stretch" Width="350" Background="White" Margin="0, 0, 0, 0"> <!-- Closed Margin: 0, 0, -352, 0 -->
+							<Grid Name="vehiclePanel_drawer" HorizontalAlignment="Right" VerticalAlignment="Stretch" Width="350" Background="White" Margin="0, 0, -352, 0"> <!-- Closed Margin: 0, 0, -352, 0 -->
 								<Grid.Transitions>
 									<Transitions>
 										<ThicknessTransition Property="Margin" Duration="0:0:0.3"></ThicknessTransition>
@@ -268,8 +286,36 @@
 								<!-- Drawer Divider -->
 								<Rectangle HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="1" Fill="#dedede" Margin="0, 48, 0, 0"></Rectangle>
 								<!-- Drawer Content -->
-								<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="8, 48, 8, 8">
-									
+								<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 48, 0, 0">
+									<TabControl SelectedIndex="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 0, 0, 0" Padding="0, 0, 0, 0">
+										<TabItem Header="{DynamicResource ResourceKey=vehiclePanel_drawer_logsTab_title}" FontSize="16" Margin="16, 0, 0, 0" Padding="0, 0, 0, 0">
+											<ScrollViewer Name="vehiclePanel_drawer_logsTab_logScroll" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Offset="0, 100" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 0, 0, 0">
+												<StackPanel Name="vehiclePanel_drawer_logsTab_logList" Orientation="Vertical" Spacing="4" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="16, 8, 16, 8">
+													<local:PanelLogItem Time="--:--:--" Message="Connection to the Bluetooth OBD Adapter has been initiated." ShowDivider="False"></local:PanelLogItem>
+												</StackPanel>
+											</ScrollViewer>
+										</TabItem>
+										<TabItem Header="{DynamicResource ResourceKey=vehiclePanel_drawer_adapterTab_title}" FontSize="16" Margin="16, 0, 0, 0" Padding="0, 0, 0, 0">
+											<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Offset="0, 0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 0, 0, 0">
+												<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="32, 8, 32, 32">
+													<Image Source="/Assets/adapter-icon.png" HorizontalAlignment="Center" VerticalAlignment="Top" Height="128" Opacity="0.7"></Image>
+													<StackPanel Orientation="Vertical" Spacing="4" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="0, 16, 0, 0">
+														<TextBlock Text="{DynamicResource ResourceKey=vehiclePanel_drawer_adapterTab_deviceName}" FontSize="12" Opacity="0.5"></TextBlock>
+														<TextBox Name="vehiclePanel_drawer_adapterTab_deviceName" IsEnabled="False"></TextBox>
+													</StackPanel>
+													<StackPanel Orientation="Vertical" Spacing="4" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+														<TextBlock Text="{DynamicResource ResourceKey=vehiclePanel_drawer_adapterTab_deviceMac}" FontSize="12" Opacity="0.5"></TextBlock>
+														<TextBox Name="vehiclePanel_drawer_adapterTab_deviceMac" IsEnabled="False"></TextBox>
+													</StackPanel>
+													<StackPanel Orientation="Vertical" Spacing="4" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+														<TextBlock Text="{DynamicResource ResourceKey=vehiclePanel_drawer_adapterTab_devicePin}" FontSize="12" Opacity="0.5"></TextBlock>
+														<TextBox Name="vehiclePanel_drawer_adapterTab_devicePin" IsEnabled="False"></TextBox>
+													</StackPanel>
+													<Button Name="vehiclePanel_drawer_adapterTab_unpairButton" Content="{DynamicResource ResourceKey=vehiclePanel_drawer_adapterTab_unpairButton}" HorizontalAlignment="Center" VerticalAlignment="Top" Height="32" HorizontalContentAlignment="Center" Background="#940000" Foreground="#f2f2f2" Margin="0, 16, 0, 0"></Button>
+												</StackPanel>
+											</ScrollViewer>
+										</TabItem>
+									</TabControl>
 								</Grid>
 								<!-- Drawer Handler -->
 								<Rectangle HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="2" Fill="#dedede" Margin="-2, 0, 0, 0"></Rectangle>

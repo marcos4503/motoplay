@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" x:Class="Motoplay.PanelLogItem"
+			 d:DesignWidth="800" d:DesignHeight="450">
+
+	<!-- Root Element -->
+	<Grid Name="rootElement" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+		<StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Top">
+			<Rectangle IsVisible="{Binding ShowDivider}" x:CompileBindings="False" HorizontalAlignment="Center" VerticalAlignment="Top" Width="200" Height="1" Fill="#ababab" Opacity="0.3" Margin="0, 0, 0, 2"></Rectangle>
+			<Grid ColumnDefinitions="56,4,*" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+				<Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+					<TextBlock Text="{Binding Time}" x:CompileBindings="False" HorizontalAlignment="Stretch" VerticalAlignment="Top" FontSize="12" Opacity="0.5"></TextBlock>
+				</Grid>
+				<Grid Grid.Row="0" Grid.Column="1"></Grid>
+				<Grid Grid.Row="0" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+					<TextBlock Text="{Binding Message}" x:CompileBindings="False" TextWrapping="Wrap" HorizontalAlignment="Stretch" VerticalAlignment="Top" FontSize="12"></TextBlock>
+				</Grid>
+			</Grid>
+		</StackPanel>
+	</Grid>
+	
+</UserControl>

@@ -98,6 +98,7 @@ public partial class MainWindow : Window
     private ActiveCoroutine postPreferencesSaveRoutine = null;
     private bool isVehiclePanelDrawerOpen = false;
     private ActiveCoroutine openCloseVehiclePanelDrawerRoutine = null;
+    private List<PanelLogItem> instantiatedPanelLogsInUi = new List<PanelLogItem>();
 
     //Private variables
     private string[] receivedCliArgs = null;
@@ -603,6 +604,7 @@ public partial class MainWindow : Window
         vehiclePanel_obdConnect_unpairButton.Click += (s, e) => { UnpairTheCurrentlyPairedBluetoothObdDevice(); };
         vehiclePanel_drawerHandler.PointerPressed += (s, e) => { ToggleVehiclePanelDrawer(); };
         vehiclePanel_drawerBackground.PointerPressed += (s, e) => { ToggleVehiclePanelDrawer(); };
+        vehiclePanel_drawer_adapterTab_unpairButton.Click += (s, e) => { UnpairTheCurrentlyPairedBluetoothObdDevice(); };
 
         //Start the vehicle panel
         StartVehiclePanel();
@@ -1147,6 +1149,13 @@ public partial class MainWindow : Window
 
     private void UnpairTheCurrentlyPairedBluetoothObdDevice()
     {
+        //Reset the data saved
+        appPrefs.loadedData.configuredObdBtAdapter.haveConfigured = false;
+        appPrefs.loadedData.configuredObdBtAdapter.deviceName = "";
+        appPrefs.loadedData.configuredObdBtAdapter.deviceMac = "";
+        appPrefs.loadedData.configuredObdBtAdapter.devicePassword = "";
+        SaveAllPreferences();
+
         //Start the unpair routine, if is not running
         if (unpairThePairedObdDeviceRoutine == null)
             unpairThePairedObdDeviceRoutine = CoroutineHandler.Start(UnpairTheCurrentlyPairedBluetoothObdDeviceRoutine());
@@ -1198,12 +1207,7 @@ public partial class MainWindow : Window
         while (isLastCommandFinishedExecution(rKey) == false)
             yield return new Wait(0.1f);
 
-        //Reset the data saved
-        appPrefs.loadedData.configuredObdBtAdapter.haveConfigured = false;
-        appPrefs.loadedData.configuredObdBtAdapter.deviceName = "";
-        appPrefs.loadedData.configuredObdBtAdapter.deviceMac = "";
-        appPrefs.loadedData.configuredObdBtAdapter.devicePassword = "";
-        SaveAllPreferences();
+        //...
 
         //Restart the panel
         StartVehiclePanel();
@@ -1450,6 +1454,9 @@ public partial class MainWindow : Window
         //Hide the connection symbol in status bar
         connectedToObdButton.IsVisible = false;
 
+        //Clear the panel logs
+        ClearAllVehiclePanelLogs();
+
         //Warn the user
         ShowToast(GetStringApplicationResource("vehiclePanel_odbConnectLostConnection").Replace("%d", appPrefs.loadedData.configuredObdBtAdapter.deviceName), ToastDuration.Short, ToastType.Problem);
 
@@ -1469,6 +1476,11 @@ public partial class MainWindow : Window
         vehiclePanel_obdSetupScreen.IsVisible = false;
         vehiclePanel_obdConnectScreen.IsVisible = false;
         vehiclePanel_panelScreen.IsVisible = true;
+
+        //Show the information of adapter in the place
+        vehiclePanel_drawer_adapterTab_deviceName.Text = appPrefs.loadedData.configuredObdBtAdapter.deviceName;
+        vehiclePanel_drawer_adapterTab_deviceMac.Text = appPrefs.loadedData.configuredObdBtAdapter.deviceMac;
+        vehiclePanel_drawer_adapterTab_devicePin.Text = appPrefs.loadedData.configuredObdBtAdapter.devicePassword;
 
         //...
     }
@@ -1548,6 +1560,38 @@ public partial class MainWindow : Window
 
         //Inform that is finished
         openCloseVehiclePanelDrawerRoutine = null;
+    }
+
+    private void SendVehiclePanelLog(string message)
+    {
+        //Detect if the scroll view is scrolled to end
+        bool isScrollInEnd = false;
+        if (vehiclePanel_drawer_logsTab_logScroll.Offset.Y >= vehiclePanel_drawer_logsTab_logScroll.ScrollBarMaximum.Y)
+            isScrollInEnd = true;
+
+        //Instantiate and store reference for it
+        PanelLogItem item = new PanelLogItem();
+        instantiatedPanelLogsInUi.Add(item);
+        vehiclePanel_drawer_logsTab_logList.Children.Add(item);
+        //Set it up
+        item.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
+        item.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top;
+        item.Width = double.NaN;
+        item.Height = double.NaN;
+        //Fill this item
+        item.Time = DateTime.Now.ToString("HH:mm:ss");
+        item.Message = message;
+
+        //If the scroll view was at end, move it to end again
+        vehiclePanel_drawer_logsTab_logScroll.ScrollToEnd();
+    }
+
+    private void ClearAllVehiclePanelLogs()
+    {
+        //Clear all existing logs
+        foreach (PanelLogItem item in instantiatedPanelLogsInUi)
+            vehiclePanel_drawer_logsTab_logList.Children.Remove(item);
+        instantiatedPanelLogsInUi.Clear();
     }
 
     //Pages Manager

@@ -49,6 +49,15 @@ Attempt #%n</x:String>
 	<x:String x:Key="vehiclePanel_odbConnectErrorMsg">Connection to Bluetooth OBD Adapter: %e.</x:String>
 	<x:String x:Key="vehiclePanel_odbConnectExcedeedTries">The maximum number of attempts to connect to Bluetooth OBD Adapter "%d" has been reached. Please restart Motoplay to continue trying.</x:String>
 	<x:String x:Key="vehiclePanel_odbConnectLostConnection">The connection to the Bluetooth OBD Adapter "%d" has been lost. Please make sure the device is still available for connection!</x:String>
+	<x:String x:Key="vehiclePanel_drawer_adapterTab_title">Adapter</x:String>
+	<x:String x:Key="vehiclePanel_drawer_adapterTab_unpairButton">Disconnect and Unpair</x:String>
+	<x:String x:Key="vehiclePanel_drawer_adapterTab_deviceName">OBD Adapter Device Name</x:String>
+	<x:String x:Key="vehiclePanel_drawer_adapterTab_deviceMac">OBD Adapter Device MAC Address</x:String>
+	<x:String x:Key="vehiclePanel_drawer_adapterTab_devicePin">OBD Adapter Device PIN</x:String>
+	<x:String x:Key="vehiclePanel_drawer_logsTab_title">Logs</x:String>
+	<x:String x:Key="vehiclePanel_gearGauge_title">GEAR</x:String>
+	<x:String x:Key="vehiclePanel_speedGauge_titleKmh">KM/h</x:String>
+	<x:String x:Key="vehiclePanel_speedGauge_titleMph">MP/h</x:String>
 
 
 
