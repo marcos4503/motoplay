@@ -56,7 +56,7 @@
 				</Grid.RenderTransform>
 				<Border Background="#d6d6d6" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80" Height="8"></Border>
 			</Grid>
-			<Arc StartAngle="0" SweepAngle="{Binding PointerAngle}" x:CompileBindings="False" StrokeThickness="70" StrokeLineCap="Flat" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="5, 5, 5, 5">
+			<Arc StartAngle="0" SweepAngle="{Binding PrimaryPointerAngle}" x:CompileBindings="False" StrokeThickness="70" StrokeLineCap="Flat" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="5, 5, 5, 5">
 				<Arc.RenderTransform>
 					<TransformGroup>
 						<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
@@ -76,6 +76,30 @@
 					</Transitions>
 				</Arc.Transitions>
 			</Arc>
+			<Grid IsVisible="{Binding SecondayPointerVisible}" x:CompileBindings="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+				<Grid.RenderTransform>
+					<TransformGroup>
+						<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
+						<TranslateTransform X="0" Y="0"></TranslateTransform>
+						<RotateTransform CenterX="0" CenterY="0" Angle="-35"></RotateTransform>
+					</TransformGroup>
+				</Grid.RenderTransform>
+				<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+					<Grid.RenderTransform>
+						<TransformGroup>
+							<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
+							<TranslateTransform X="0" Y="0"></TranslateTransform>
+							<RotateTransform CenterX="0" CenterY="0" Angle="{Binding SecondaryPointerAngle}" x:CompileBindings="False"></RotateTransform>
+						</TransformGroup>
+					</Grid.RenderTransform>
+					<Grid.Transitions>
+						<Transitions>
+							<TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1"/>
+						</Transitions>
+					</Grid.Transitions>
+					<Border Background="#f5bc00" HorizontalAlignment="Left" VerticalAlignment="Center" Width="70" Height="3" Margin="5, 0, 0, 0"></Border>
+				</Grid>
+			</Grid>
 			<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 				<Grid.RenderTransform>
 					<TransformGroup>
@@ -89,7 +113,7 @@
 						<TransformGroup>
 							<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
 							<TranslateTransform X="0" Y="0"></TranslateTransform>
-							<RotateTransform CenterX="0" CenterY="0" Angle="{Binding PointerAngle}" x:CompileBindings="False"></RotateTransform>
+							<RotateTransform CenterX="0" CenterY="0" Angle="{Binding PrimaryPointerAngle}" x:CompileBindings="False"></RotateTransform>
 						</TransformGroup>
 					</Grid.RenderTransform>
 					<Grid.Transitions>
@@ -137,7 +161,7 @@
 			</Grid>
 			<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 				<Border IsVisible="{Binding RpmValueAt100Visible}" x:CompileBindings="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="12" Height="4" Background="#d6d6d6" CornerRadius="8" Margin="-16, 0, 0, 0"></Border>
-				<TextBlock Text="{Binding RpmValueAt100Percent}" x:CompileBindings="False" IsVisible="{Binding RpmValueAt100Visible}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="-40, 1, 0, 0" FontFamily="{StaticResource Panton}" TextAlignment="Center" Width="24" Foreground="#424242">
+				<TextBlock Text="{Binding RpmValueAt100Percent}" x:CompileBindings="False" IsVisible="{Binding RpmValueAt100Visible}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="-40, -6, 0, 0" FontFamily="{StaticResource Panton}" TextAlignment="Center" Width="24" Foreground="#424242">
 					<TextBlock.RenderTransform>
 						<TransformGroup>
 							<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
@@ -208,6 +232,46 @@
 						<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
 						<TranslateTransform X="0" Y="0"></TranslateTransform>
 						<RotateTransform CenterX="0" CenterY="0" Angle="153"></RotateTransform>
+					</TransformGroup>
+				</Grid.RenderTransform>
+			</Grid>
+			<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+				<Border IsVisible="{Binding RpmValueAt12Visible}" x:CompileBindings="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="12" Height="4" Background="#d6d6d6" CornerRadius="8" Margin="-16, 0, 0, 0"></Border>
+				<Grid.RenderTransform>
+					<TransformGroup>
+						<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
+						<TranslateTransform X="0" Y="0"></TranslateTransform>
+						<RotateTransform CenterX="0" CenterY="0" Angle="-4"></RotateTransform>
+					</TransformGroup>
+				</Grid.RenderTransform>
+			</Grid>
+			<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+				<Border IsVisible="{Binding RpmValueAt38Visible}" x:CompileBindings="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="12" Height="4" Background="#d6d6d6" CornerRadius="8" Margin="-16, 0, 0, 0"></Border>
+				<Grid.RenderTransform>
+					<TransformGroup>
+						<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
+						<TranslateTransform X="0" Y="0"></TranslateTransform>
+						<RotateTransform CenterX="0" CenterY="0" Angle="58"></RotateTransform>
+					</TransformGroup>
+				</Grid.RenderTransform>
+			</Grid>
+			<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+				<Border IsVisible="{Binding RpmValueAt62Visible}" x:CompileBindings="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="12" Height="4" Background="#d6d6d6" CornerRadius="8" Margin="-16, 0, 0, 0"></Border>
+				<Grid.RenderTransform>
+					<TransformGroup>
+						<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
+						<TranslateTransform X="0" Y="0"></TranslateTransform>
+						<RotateTransform CenterX="0" CenterY="0" Angle="121"></RotateTransform>
+					</TransformGroup>
+				</Grid.RenderTransform>
+			</Grid>
+			<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+				<Border IsVisible="{Binding RpmValueAt88Visible}" x:CompileBindings="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="12" Height="4" Background="#d6d6d6" CornerRadius="8" Margin="-16, 0, 0, 0"></Border>
+				<Grid.RenderTransform>
+					<TransformGroup>
+						<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
+						<TranslateTransform X="0" Y="0"></TranslateTransform>
+						<RotateTransform CenterX="0" CenterY="0" Angle="184"></RotateTransform>
 					</TransformGroup>
 				</Grid.RenderTransform>
 			</Grid>

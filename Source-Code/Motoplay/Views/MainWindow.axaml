@@ -41,6 +41,15 @@
 				<Setter Property="Margin" Value="0, -256, 0, 0"/>
 			</KeyFrame>
 		</Animation>
+		<!-- Panel Fade In Cover Animation -->
+		<Animation x:Key="panelFadeInCover" x:SetterTargetType="Grid" Duration="0:0:1.0" Delay="0:0:0.0" FillMode="Forward" Easing="LinearEasing">
+			<KeyFrame Cue="0%">
+				<Setter Property="Opacity" Value="1.0"/>
+			</KeyFrame>
+			<KeyFrame Cue="100%">
+				<Setter Property="Opacity" Value="0.0"/>
+			</KeyFrame>
+		</Animation>
 	</Window.Resources>
 	
 	
@@ -57,10 +66,133 @@
 				<Grid Background="White" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 					<!-- Vehicle Panel Background -->
 					<Grid Name="pageBgForPanel" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-						<Grid Name="backgroundForPanelSetupAndConnect" IsVisible="False" Background="White" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-						</Grid>
+						<!-- Background for Panel Setup and Connection Screen -->
+						<Grid Name="backgroundForPanelSetupAndConnect" IsVisible="False" Background="White" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Grid>
+						<!-- Background for Ready Panel Screen -->
 						<Grid Name="backgroundForPanelContent" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-
+							<Grid ColumnDefinitions="12.6*,2,88*" x:CompileBindings="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+								<Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Grid>
+								<Grid Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Grid>
+								<Grid Grid.Row="0" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+									<!-- Background of Wall Shadow -->
+									<Grid RowDefinitions="*,*" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+										<Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+											<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+												<Image Source="/Assets/panel-wall-top.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Stretch="Fill" RenderOptions.BitmapInterpolationMode="HighQuality"></Image>
+											</Grid>
+										</Grid>
+										<Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+											<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, -70, 0, 0">
+												<Image Source="/Assets/panel-wall-bottom.png" HorizontalAlignment="Center" VerticalAlignment="Top" Stretch="Fill" RenderOptions.BitmapInterpolationMode="HighQuality" Margin="0, -22, 0, 0" Width="716" Height="332"></Image>
+											</Grid>
+										</Grid>
+									</Grid>
+									<!-- Background Arcs -->
+									<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+										<Arc Name="vehiclePanel_background_speedArc40Kmh" IsVisible="True" StartAngle="0" SweepAngle="360" StrokeThickness="100" StrokeLineCap="Flat" Stroke="#53707a" HorizontalAlignment="Center" VerticalAlignment="Center" Width="834" Height="834" Margin="0, 0, 0, 24" Opacity="0.7">
+											<!-- Effect Disable Because of GPU Performance Problem -->
+											<!-- <Arc.Styles>
+												<Style Selector="Arc">
+													<Setter Property="Effect">
+														<BlurEffect Radius="8"></BlurEffect>
+													</Setter>
+												</Style>
+											</Arc.Styles> -->
+										</Arc>
+										<Arc Name="vehiclePanel_background_speedArc70Kmh" IsVisible="True" StartAngle="0" SweepAngle="360" StrokeThickness="48" StrokeLineCap="Flat" Stroke="#509eba" HorizontalAlignment="Center" VerticalAlignment="Center" Width="608" Height="608" Margin="0, 0, 0, 24" Opacity="0.7">
+											<!-- Effect Disable Because of GPU Performance Problem -->
+											<!-- <Arc.Styles>
+												<Style Selector="Arc">
+													<Setter Property="Effect">
+														<BlurEffect Radius="8"></BlurEffect>
+													</Setter>
+												</Style>
+											</Arc.Styles> -->
+										</Arc>
+										<Arc Name="vehiclePanel_background_speedArc100Kmh" IsVisible="True" StartAngle="0" SweepAngle="360" StrokeThickness="32" StrokeLineCap="Flat" Stroke="#FA972D" HorizontalAlignment="Center" VerticalAlignment="Center" Width="480" Height="480" Margin="0, 0, 0, 24" Opacity="0.7">
+											<!-- Effect Disable Because of GPU Performance Problem -->
+											<!-- <Arc.Styles>
+												<Style Selector="Arc">
+													<Setter Property="Effect">
+														<DropShadowEffect Color="#fc1e00" BlurRadius="16" OffsetX="0" OffsetY="0" Opacity="1.0"/>
+													</Setter>
+												</Style>
+											</Arc.Styles> -->
+										</Arc>
+									</Grid>
+									<!-- Background of Panel Ground -->
+									<Grid RowDefinitions="*,*" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+										<Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Grid>
+										<Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+											<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, -72, 0, 0">
+												<Image Source="/Assets/panel-ground.png" HorizontalAlignment="Center" VerticalAlignment="Top" Stretch="Fill" RenderOptions.BitmapInterpolationMode="HighQuality" Margin="0, -22, 0, 0" Width="716" Height="332"></Image>
+											</Grid>
+										</Grid>
+									</Grid>
+									<!-- Background Arcs Reflection -->
+									<Grid RowDefinitions="*,*" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+										<Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Grid>
+										<Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+											<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, -72, 0, 0">
+												<Grid Name="vehiclePanel_background_speedArc100Kmh_reflection" IsVisible="True" HorizontalAlignment="Center" VerticalAlignment="Top" Width="432" Height="432" Margin="0, -57, 0, 24" Opacity="0.15">
+													<Grid.RenderTransform>
+														<Rotate3DTransform Depth="900">
+															<Rotate3DTransform.AngleX>78</Rotate3DTransform.AngleX>
+															<Rotate3DTransform.AngleY>0</Rotate3DTransform.AngleY>
+															<Rotate3DTransform.AngleZ>0</Rotate3DTransform.AngleZ>
+														</Rotate3DTransform>
+													</Grid.RenderTransform>
+													<Arc StartAngle="0" SweepAngle="112" StrokeThickness="38" StrokeLineCap="Flat" Stroke="#FA972D" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+														<Arc.RenderTransform>
+															<TransformGroup>
+																<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
+																<TranslateTransform X="0" Y="0"></TranslateTransform>
+																<RotateTransform CenterX="0" CenterY="0" Angle="34"></RotateTransform>
+															</TransformGroup>
+														</Arc.RenderTransform>
+													</Arc>
+												</Grid>
+												<Grid Name="vehiclePanel_background_speedArc70Kmh_reflection" IsVisible="True" HorizontalAlignment="Center" VerticalAlignment="Top" Width="540" Height="540" Margin="0, -121, 0, 24" Opacity="0.15">
+													<Grid.RenderTransform>
+														<Rotate3DTransform Depth="800">
+															<Rotate3DTransform.AngleX>76</Rotate3DTransform.AngleX>
+															<Rotate3DTransform.AngleY>0</Rotate3DTransform.AngleY>
+															<Rotate3DTransform.AngleZ>0</Rotate3DTransform.AngleZ>
+														</Rotate3DTransform>
+													</Grid.RenderTransform>
+													<Arc StartAngle="0" SweepAngle="112" StrokeThickness="40" StrokeLineCap="Flat" Stroke="#509eba" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+														<Arc.RenderTransform>
+															<TransformGroup>
+																<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
+																<TranslateTransform X="0" Y="0"></TranslateTransform>
+																<RotateTransform CenterX="0" CenterY="0" Angle="34"></RotateTransform>
+															</TransformGroup>
+														</Arc.RenderTransform>
+													</Arc>
+												</Grid>
+												<Grid Name="vehiclePanel_background_speedArc40Kmh_reflection" IsVisible="True" HorizontalAlignment="Center" VerticalAlignment="Top" Width="675" Height="675" Margin="0, -192, 0, 24" Opacity="0.15">
+													<Grid.RenderTransform>
+														<Rotate3DTransform Depth="700">
+															<Rotate3DTransform.AngleX>75</Rotate3DTransform.AngleX>
+															<Rotate3DTransform.AngleY>0</Rotate3DTransform.AngleY>
+															<Rotate3DTransform.AngleZ>0</Rotate3DTransform.AngleZ>
+														</Rotate3DTransform>
+													</Grid.RenderTransform>
+													<Arc StartAngle="0" SweepAngle="112" StrokeThickness="64" StrokeLineCap="Flat" Stroke="#53707a" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+														<Arc.RenderTransform>
+															<TransformGroup>
+																<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
+																<TranslateTransform X="0" Y="0"></TranslateTransform>
+																<RotateTransform CenterX="0" CenterY="0" Angle="34"></RotateTransform>
+															</TransformGroup>
+														</Arc.RenderTransform>
+													</Arc>
+												</Grid>
+											</Grid>
+										</Grid>
+									</Grid>
+								</Grid>
+							</Grid>
 						</Grid>
 					</Grid>
 					<!-- General Metrics Button -->
@@ -91,7 +223,7 @@
 				<!-- Menu Bar Background Area -->
 				<Grid ColumnDefinitions="15.5*,85.0*" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 					<Grid Grid.Row="0" Grid.Column="0">
-						<Image Source="/Assets/menubar-background.png" Stretch="Fill" RenderOptions.BitmapInterpolationMode="HighQuality" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+						<Image Source="/Assets/menubar-background.png" Stretch="Fill" RenderOptions.BitmapInterpolationMode="HighQuality" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, -8, 0, -8"></Image>
 					</Grid>
 					<Grid Grid.Row="0" Grid.Column="1"></Grid>
 				</Grid>
@@ -173,7 +305,7 @@
 					</Grid>
 				</Grid>
 				<!-- Mid Area Divisor -->
-				<Grid Grid.Row="0" Grid.Column="1" Background="#ababab"></Grid>
+				<Grid Grid.Row="0" Grid.Column="1" Background="#a3a3a3"></Grid>
 				<!-- Page Area -->
 				<Grid Grid.Row="0" Grid.Column="2">
 					<!-- Temporary Initialization Logo -->
@@ -253,22 +385,85 @@
 						<!-- Panel -->
 						<Grid Name="vehiclePanel_panelScreen" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 							<!-- Panel Elements -->
-							<Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="400" Height="400">
+							<Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="400" Height="400" Margin="0, 0, 0, 24">
 								<!-- RPM Gauge -->
-								<local:RpmGauge HorizontalAlignment="Stretch" VerticalAlignment="Stretch" PointerAngle="0"></local:RpmGauge>
+								<local:RpmGauge Name="vehiclePanel_rpmGauge" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" PrimaryPointerAngle="0"></local:RpmGauge>
 								<!-- Gear Gauge -->
 								<Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="128" Height="128">
-									<TextBlock Text="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="{StaticResource Nasalization}" FontWeight="Bold" FontSize="80" LineHeight="64" Margin="0, 0, 0, 0"></TextBlock>
+									<Grid HorizontalAlignment="Center" VerticalAlignment="Top" Width="32" Height="32" Margin="0, 2, 0, 0">
+										<Polygon Name="vehiclePanel_shiftLight_up" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Points="0,24 16,0 32,24" Fill="#00aaff"></Polygon>
+										<Polygon Name="vehiclePanel_shiftLight_down" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Points="0,0 16,24 32,0" Fill="#00aaff"></Polygon>
+									</Grid>
+									<TextBlock Name="vehiclePanel_gearIndicatorText" Text="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="{StaticResource Nasalization}" FontWeight="Bold" FontSize="80" LineHeight="64" Margin="0, 0, 0, 0"></TextBlock>
 									<TextBlock Text="{DynamicResource ResourceKey=vehiclePanel_gearGauge_title}" HorizontalAlignment="Center" VerticalAlignment="Bottom" FontFamily="{StaticResource Panton}" FontSize="10" Margin="0, 0, 0, 0" Opacity="0.7"></TextBlock>
 								</Grid>
 								<!-- Speed Gauge -->
-								<Border HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="#d4d4d4" BorderThickness="2" CornerRadius="8" Width="178" Height="80" Margin="0, 242, 0, 0">
+								<Border HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="#d4d4d4" BorderThickness="4" CornerRadius="8" Width="178" Height="80" Margin="0, 242, 0, 0">
 									<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-										<TextBlock Text="000" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="{StaticResource Nasalization}" FontWeight="Bold" FontSize="60" LineHeight="48" Margin="0, 0, 0, 12"></TextBlock>
-										<TextBlock Text="{DynamicResource ResourceKey=vehiclePanel_speedGauge_titleMph}" HorizontalAlignment="Center" VerticalAlignment="Bottom" FontFamily="{StaticResource Panton}" FontSize="10" Margin="0, 0, 0, 2" LineHeight="12" Opacity="0.7"></TextBlock>
+										<TextBlock Name="vehiclePanel_speedometerText" Text="000" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="{StaticResource Nasalization}" FontWeight="Bold" FontSize="60" LineHeight="48" Margin="0, 0, 0, 12"></TextBlock>
+										<TextBlock Name="vehiclePanel_speedometerUnitText" Text="{DynamicResource ResourceKey=vehiclePanel_speedGauge_titleMph}" HorizontalAlignment="Center" VerticalAlignment="Bottom" FontFamily="{StaticResource Panton}" FontSize="10" Margin="0, 0, 0, 2" LineHeight="12" Opacity="0.7"></TextBlock>
 									</Grid>
 								</Border>
 							</Grid>
+							<!-- Minor Gauges -->
+							<Grid ColumnDefinitions="*,*,*,*,*,*" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="16, 0, 16, 8">
+								<!-- RPM Mini Gauge -->
+								<Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
+									<Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="96" Height="40" BorderThickness="2" BorderBrush="#d4d4d4" CornerRadius="8" Padding="4, 4, 4, 4" Background="#d9ffffff">
+										<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+											<Image Source="/Assets/rpm-icon.png" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="0, 6, 0, 6" Opacity="0.7"></Image>
+											<TextBlock Name="vehiclePanel_rpmText" Text="0 rpm" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="{StaticResource Panton}" FontSize="12" LineHeight="12" Opacity="0.7" TextAlignment="Center" Margin="0, 2, 0, 0"></TextBlock>
+										</Grid>
+									</Border>
+								</Grid>
+								<!-- Coolant Temperatura Mini Gauge -->
+								<Grid Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
+									<Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="96" Height="40" BorderThickness="2" BorderBrush="#d4d4d4" CornerRadius="8" Padding="4, 4, 4, 4" Background="#d9ffffff">
+										<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+											<Image Source="/Assets/coolant-temperature-icon.png" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="0, 6, 0, 6" Opacity="0.7"></Image>
+											<TextBlock Name="vehiclePanel_coolTemperatureText" Text="0 °C" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="{StaticResource Panton}" FontSize="12" LineHeight="12" Opacity="0.7" TextAlignment="Center" Margin="0, 2, 0, 0"></TextBlock>
+										</Grid>
+									</Border>
+								</Grid>
+								<!-- Engine Load Mini Gauge -->
+								<Grid Grid.Row="0" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
+									<Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="96" Height="40" BorderThickness="2" BorderBrush="#d4d4d4" CornerRadius="8" Padding="4, 4, 4, 4" Background="#d9ffffff">
+										<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+											<Image Source="/Assets/engine-load-icon.png" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="0, 6, 0, 6" Opacity="0.7"></Image>
+											<TextBlock Name="vehiclePanel_engineLoadText" Text="0%" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="{StaticResource Panton}" FontSize="12" LineHeight="12" Opacity="0.7" TextAlignment="Center" Margin="0, 2, 0, 0"></TextBlock>
+										</Grid>
+									</Border>
+								</Grid>
+								<!-- Battery Voltage Mini Gauge -->
+								<Grid Grid.Row="0" Grid.Column="3" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
+									<Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="96" Height="40" BorderThickness="2" BorderBrush="#d4d4d4" CornerRadius="8" Padding="4, 4, 4, 4" Background="#d9ffffff">
+										<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+											<Image Source="/Assets/battery-icon.png" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="0, 6, 0, 6" Opacity="0.7"></Image>
+											<TextBlock Name="vehiclePanel_batterVoltageText" Text="0.0v" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="{StaticResource Panton}" FontSize="12" LineHeight="12" Opacity="0.7" TextAlignment="Center" Margin="0, 2, 0, 0"></TextBlock>
+										</Grid>
+									</Border>
+								</Grid>
+								<!-- OBD Adapter Ping Mini Gauge -->
+								<Grid Grid.Row="0" Grid.Column="4" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
+									<Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="96" Height="40" BorderThickness="2" BorderBrush="#d4d4d4" CornerRadius="8" Padding="4, 4, 4, 4" Background="#d9ffffff">
+										<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+											<Image Source="/Assets/obd-adapter-ping-icon.png" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="0, 6, 0, 6" Opacity="0.7"></Image>
+											<TextBlock Name="vehiclePanel_adapterPingText" Text="0 ms" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="{StaticResource Panton}" FontSize="12" LineHeight="12" Opacity="0.7" TextAlignment="Center" Margin="0, 2, 0, 0"></TextBlock>
+										</Grid>
+									</Border>
+								</Grid>
+								<!-- OBD Adapter Loss Mini Gauge -->
+								<Grid Grid.Row="0" Grid.Column="5" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
+									<Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="96" Height="40" BorderThickness="2" BorderBrush="#d4d4d4" CornerRadius="8" Padding="4, 4, 4, 4" Background="#d9ffffff">
+										<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+											<Image Source="/Assets/obd-adapter-loss-icon.png" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="0, 6, 0, 6" Opacity="0.7"></Image>
+											<TextBlock Name="vehiclePanel_adapterLossText" Text="0 loss" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="{StaticResource Panton}" FontSize="12" LineHeight="12" Opacity="0.7" TextAlignment="Center" Margin="0, 2, 0, 0"></TextBlock>
+										</Grid>
+									</Border>
+								</Grid>
+							</Grid>
+							<!-- Fade Cover -->
+							<Grid Name="vehiclePanel_fadeCover" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#ffffff" Margin="0, -8, 0, 0" Opacity="1.0"></Grid>
 							<!-- Right Drawer -->
 							<Grid Name="vehiclePanel_drawerBackground" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Black" Opacity="0.0">
 								<Grid.Transitions>

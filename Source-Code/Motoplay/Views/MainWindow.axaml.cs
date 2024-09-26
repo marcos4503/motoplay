@@ -65,6 +65,12 @@ public partial class MainWindow : Window
         Appeared,
         Disappeared
     }
+    public enum SpeedArc
+    {
+        kmh40Arc,
+        kmh70Arc,
+        kmh100Arc
+    }
 
     //Classes of script
     private class BluetoothDeviceInScanLogs()
@@ -99,6 +105,11 @@ public partial class MainWindow : Window
     private bool isVehiclePanelDrawerOpen = false;
     private ActiveCoroutine openCloseVehiclePanelDrawerRoutine = null;
     private List<PanelLogItem> instantiatedPanelLogsInUi = new List<PanelLogItem>();
+    private ActiveCoroutine panelEntryAnimationPhase1Routine = null;
+    private ActiveCoroutine panelEntryAnimationPhase2Routine = null;
+    private ActiveCoroutine panelSpeedArc40kmhEntryRoutine = null;
+    private ActiveCoroutine panelSpeedArc70kmhEntryRoutine = null;
+    private ActiveCoroutine panelSpeedArc100kmhEntryRoutine = null;
 
     //Private variables
     private string[] receivedCliArgs = null;
@@ -1457,6 +1468,35 @@ public partial class MainWindow : Window
         //Clear the panel logs
         ClearAllVehiclePanelLogs();
 
+        //Stop all panel entry animations, if is running
+        if (panelEntryAnimationPhase1Routine != null)
+        {
+            panelEntryAnimationPhase1Routine.Cancel();
+            panelEntryAnimationPhase1Routine = null;
+        }
+        if (panelEntryAnimationPhase2Routine != null)
+        {
+            panelEntryAnimationPhase2Routine.Cancel();
+            panelEntryAnimationPhase2Routine = null;
+        }
+
+        //Stop any animation of speed arc, if is running
+        if (panelSpeedArc40kmhEntryRoutine != null)
+        {
+            panelSpeedArc40kmhEntryRoutine.Cancel();
+            panelSpeedArc40kmhEntryRoutine = null;
+        }
+        if (panelSpeedArc70kmhEntryRoutine != null)
+        {
+            panelSpeedArc70kmhEntryRoutine.Cancel();
+            panelSpeedArc70kmhEntryRoutine = null;
+        }
+        if (panelSpeedArc100kmhEntryRoutine != null)
+        {
+            panelSpeedArc100kmhEntryRoutine.Cancel();
+            panelSpeedArc100kmhEntryRoutine = null;
+        }
+
         //Warn the user
         ShowToast(GetStringApplicationResource("vehiclePanel_odbConnectLostConnection").Replace("%d", appPrefs.loadedData.configuredObdBtAdapter.deviceName), ToastDuration.Short, ToastType.Problem);
 
@@ -1482,7 +1522,368 @@ public partial class MainWindow : Window
         vehiclePanel_drawer_adapterTab_deviceMac.Text = appPrefs.loadedData.configuredObdBtAdapter.deviceMac;
         vehiclePanel_drawer_adapterTab_devicePin.Text = appPrefs.loadedData.configuredObdBtAdapter.devicePassword;
 
-        //...
+        //Initialize each element of panel
+        vehiclePanel_rpmGauge.PrimaryPointerAngle = 0;
+        vehiclePanel_rpmGauge.SecondaryPointerAngle = 0;
+        vehiclePanel_rpmGauge.SecondayPointerVisible = true;
+        vehiclePanel_rpmGauge.RpmValueAt0Percent = "0";
+        vehiclePanel_rpmGauge.RpmValueAt0Visible = false;
+        vehiclePanel_rpmGauge.RpmValueAt12Visible = false;
+        vehiclePanel_rpmGauge.RpmValueAt25Percent = "4";
+        vehiclePanel_rpmGauge.RpmValueAt25Visible = false;
+        vehiclePanel_rpmGauge.RpmValueAt38Visible = false;
+        vehiclePanel_rpmGauge.RpmValueAt50Percent = "7";
+        vehiclePanel_rpmGauge.RpmValueAt50Visible = false;
+        vehiclePanel_rpmGauge.RpmValueAt62Visible = false;
+        vehiclePanel_rpmGauge.RpmValueAt75Percent = "10";
+        vehiclePanel_rpmGauge.RpmValueAt75Visible = false;
+        vehiclePanel_rpmGauge.RpmValueAt88Visible = false;
+        vehiclePanel_rpmGauge.RpmValueAt100Percent = "14";
+        vehiclePanel_rpmGauge.RpmValueAt100Visible = false;
+        vehiclePanel_shiftLight_up.IsVisible = false;
+        vehiclePanel_shiftLight_down.IsVisible = false;
+        vehiclePanel_gearIndicatorText.Text = "-";
+        vehiclePanel_speedometerText.Text = "0";
+        vehiclePanel_speedometerUnitText.Text = GetStringApplicationResource("vehiclePanel_speedGauge_titleKmh");
+        DisableSpeedArc(SpeedArc.kmh40Arc);
+        DisableSpeedArc(SpeedArc.kmh70Arc);
+        DisableSpeedArc(SpeedArc.kmh100Arc);
+        vehiclePanel_rpmText.Text = "- rpm";
+        vehiclePanel_coolTemperatureText.Text = "- °C";
+        vehiclePanel_engineLoadText.Text = "-%";
+        vehiclePanel_batterVoltageText.Text = "-.-v";
+        vehiclePanel_adapterPingText.Text = "- ms";
+        vehiclePanel_adapterLossText.Text = "- loss";
+        vehiclePanel_fadeCover.IsVisible = true;
+
+        //Run Panel entry animation
+        RunPanelEntryAnimation();
+    }
+
+    private void RunPanelEntryAnimation()
+    {
+        //If is already running the entry animation, stop coroutines
+        if (panelEntryAnimationPhase1Routine != null)
+        {
+            panelEntryAnimationPhase1Routine.Cancel();
+            panelEntryAnimationPhase1Routine = null;
+        }
+        if (panelEntryAnimationPhase2Routine != null)
+        {
+            panelEntryAnimationPhase2Routine.Cancel();
+            panelEntryAnimationPhase2Routine = null;
+        }
+
+        //Start the panel entry animation
+        panelEntryAnimationPhase1Routine = CoroutineHandler.Start(PanelEntryAnimationPhase1Routine());
+    }
+
+    private IEnumerator<Wait> PanelEntryAnimationPhase1Routine()
+    {
+        //Enable the fade cover
+        vehiclePanel_fadeCover.IsVisible = true;
+
+        //Wait a delay
+        yield return new Wait(0.5f);
+
+        //Enable the panel fade cover and run the entry animation
+        vehiclePanel_fadeCover.IsVisible = true;
+        ((Animation)this.Resources["panelFadeInCover"]).RunAsync(vehiclePanel_fadeCover);
+
+        //Wait until the end of the animation
+        yield return new Wait(1.0f);
+
+        //Disable the panel fade cover
+        vehiclePanel_fadeCover.IsVisible = false;
+
+        //Inform that was finished
+        panelEntryAnimationPhase1Routine = null;
+
+        //Start the coroutine of phase 2
+        panelEntryAnimationPhase2Routine = CoroutineHandler.Start(PanelEntryAnimationPhase2Routine());
+    }
+
+    private IEnumerator<Wait> PanelEntryAnimationPhase2Routine()
+    {
+        //Wait a delay
+        yield return new Wait(0.5f);
+
+        //Enable the 40km/h arc
+        EnableSpeedArc(SpeedArc.kmh40Arc);
+
+        //Wait a delay
+        yield return new Wait(0.5f);
+
+        //Enable the 70km/h arc
+        EnableSpeedArc(SpeedArc.kmh70Arc);
+
+        //Wait a delay
+        yield return new Wait(0.5f);
+
+        //Enable the 100km/h arc
+        EnableSpeedArc(SpeedArc.kmh100Arc);
+
+        //Wait a delay
+        yield return new Wait(0.5f);
+
+        //Enable the rpm value
+        vehiclePanel_rpmGauge.RpmValueAt0Visible = true;
+
+        //Wait a delay
+        yield return new Wait(0.25f);
+
+        //Enable the rpm value
+        vehiclePanel_rpmGauge.RpmValueAt12Visible = true;
+
+        //Wait a delay
+        yield return new Wait(0.25f);
+
+        //Enable the rpm value
+        vehiclePanel_rpmGauge.RpmValueAt25Visible = true;
+
+        //Wait a delay
+        yield return new Wait(0.25f);
+
+        //Enable the rpm value
+        vehiclePanel_rpmGauge.RpmValueAt38Visible = true;
+
+        //Wait a delay
+        yield return new Wait(0.25f);
+
+        //Enable the rpm value
+        vehiclePanel_rpmGauge.RpmValueAt50Visible = true;
+
+        //Wait a delay
+        yield return new Wait(0.25f);
+
+        //Enable the rpm value
+        vehiclePanel_rpmGauge.RpmValueAt62Visible = true;
+
+        //Wait a delay
+        yield return new Wait(0.25f);
+
+        //Enable the rpm value
+        vehiclePanel_rpmGauge.RpmValueAt75Visible = true;
+
+        //Wait a delay
+        yield return new Wait(0.25f);
+
+        //Enable the rpm value
+        vehiclePanel_rpmGauge.RpmValueAt88Visible = true;
+
+        //Wait a delay
+        yield return new Wait(0.25f);
+
+        //Enable the rpm value
+        vehiclePanel_rpmGauge.RpmValueAt100Visible = true;
+
+        //Wait a delay
+        yield return new Wait(0.5f);
+
+        //Disable the 40km/h arc
+        DisableSpeedArc(SpeedArc.kmh40Arc);
+
+        //Wait a delay
+        yield return new Wait(0.15f);
+
+        //Disable the 70km/h arc
+        DisableSpeedArc(SpeedArc.kmh70Arc);
+
+        //Wait a delay
+        yield return new Wait(0.15f);
+
+        //Disable the 100km/h arc
+        DisableSpeedArc(SpeedArc.kmh100Arc);
+
+        //Inform that was finished
+        panelEntryAnimationPhase2Routine = null;
+    }
+
+    private void EnableSpeedArc(SpeedArc targetArc)
+    {
+        //Enable the desired arc
+        if (targetArc == SpeedArc.kmh40Arc)
+        {
+            //Stop if is already running
+            if (panelSpeedArc40kmhEntryRoutine != null)
+            {
+                panelSpeedArc40kmhEntryRoutine.Cancel();
+                panelSpeedArc40kmhEntryRoutine = null;
+            }
+            //Start the entry animation
+            panelSpeedArc40kmhEntryRoutine = CoroutineHandler.Start(Kmh40SpeedArcEntryRoutine());
+        }
+        if (targetArc == SpeedArc.kmh70Arc)
+        {
+            //Stop if is already running
+            if (panelSpeedArc70kmhEntryRoutine != null)
+            {
+                panelSpeedArc70kmhEntryRoutine.Cancel();
+                panelSpeedArc70kmhEntryRoutine = null;
+            }
+            //Start the entry animation
+            panelSpeedArc70kmhEntryRoutine = CoroutineHandler.Start(Kmh70SpeedArcEntryRoutine());
+        }
+        if (targetArc == SpeedArc.kmh100Arc)
+        {
+            //Stop if is already running
+            if (panelSpeedArc100kmhEntryRoutine != null)
+            {
+                panelSpeedArc100kmhEntryRoutine.Cancel();
+                panelSpeedArc100kmhEntryRoutine = null;
+            }
+            //Start the entry animation
+            panelSpeedArc100kmhEntryRoutine = CoroutineHandler.Start(Kmh100SpeedArcEntryRoutine());
+        }
+    }
+
+    private IEnumerator<Wait> Kmh40SpeedArcEntryRoutine()
+    {
+        //Enable
+        vehiclePanel_background_speedArc40Kmh.IsVisible = true;
+        vehiclePanel_background_speedArc40Kmh_reflection.IsVisible = true;
+
+        //Wait to flash
+        yield return new Wait(0.1f);
+
+        //Disable
+        vehiclePanel_background_speedArc40Kmh.IsVisible = false;
+        vehiclePanel_background_speedArc40Kmh_reflection.IsVisible = false;
+
+        //Wait to flash
+        yield return new Wait(0.1f);
+
+        //Enable
+        vehiclePanel_background_speedArc40Kmh.IsVisible = true;
+        vehiclePanel_background_speedArc40Kmh_reflection.IsVisible = true;
+
+        //Wait to flash
+        yield return new Wait(0.1f);
+
+        //Disable
+        vehiclePanel_background_speedArc40Kmh.IsVisible = false;
+        vehiclePanel_background_speedArc40Kmh_reflection.IsVisible = false;
+
+        //Wait to flash
+        yield return new Wait(0.1f);
+
+        //Enable
+        vehiclePanel_background_speedArc40Kmh.IsVisible = true;
+        vehiclePanel_background_speedArc40Kmh_reflection.IsVisible = true;
+
+        //Inform that was finished
+        panelSpeedArc40kmhEntryRoutine = null;
+    }
+
+    private IEnumerator<Wait> Kmh70SpeedArcEntryRoutine()
+    {
+        //Enable
+        vehiclePanel_background_speedArc70Kmh.IsVisible = true;
+        vehiclePanel_background_speedArc70Kmh_reflection.IsVisible = true;
+
+        //Wait to flash
+        yield return new Wait(0.1f);
+
+        //Disable
+        vehiclePanel_background_speedArc70Kmh.IsVisible = false;
+        vehiclePanel_background_speedArc70Kmh_reflection.IsVisible = false;
+
+        //Wait to flash
+        yield return new Wait(0.1f);
+
+        //Enable
+        vehiclePanel_background_speedArc70Kmh.IsVisible = true;
+        vehiclePanel_background_speedArc70Kmh_reflection.IsVisible = true;
+
+        //Wait to flash
+        yield return new Wait(0.1f);
+
+        //Disable
+        vehiclePanel_background_speedArc70Kmh.IsVisible = false;
+        vehiclePanel_background_speedArc70Kmh_reflection.IsVisible = false;
+
+        //Wait to flash
+        yield return new Wait(0.1f);
+
+        //Enable
+        vehiclePanel_background_speedArc70Kmh.IsVisible = true;
+        vehiclePanel_background_speedArc70Kmh_reflection.IsVisible = true;
+
+        //Inform that was finished
+        panelSpeedArc70kmhEntryRoutine = null;
+    }
+
+    private IEnumerator<Wait> Kmh100SpeedArcEntryRoutine()
+    {
+        //Enable
+        vehiclePanel_background_speedArc100Kmh.IsVisible = true;
+        vehiclePanel_background_speedArc100Kmh_reflection.IsVisible = true;
+
+        //Wait to flash
+        yield return new Wait(0.1f);
+
+        //Disable
+        vehiclePanel_background_speedArc100Kmh.IsVisible = false;
+        vehiclePanel_background_speedArc100Kmh_reflection.IsVisible = false;
+
+        //Wait to flash
+        yield return new Wait(0.1f);
+
+        //Enable
+        vehiclePanel_background_speedArc100Kmh.IsVisible = true;
+        vehiclePanel_background_speedArc100Kmh_reflection.IsVisible = true;
+
+        //Wait to flash
+        yield return new Wait(0.1f);
+
+        //Disable
+        vehiclePanel_background_speedArc100Kmh.IsVisible = false;
+        vehiclePanel_background_speedArc100Kmh_reflection.IsVisible = false;
+
+        //Wait to flash
+        yield return new Wait(0.1f);
+
+        //Enable
+        vehiclePanel_background_speedArc100Kmh.IsVisible = true;
+        vehiclePanel_background_speedArc100Kmh_reflection.IsVisible = true;
+
+        //Inform that was finished
+        panelSpeedArc100kmhEntryRoutine = null;
+    }
+
+    private void DisableSpeedArc(SpeedArc targetArc)
+    {
+        //Disable the desired arc
+        if (targetArc == SpeedArc.kmh40Arc)
+        {
+            if (panelSpeedArc40kmhEntryRoutine != null)
+            {
+                panelSpeedArc40kmhEntryRoutine.Cancel();
+                panelSpeedArc40kmhEntryRoutine = null;
+            }
+            vehiclePanel_background_speedArc40Kmh.IsVisible = false;
+            vehiclePanel_background_speedArc40Kmh_reflection.IsVisible = false;
+        }
+        if (targetArc == SpeedArc.kmh70Arc)
+        {
+            if (panelSpeedArc70kmhEntryRoutine != null)
+            {
+                panelSpeedArc70kmhEntryRoutine.Cancel();
+                panelSpeedArc70kmhEntryRoutine = null;
+            }
+            vehiclePanel_background_speedArc70Kmh.IsVisible = false;
+            vehiclePanel_background_speedArc70Kmh_reflection.IsVisible = false;
+        }
+        if (targetArc == SpeedArc.kmh100Arc)
+        {
+            if (panelSpeedArc100kmhEntryRoutine != null)
+            {
+                panelSpeedArc100kmhEntryRoutine.Cancel();
+                panelSpeedArc100kmhEntryRoutine = null;
+            }
+            vehiclePanel_background_speedArc100Kmh.IsVisible = false;
+            vehiclePanel_background_speedArc100Kmh_reflection.IsVisible = false;
+        }
     }
 
     private void ToggleVehiclePanelDrawer()

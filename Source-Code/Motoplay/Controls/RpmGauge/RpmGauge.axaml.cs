@@ -23,14 +23,34 @@ public partial class RpmGauge : UserControl
 
     //Custom Properties Registration
 
-    //*** PointerAngle Property ***//
+    //*** PrimaryPointerAngle Property ***//
 
-    public static readonly StyledProperty<double> PointerAngleProperty = AvaloniaProperty.Register<PanelLogItem, double>(nameof(PointerAngle), 250.0f);
+    public static readonly StyledProperty<double> PrimaryPointerAngleProperty = AvaloniaProperty.Register<PanelLogItem, double>(nameof(PrimaryPointerAngle), 250.0f);
 
-    public double PointerAngle
+    public double PrimaryPointerAngle
     {
-        get { return (double)GetValue(PointerAngleProperty); }
-        set { SetValue(PointerAngleProperty, value); }
+        get { return (double)GetValue(PrimaryPointerAngleProperty); }
+        set { SetValue(PrimaryPointerAngleProperty, value); }
+    }
+
+    //*** SecondaryPointerAngle Property ***//
+
+    public static readonly StyledProperty<double> SecondaryPointerAngleProperty = AvaloniaProperty.Register<PanelLogItem, double>(nameof(SecondaryPointerAngle), 0.0f);
+
+    public double SecondaryPointerAngle
+    {
+        get { return (double)GetValue(SecondaryPointerAngleProperty); }
+        set { SetValue(SecondaryPointerAngleProperty, value); }
+    }
+
+    //*** SecondayPointerVisible Property ***//
+
+    public static readonly StyledProperty<bool> SecondayPointerVisibleProperty = AvaloniaProperty.Register<PanelLogItem, bool>(nameof(SecondayPointerVisible), true);
+
+    public bool SecondayPointerVisible
+    {
+        get { return (bool)GetValue(SecondayPointerVisibleProperty); }
+        set { SetValue(SecondayPointerVisibleProperty, value); }
     }
 
     //*** RpmValueAt0Percent Property ***//
@@ -53,6 +73,16 @@ public partial class RpmGauge : UserControl
         set { SetValue(RpmValueAt0VisibleProperty, value); }
     }
 
+    //*** RpmValueAt12Visible Property ***//
+
+    public static readonly StyledProperty<bool> RpmValueAt12VisibleProperty = AvaloniaProperty.Register<PanelLogItem, bool>(nameof(RpmValueAt12Visible), true);
+
+    public bool RpmValueAt12Visible
+    {
+        get { return (bool)GetValue(RpmValueAt12VisibleProperty); }
+        set { SetValue(RpmValueAt12VisibleProperty, value); }
+    }
+
     //*** RpmValueAt25Percent Property ***//
 
     public static readonly StyledProperty<string> RpmValueAt25PercentProperty = AvaloniaProperty.Register<PanelLogItem, string>(nameof(RpmValueAt25Percent), "04");
@@ -71,6 +101,16 @@ public partial class RpmGauge : UserControl
     {
         get { return (bool)GetValue(RpmValueAt25VisibleProperty); }
         set { SetValue(RpmValueAt25VisibleProperty, value); }
+    }
+
+    //*** RpmValueAt38Visible Property ***//
+
+    public static readonly StyledProperty<bool> RpmValueAt38VisibleProperty = AvaloniaProperty.Register<PanelLogItem, bool>(nameof(RpmValueAt38Visible), true);
+
+    public bool RpmValueAt38Visible
+    {
+        get { return (bool)GetValue(RpmValueAt38VisibleProperty); }
+        set { SetValue(RpmValueAt38VisibleProperty, value); }
     }
 
     //*** RpmValueAt50Percent Property ***//
@@ -93,6 +133,16 @@ public partial class RpmGauge : UserControl
         set { SetValue(RpmValueAt50VisibleProperty, value); }
     }
 
+    //*** RpmValueAt62Visible Property ***//
+
+    public static readonly StyledProperty<bool> RpmValueAt62VisibleProperty = AvaloniaProperty.Register<PanelLogItem, bool>(nameof(RpmValueAt62Visible), true);
+
+    public bool RpmValueAt62Visible
+    {
+        get { return (bool)GetValue(RpmValueAt62VisibleProperty); }
+        set { SetValue(RpmValueAt62VisibleProperty, value); }
+    }
+
     //*** RpmValueAt75Percent Property ***//
 
     public static readonly StyledProperty<string> RpmValueAt75PercentProperty = AvaloniaProperty.Register<PanelLogItem, string>(nameof(RpmValueAt75Percent), "10");
@@ -111,6 +161,16 @@ public partial class RpmGauge : UserControl
     {
         get { return (bool)GetValue(RpmValueAt75VisibleProperty); }
         set { SetValue(RpmValueAt75VisibleProperty, value); }
+    }
+
+    //*** RpmValueAt88Visible Property ***//
+
+    public static readonly StyledProperty<bool> RpmValueAt8VisibleProperty = AvaloniaProperty.Register<PanelLogItem, bool>(nameof(RpmValueAt88Visible), true);
+
+    public bool RpmValueAt88Visible
+    {
+        get { return (bool)GetValue(RpmValueAt8VisibleProperty); }
+        set { SetValue(RpmValueAt8VisibleProperty, value); }
     }
 
     //*** RpmValueAt100Percent Property ***//
