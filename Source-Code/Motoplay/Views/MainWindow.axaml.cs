@@ -1344,6 +1344,8 @@ public partial class MainWindow : Window
             newObdAdapterHandlerConnection.SetChannelToUseInRfcomm(appPrefs.loadedData.bluetoothSerialPortChannelToUse);
             newObdAdapterHandlerConnection.SetPairedObdDeviceName(appPrefs.loadedData.configuredObdBtAdapter.deviceName);
             newObdAdapterHandlerConnection.SetPairedObdDeviceMac(appPrefs.loadedData.configuredObdBtAdapter.deviceMac);
+            newObdAdapterHandlerConnection.RegisterOnReceiveAlertDialogCallback((title, message) => { MessageBoxManager.GetMessageBoxStandard(title, message, ButtonEnum.Ok).ShowAsync(); });
+            newObdAdapterHandlerConnection.RegisterOnReceiveLogCallback((message) => { SendVehiclePanelLog(message); });
 
             //Try to connect to OBD Adapter and Stablish a Serial Port
             newObdAdapterHandlerConnection.TryConnect();
@@ -1523,6 +1525,7 @@ public partial class MainWindow : Window
         vehiclePanel_drawer_adapterTab_devicePin.Text = appPrefs.loadedData.configuredObdBtAdapter.devicePassword;
 
         //Initialize each element of panel
+        vehiclePanel_fadeCover.IsVisible = true;
         vehiclePanel_rpmGauge.PrimaryPointerAngle = 0;
         vehiclePanel_rpmGauge.SecondaryPointerAngle = 0;
         vehiclePanel_rpmGauge.SecondayPointerVisible = true;
@@ -1553,8 +1556,7 @@ public partial class MainWindow : Window
         vehiclePanel_engineLoadText.Text = "-%";
         vehiclePanel_batterVoltageText.Text = "-.-v";
         vehiclePanel_adapterPingText.Text = "- ms";
-        vehiclePanel_adapterLossText.Text = "- loss";
-        vehiclePanel_fadeCover.IsVisible = true;
+        vehiclePanel_adapterLossText.Text = "- cl";
 
         //Run Panel entry animation
         RunPanelEntryAnimation();
@@ -2133,6 +2135,23 @@ public partial class MainWindow : Window
             pref_panel_maxObdConnectTries.SelectedIndex = 1;
         if (appPrefs.loadedData.maxOfObdConnectionRetry == 999999999)
             pref_panel_maxObdConnectTries.SelectedIndex = 2;
+        //*** pref_panel_obdAdapterBaudRate
+        if (appPrefs.loadedData.bluetoothBaudRate == 4096)
+            pref_panel_obdAdapterBaudRate.SelectedIndex = 0;
+        if (appPrefs.loadedData.bluetoothBaudRate == 4800)
+            pref_panel_obdAdapterBaudRate.SelectedIndex = 1;
+        if (appPrefs.loadedData.bluetoothBaudRate == 9600)
+            pref_panel_obdAdapterBaudRate.SelectedIndex = 2;
+        if (appPrefs.loadedData.bluetoothBaudRate == 10400)
+            pref_panel_obdAdapterBaudRate.SelectedIndex = 3;
+        if (appPrefs.loadedData.bluetoothBaudRate == 38400)
+            pref_panel_obdAdapterBaudRate.SelectedIndex = 4;
+        if (appPrefs.loadedData.bluetoothBaudRate == 41600)
+            pref_panel_obdAdapterBaudRate.SelectedIndex = 5;
+        if (appPrefs.loadedData.bluetoothBaudRate == 250000)
+            pref_panel_obdAdapterBaudRate.SelectedIndex = 6;
+        if (appPrefs.loadedData.bluetoothBaudRate == 500000)
+            pref_panel_obdAdapterBaudRate.SelectedIndex = 7;
     }
 
     private void SaveAllPreferences()
@@ -2197,6 +2216,23 @@ public partial class MainWindow : Window
             appPrefs.loadedData.maxOfObdConnectionRetry = 15;
         if (pref_panel_maxObdConnectTries.SelectedIndex == 2)
             appPrefs.loadedData.maxOfObdConnectionRetry = 999999999;
+        //*** pref_panel_obdAdapterBaudRate
+        if (pref_panel_obdAdapterBaudRate.SelectedIndex == 0)
+            appPrefs.loadedData.bluetoothBaudRate = 4096;
+        if (pref_panel_obdAdapterBaudRate.SelectedIndex == 1)
+            appPrefs.loadedData.bluetoothBaudRate = 4800;
+        if (pref_panel_obdAdapterBaudRate.SelectedIndex == 2)
+            appPrefs.loadedData.bluetoothBaudRate = 9600;
+        if (pref_panel_obdAdapterBaudRate.SelectedIndex == 3)
+            appPrefs.loadedData.bluetoothBaudRate = 10400;
+        if (pref_panel_obdAdapterBaudRate.SelectedIndex == 4)
+            appPrefs.loadedData.bluetoothBaudRate = 38400;
+        if (pref_panel_obdAdapterBaudRate.SelectedIndex == 5)
+            appPrefs.loadedData.bluetoothBaudRate = 41600;
+        if (pref_panel_obdAdapterBaudRate.SelectedIndex == 6)
+            appPrefs.loadedData.bluetoothBaudRate = 250000;
+        if (pref_panel_obdAdapterBaudRate.SelectedIndex == 7)
+            appPrefs.loadedData.bluetoothBaudRate = 500000;
 
         //Save the preferences to file
         appPrefs.Save();

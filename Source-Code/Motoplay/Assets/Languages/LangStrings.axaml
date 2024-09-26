@@ -48,7 +48,7 @@ Error Code: "%e".</x:String>
 Attempt #%n</x:String>
 	<x:String x:Key="vehiclePanel_odbConnectErrorMsg">Connection to Bluetooth OBD Adapter: %e.</x:String>
 	<x:String x:Key="vehiclePanel_odbConnectExcedeedTries">The maximum number of attempts to connect to Bluetooth OBD Adapter "%d" has been reached. Please restart Motoplay to continue trying.</x:String>
-	<x:String x:Key="vehiclePanel_odbConnectLostConnection">The connection to the Bluetooth OBD Adapter "%d" has been lost. Please make sure the device is still available for connection!</x:String>
+	<x:String x:Key="vehiclePanel_odbConnectLostConnection">The connection to the Bluetooth OBD Adapter "%d" has been lost. Please make sure the device is still available for connection and that the vehicle ECU and Ignition are still on!</x:String>
 	<x:String x:Key="vehiclePanel_drawer_adapterTab_title">Adapter</x:String>
 	<x:String x:Key="vehiclePanel_drawer_adapterTab_unpairButton">Disconnect and Unpair</x:String>
 	<x:String x:Key="vehiclePanel_drawer_adapterTab_deviceName">OBD Adapter Device Name</x:String>
@@ -84,5 +84,6 @@ Attempt #%n</x:String>
 	<x:String x:Key="appPreferences_panelTab_serialPortChannelToUseTitle">Bluetooth Serial Port Channel To Use</x:String>
 	<x:String x:Key="appPreferences_panelTab_intervalObdConnectTries">Bluetooth OBD Adapter Connection Retry Interval</x:String>
 	<x:String x:Key="appPreferences_panelTab_maxObdConnectTries">Bluetooth OBD Adapter Connection Max Attempts</x:String>
+	<x:String x:Key="appPreferences_panelTab_obdAdapterBaudRate">Bluetooth OBD Adapter Baud Rate</x:String>
 
 </ResourceDictionary>

@@ -30,6 +30,7 @@ namespace Motoplay.Scripts
             public int bluetoothSerialPortChannelToUse = 1;
             public int invervalOfObdConnectionRetry = 30;
             public int maxOfObdConnectionRetry = 999999999;
+            public int bluetoothBaudRate = 9600;
         }
 
         //Private variables

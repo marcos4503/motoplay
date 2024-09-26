@@ -443,21 +443,21 @@
 										</Grid>
 									</Border>
 								</Grid>
-								<!-- OBD Adapter Ping Mini Gauge -->
+								<!-- OBD Adapter Loss Mini Gauge -->
 								<Grid Grid.Row="0" Grid.Column="4" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
+									<Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="96" Height="40" BorderThickness="2" BorderBrush="#d4d4d4" CornerRadius="8" Padding="4, 4, 4, 4" Background="#d9ffffff">
+										<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+											<Image Source="/Assets/obd-adapter-loss-icon.png" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="0, 6, 0, 6" Opacity="0.7"></Image>
+											<TextBlock Name="vehiclePanel_adapterLossText" Text="0 cl" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="{StaticResource Panton}" FontSize="12" LineHeight="12" Opacity="0.7" TextAlignment="Center" Margin="0, 2, 0, 0"></TextBlock>
+										</Grid>
+									</Border>
+								</Grid>
+								<!-- OBD Adapter Ping Mini Gauge -->
+								<Grid Grid.Row="0" Grid.Column="5" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
 									<Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="96" Height="40" BorderThickness="2" BorderBrush="#d4d4d4" CornerRadius="8" Padding="4, 4, 4, 4" Background="#d9ffffff">
 										<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 											<Image Source="/Assets/obd-adapter-ping-icon.png" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="0, 6, 0, 6" Opacity="0.7"></Image>
 											<TextBlock Name="vehiclePanel_adapterPingText" Text="0 ms" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="{StaticResource Panton}" FontSize="12" LineHeight="12" Opacity="0.7" TextAlignment="Center" Margin="0, 2, 0, 0"></TextBlock>
-										</Grid>
-									</Border>
-								</Grid>
-								<!-- OBD Adapter Loss Mini Gauge -->
-								<Grid Grid.Row="0" Grid.Column="5" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
-									<Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="96" Height="40" BorderThickness="2" BorderBrush="#d4d4d4" CornerRadius="8" Padding="4, 4, 4, 4" Background="#d9ffffff">
-										<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-											<Image Source="/Assets/obd-adapter-loss-icon.png" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="0, 6, 0, 6" Opacity="0.7"></Image>
-											<TextBlock Name="vehiclePanel_adapterLossText" Text="0 loss" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="{StaticResource Panton}" FontSize="12" LineHeight="12" Opacity="0.7" TextAlignment="Center" Margin="0, 2, 0, 0"></TextBlock>
 										</Grid>
 									</Border>
 								</Grid>
@@ -545,7 +545,7 @@
 					<Grid Name="pageContentForPreferences" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 						<TextBlock Text="{DynamicResource ResourceKey=appPreferences_title}" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Medium" FontSize="16" LineHeight="32" Margin="16, 8, 0, 0"></TextBlock>
 						<Rectangle Fill="#ababab" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="1" Margin="0, 48, 0, 0" Opacity="0.5"></Rectangle>
-						<TabControl SelectedIndex="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 48, 0, 48" Padding="0, 0, 0, 0">
+						<TabControl SelectedIndex="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 48, 0, 48" Padding="0, 0, 0, 0">
 							<!-- Keyboard Tab -->
 							<TabItem Header="{DynamicResource ResourceKey=appPreferences_keyboardTab_title}" FontSize="16" Margin="16, 0, 0, 0" Padding="0, 0, 0, 0">
 								<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Offset="0, 0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 0, 0, 0">
@@ -610,6 +610,20 @@
 												<ComboBoxItem>5 Attempts</ComboBoxItem>
 												<ComboBoxItem>15 Attempts</ComboBoxItem>
 												<ComboBoxItem>∞ Attempts</ComboBoxItem>
+											</ComboBox>
+										</DockPanel>
+										<!-- pref_panel_obdAdapterBaudRate -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_obdAdapterBaudRate}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_panel_obdAdapterBaudRate" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+												<ComboBoxItem>4096 bps</ComboBoxItem>
+												<ComboBoxItem>4800 bps</ComboBoxItem>
+												<ComboBoxItem>9600 bps</ComboBoxItem>
+												<ComboBoxItem>10400 bps</ComboBoxItem>
+												<ComboBoxItem>38400 bps</ComboBoxItem>
+												<ComboBoxItem>41600 bps</ComboBoxItem>
+												<ComboBoxItem>250000 bps</ComboBoxItem>
+												<ComboBoxItem>500000 bps</ComboBoxItem>
 											</ComboBox>
 										</DockPanel>
 									</StackPanel>
