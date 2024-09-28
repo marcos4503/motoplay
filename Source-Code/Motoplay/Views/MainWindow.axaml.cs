@@ -110,6 +110,9 @@ public partial class MainWindow : Window
     private ActiveCoroutine panelSpeedArc40kmhEntryRoutine = null;
     private ActiveCoroutine panelSpeedArc70kmhEntryRoutine = null;
     private ActiveCoroutine panelSpeedArc100kmhEntryRoutine = null;
+    private ActiveCoroutine panelCommandLossUpdateRoutine = null;
+    private ActiveCoroutine panelCommandPingUpdateRoutine = null;
+    private ActiveCoroutine panelRpmUpdateRoutine = null;
 
     //Private variables
     private string[] receivedCliArgs = null;
@@ -1341,6 +1344,7 @@ public partial class MainWindow : Window
 
             //Setup the OBD Adapter Handler
             newObdAdapterHandlerConnection.SetRfcommSerialPortPath(appPrefs.loadedData.bluetoothSerialPortToUse);
+            newObdAdapterHandlerConnection.SetPairedObdDeviceBaudRate(appPrefs.loadedData.bluetoothBaudRate);
             newObdAdapterHandlerConnection.SetChannelToUseInRfcomm(appPrefs.loadedData.bluetoothSerialPortChannelToUse);
             newObdAdapterHandlerConnection.SetPairedObdDeviceName(appPrefs.loadedData.configuredObdBtAdapter.deviceName);
             newObdAdapterHandlerConnection.SetPairedObdDeviceMac(appPrefs.loadedData.configuredObdBtAdapter.deviceMac);
@@ -1372,7 +1376,7 @@ public partial class MainWindow : Window
                 //Analyse the logs of the connection try, and notify the user, if found the error string
                 foreach (string line in newObdAdapterHandlerConnection.GetConnectionTryLogs())
                     if (line.Contains("Can't connect") == true)
-                        ShowToast(GetStringApplicationResource("vehiclePanel_odbConnectErrorMsg").Replace("%e", line.Split(": ")[1].ToUpper()), ToastDuration.Short, ToastType.Problem);
+                        ShowToast(GetStringApplicationResource("vehiclePanel_odbConnectErrorMsg").Replace("%e", line.Split(": ")[1].ToUpper()), ToastDuration.Long, ToastType.Problem);
 
                 //Start a loop to wait time before continue
                 int elapsedSeconds = 0;
@@ -1407,14 +1411,7 @@ public partial class MainWindow : Window
             if (newObdAdapterHandlerConnection.currentConnectionStatus == ObdAdapterHandler.ConnectionStatus.Connected)
             {
                 //Register on lost connection callback
-                newObdAdapterHandlerConnection.RegisterOnLostConnectionCallback(() =>
-                {
-                    //Clear the reference for the active connection for OBD Adapter Handler
-                    activeObdConnection = null;
-
-                    //Call the callback for run needed code
-                    OnActiveConnectionForObdHandlerFinished();
-                });
+                newObdAdapterHandlerConnection.RegisterOnLostConnectionCallback(() => { OnActiveConnectionForObdHandlerFinished(); });
 
                 //Store the reference and active connection for OBD Adapter Handler
                 activeObdConnection = newObdAdapterHandlerConnection;
@@ -1461,8 +1458,10 @@ public partial class MainWindow : Window
 
     private void OnActiveConnectionForObdHandlerFinished()
     {
-        //Clear the reference for the active connection for OBD Adapter Handler
-        activeObdConnection = null;
+        //Warn the user about the disconnection
+        ShowToast((GetStringApplicationResource("vehiclePanel_odbConnectLostConnection").Replace("%d", appPrefs.loadedData.configuredObdBtAdapter.deviceName) + 
+                   "\n\n" + activeObdConnection.disconnectionAdditionalInformation),
+                   ToastDuration.Long, ToastType.Problem);
 
         //Hide the connection symbol in status bar
         connectedToObdButton.IsVisible = false;
@@ -1499,8 +1498,25 @@ public partial class MainWindow : Window
             panelSpeedArc100kmhEntryRoutine = null;
         }
 
-        //Warn the user
-        ShowToast(GetStringApplicationResource("vehiclePanel_odbConnectLostConnection").Replace("%d", appPrefs.loadedData.configuredObdBtAdapter.deviceName), ToastDuration.Short, ToastType.Problem);
+        //Stop panel display updaters
+        if (panelCommandLossUpdateRoutine != null)
+        {
+            panelCommandLossUpdateRoutine.Cancel();
+            panelCommandLossUpdateRoutine = null;
+        }
+        if (panelCommandPingUpdateRoutine != null)
+        {
+            panelCommandPingUpdateRoutine.Cancel();
+            panelCommandPingUpdateRoutine = null;
+        }
+        if (panelRpmUpdateRoutine != null)
+        {
+            panelRpmUpdateRoutine.Cancel();
+            panelRpmUpdateRoutine = null;
+        }
+
+        //Clear the reference for the active connection for OBD Adapter Handler
+        activeObdConnection = null;
 
         //Restart the vehicle panel
         StartVehiclePanel();
@@ -1560,6 +1576,175 @@ public partial class MainWindow : Window
 
         //Run Panel entry animation
         RunPanelEntryAnimation();
+
+        //Start panel display updates
+        if (panelCommandLossUpdateRoutine == null)
+            panelCommandLossUpdateRoutine = CoroutineHandler.Start(PanelCommandLossUpdateRoutine());
+        if (panelCommandPingUpdateRoutine == null)
+            panelCommandPingUpdateRoutine = CoroutineHandler.Start(PanelCommandSendAndReceivePingUpdateRoutine());
+        if (panelRpmUpdateRoutine == null)
+            panelRpmUpdateRoutine = CoroutineHandler.Start(PanelRpmUpdateRoutine());
+    }
+
+    private IEnumerator<Wait> PanelCommandLossUpdateRoutine()
+    {
+        //Prepare the interval time
+        Wait intervalTime = new Wait(0.5f);
+
+        //Start the update loop
+        while (true)
+        {
+            //If the panel is not currently active, just continues
+            if (pageContentForPanel.IsVisible == false)
+            {
+                yield return intervalTime;
+                continue;
+            }
+
+            //Update the command loss gauge
+            vehiclePanel_adapterLossText.Text = (activeObdConnection.commandResponseLosses + " cl");
+
+            //Wait time
+            yield return intervalTime;
+        }
+    }
+
+    private IEnumerator<Wait> PanelCommandSendAndReceivePingUpdateRoutine()
+    {
+        //Prepare the interval time
+        Wait intervalTime = new Wait(0.2f);
+
+        //Start the update loop
+        while (true)
+        {
+            //If the panel is not currently active, just continues
+            if (pageContentForPanel.IsVisible == false)
+            {
+                yield return intervalTime;
+                continue;
+            }
+
+            //Update the ping gauge
+            vehiclePanel_adapterPingText.Text = (activeObdConnection.sendAndReceivePing + " ms");
+
+            //Wait time
+            yield return intervalTime;
+        }
+    }
+
+    private IEnumerator<Wait> PanelRpmUpdateRoutine()
+    {
+        //Prepare the interval time
+        Wait intervalTime = new Wait(0.022f);
+
+        //Initialize the timer data
+        long startTime = DateTime.Now.Ticks;
+        long currentTime = startTime;
+
+        //If the initialization is not finished, show the initialization steps in the RPM gauge
+        while (vehiclePanel_rpmGauge.PrimaryPointerAngle < 248.0f)
+        {
+            //Update the current time
+            currentTime = DateTime.Now.Ticks;
+
+            //Get deltatime
+            float deltaTime = (float)(new TimeSpan(currentTime).TotalSeconds - new TimeSpan(startTime).TotalSeconds);
+
+            //Update the start time
+            startTime = currentTime;
+
+            //Get the current and the target angle for the pointer of RPM gauge
+            float currentAngle = (float)vehiclePanel_rpmGauge.PrimaryPointerAngle;
+            float targetAngle = (float)(((float)activeObdConnection.adapterInitializationCurrentStep / (float)activeObdConnection.adapterInitializationMaxSteps) * 250.0f);
+
+            //Do a linear interpolation suavized animation
+            vehiclePanel_rpmGauge.PrimaryPointerAngle = (((targetAngle - currentAngle) * (deltaTime * 6.0f)) + currentAngle);
+
+            //Fix the angle if passed
+            if (vehiclePanel_rpmGauge.PrimaryPointerAngle < 0.0f)
+                vehiclePanel_rpmGauge.PrimaryPointerAngle = 0.0f;
+            if (vehiclePanel_rpmGauge.PrimaryPointerAngle > 250.0f)
+                vehiclePanel_rpmGauge.PrimaryPointerAngle = 250.0f;
+
+            //Wait time
+            yield return intervalTime;
+        }
+
+        //Reset the timer data
+        startTime = DateTime.Now.Ticks;
+        currentTime = startTime;
+
+        //Animate goin back to zero rpm
+        while (vehiclePanel_rpmGauge.PrimaryPointerAngle > 10)
+        {
+            //Update the current time
+            currentTime = DateTime.Now.Ticks;
+
+            //Get deltatime
+            float deltaTime = (float)(new TimeSpan(currentTime).TotalSeconds - new TimeSpan(startTime).TotalSeconds);
+
+            //Update the start time
+            startTime = currentTime;
+
+            //Get the current and the target angle for the pointer of RPM gauge
+            float currentAngle = (float)vehiclePanel_rpmGauge.PrimaryPointerAngle;
+            float targetAngle = 0.0f;
+
+            //Do a linear interpolation suavized animation
+            vehiclePanel_rpmGauge.PrimaryPointerAngle = (((targetAngle - currentAngle) * (deltaTime * 6.0f)) + currentAngle);
+
+            //Fix the angle if passed
+            if (vehiclePanel_rpmGauge.PrimaryPointerAngle < 0.0f)
+                vehiclePanel_rpmGauge.PrimaryPointerAngle = 0.0f;
+            if (vehiclePanel_rpmGauge.PrimaryPointerAngle > 250.0f)
+                vehiclePanel_rpmGauge.PrimaryPointerAngle = 250.0f;
+
+            //Wait time
+            yield return intervalTime;
+        }
+
+        //Reset the timer data
+        startTime = DateTime.Now.Ticks;
+        currentTime = startTime;
+
+        //Get the preferences max RPM of vehicle
+        int maxRpm = appPrefs.loadedData.vehicleMaxRpm;
+
+        //Start the rpm update loop
+        while (true)
+        {
+            //If the panel is not currently active, just continues
+            if (pageContentForPanel.IsVisible == false)
+            {
+                yield return intervalTime;
+                continue;
+            }
+
+            //Update the current time
+            currentTime = DateTime.Now.Ticks;
+
+            //Get deltatime
+            float deltaTime = (float)(new TimeSpan(currentTime).TotalSeconds - new TimeSpan(startTime).TotalSeconds);
+
+            //Update the start time
+            startTime = currentTime;
+
+            //Get the current and the target angle for the pointer of RPM gauge
+            float currentAngle = (float)vehiclePanel_rpmGauge.PrimaryPointerAngle;
+            float targetAngle = (((float)activeObdConnection.engineRpm / (float)maxRpm) * 250.0f);
+
+            //Do a linear interpolation suavized animation
+            vehiclePanel_rpmGauge.PrimaryPointerAngle = (((targetAngle - currentAngle) * (deltaTime * 6.0f)) + currentAngle);
+
+            //Fix the angle if passed
+            if (vehiclePanel_rpmGauge.PrimaryPointerAngle < 0.0f)
+                vehiclePanel_rpmGauge.PrimaryPointerAngle = 0.0f;
+            if (vehiclePanel_rpmGauge.PrimaryPointerAngle > 250.0f)
+                vehiclePanel_rpmGauge.PrimaryPointerAngle = 250.0f;
+
+            //Wait time
+            yield return intervalTime;
+        }
     }
 
     private void RunPanelEntryAnimation()
@@ -2071,6 +2256,26 @@ public partial class MainWindow : Window
     {
         //Prepare the UI of Preferences
         preferences_saveButton.Click += (s, e) => { SaveAllPreferences(); };
+
+        //Prepare the validation for textbox of "pref_panel_vehicleMaxRpm" preference
+        pref_panel_vehicleMaxRpm.RegisterOnTextChangedValidationCallback((currentInput) => 
+        {
+            //Prepare the value to return
+            string toReturn = "";
+
+            //Check if is empty, cancel here
+            if (currentInput == "")
+            {
+                toReturn = "Enter a value!";
+                return toReturn;
+            }
+            //Check if is too long
+            if (int.TryParse(currentInput, out _) == false)
+                toReturn = "Enter a number!";
+
+            //Return the value
+            return toReturn;
+        });
     }
 
     private void UpdatePreferencesOnUI()
@@ -2152,6 +2357,8 @@ public partial class MainWindow : Window
             pref_panel_obdAdapterBaudRate.SelectedIndex = 6;
         if (appPrefs.loadedData.bluetoothBaudRate == 500000)
             pref_panel_obdAdapterBaudRate.SelectedIndex = 7;
+        //*** pref_panel_vehicleMaxRpm
+        pref_panel_vehicleMaxRpm.textBox.Text = appPrefs.loadedData.vehicleMaxRpm.ToString();
     }
 
     private void SaveAllPreferences()
@@ -2233,6 +2440,9 @@ public partial class MainWindow : Window
             appPrefs.loadedData.bluetoothBaudRate = 250000;
         if (pref_panel_obdAdapterBaudRate.SelectedIndex == 7)
             appPrefs.loadedData.bluetoothBaudRate = 500000;
+        //*** pref_panel_vehicleMaxRpm
+        if (pref_panel_vehicleMaxRpm.hasError() == false)
+            appPrefs.loadedData.vehicleMaxRpm = int.Parse(pref_panel_vehicleMaxRpm.textBox.Text);
 
         //Save the preferences to file
         appPrefs.Save();

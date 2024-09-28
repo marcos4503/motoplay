@@ -1,0 +1,20 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" x:Class="Motoplay.ValidableTextBox"
+			 d:DesignWidth="800" d:DesignHeight="450">
+
+	<!-- Root Element -->
+	<Grid Name="rootElement" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+		<StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Top">
+			<TextBlock Text="{Binding LabelName}" IsVisible="{Binding LabelVisible}" x:CompileBindings="False" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="0, 0, 0, 4"></TextBlock>
+			<TextBox Name="textBox" HorizontalAlignment="Stretch" VerticalAlignment="Top" TextWrapping="NoWrap"></TextBox>
+			<DockPanel Name="error" IsVisible="False" LastChildFill="False" Margin="0, 4, 0, 0" >
+				<Image DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Top" Width="16" Height="16" Source="/Assets/validation-error.png"></Image>
+				<TextBlock DockPanel.Dock="Left" Name="errorTxt" Text="Place Holder" TextWrapping="Wrap" FontSize="12" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="4, 1, 0, 0" Foreground="#ff0000"></TextBlock>
+			</DockPanel>
+		</StackPanel>
+	</Grid>
+	
+</UserControl>

@@ -545,7 +545,7 @@
 					<Grid Name="pageContentForPreferences" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 						<TextBlock Text="{DynamicResource ResourceKey=appPreferences_title}" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Medium" FontSize="16" LineHeight="32" Margin="16, 8, 0, 0"></TextBlock>
 						<Rectangle Fill="#ababab" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="1" Margin="0, 48, 0, 0" Opacity="0.5"></Rectangle>
-						<TabControl SelectedIndex="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 48, 0, 48" Padding="0, 0, 0, 0">
+						<TabControl SelectedIndex="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 48, 0, 48" Padding="0, 0, 0, 0">
 							<!-- Keyboard Tab -->
 							<TabItem Header="{DynamicResource ResourceKey=appPreferences_keyboardTab_title}" FontSize="16" Margin="16, 0, 0, 0" Padding="0, 0, 0, 0">
 								<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Offset="0, 0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 0, 0, 0">
@@ -625,6 +625,11 @@
 												<ComboBoxItem>250000 bps</ComboBoxItem>
 												<ComboBoxItem>500000 bps</ComboBoxItem>
 											</ComboBox>
+										</DockPanel>
+										<!-- pref_panel_vehicleMaxRpm -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_vehicleMaxRpm}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_vehicleMaxRpm" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
 										</DockPanel>
 									</StackPanel>
 								</ScrollViewer>

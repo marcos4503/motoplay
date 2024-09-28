@@ -24,7 +24,7 @@
 		</Style>
 	</UserControl.Styles>
 
-		<!-- Root Element -->
+	<!-- Root Element -->
 	<Grid Name="rootElement" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 		<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="43, 43, 43, 43">
 			<Arc StartAngle="0" SweepAngle="250" StrokeThickness="80" StrokeLineCap="Flat" Stroke="#d6d6d6" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
@@ -70,11 +70,6 @@
 						<GradientStop Color="#2eb9ff" Offset="1.0" />
 					</LinearGradientBrush>
 				</Arc.Stroke>
-				<Arc.Transitions>
-					<Transitions>
-						<TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1"/>
-					</Transitions>
-				</Arc.Transitions>
 			</Arc>
 			<Grid IsVisible="{Binding SecondayPointerVisible}" x:CompileBindings="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 				<Grid.RenderTransform>
@@ -92,11 +87,6 @@
 							<RotateTransform CenterX="0" CenterY="0" Angle="{Binding SecondaryPointerAngle}" x:CompileBindings="False"></RotateTransform>
 						</TransformGroup>
 					</Grid.RenderTransform>
-					<Grid.Transitions>
-						<Transitions>
-							<TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1"/>
-						</Transitions>
-					</Grid.Transitions>
 					<Border Background="#f5bc00" HorizontalAlignment="Left" VerticalAlignment="Center" Width="70" Height="3" Margin="5, 0, 0, 0"></Border>
 				</Grid>
 			</Grid>
@@ -116,11 +106,6 @@
 							<RotateTransform CenterX="0" CenterY="0" Angle="{Binding PrimaryPointerAngle}" x:CompileBindings="False"></RotateTransform>
 						</TransformGroup>
 					</Grid.RenderTransform>
-					<Grid.Transitions>
-						<Transitions>
-							<TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1"/>
-						</Transitions>
-					</Grid.Transitions>
 					<Border Background="#ed5555" HorizontalAlignment="Left" VerticalAlignment="Center" Width="70" Height="3" Margin="5, 0, 0, 0"></Border>
 				</Grid>
 			</Grid>

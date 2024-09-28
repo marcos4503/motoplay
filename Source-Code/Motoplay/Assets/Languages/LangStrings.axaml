@@ -85,5 +85,6 @@ Attempt #%n</x:String>
 	<x:String x:Key="appPreferences_panelTab_intervalObdConnectTries">Bluetooth OBD Adapter Connection Retry Interval</x:String>
 	<x:String x:Key="appPreferences_panelTab_maxObdConnectTries">Bluetooth OBD Adapter Connection Max Attempts</x:String>
 	<x:String x:Key="appPreferences_panelTab_obdAdapterBaudRate">Bluetooth OBD Adapter Baud Rate</x:String>
+	<x:String x:Key="appPreferences_panelTab_vehicleMaxRpm">Max RPM of Vehicle</x:String>
 
 </ResourceDictionary>
