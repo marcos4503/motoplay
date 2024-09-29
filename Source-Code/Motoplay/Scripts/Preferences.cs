@@ -32,6 +32,23 @@ namespace Motoplay.Scripts
             public int maxOfObdConnectionRetry = 999999999;
             public int bluetoothBaudRate = 9600;
             public int vehicleMaxRpm = 18000;
+            public int rpmDisplayType = 0;   //0 = Raw, 1 = Interpolated, 2 = Interpolated and Raw
+            public int rpmInterpolationSampleIntervalMs = 350;
+            public float rpmInterpolationAggressiveness = 1.0f;
+            public int rpmTextDisplayType = 0;   //0 = Raw, 1 = Interpolated
+            public int speedDisplayUnit = 1;   //0 = mph, 1 = kmh
+            public int temperatureUnit = 0;   //0 = °C, 1 = °F
+            public int maxTransmissionGears = 6;
+            public int minGear1RpmToChangeToGear2 = 4000;
+            public int minGear1SpeedToChangeToGear2 = 30;
+            public int maxPossibleGear1Speed = 62;
+            public int maxPossibleGear2Speed = 95;
+            public int maxPossibleGear3Speed = 120;
+            public int maxPossibleGear4Speed = 142;
+            public int maxPossibleGear5Speed = 156;
+            public int maxPossibleGear6Speed = 170;
+            public string letterToUseAsGearStopped = "S";
+            public string letterToUseAsClutchPressed = "C";
         }
 
         //Private variables

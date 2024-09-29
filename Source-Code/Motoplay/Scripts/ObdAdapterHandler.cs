@@ -10,6 +10,7 @@ using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace Motoplay.Scripts
@@ -57,6 +58,17 @@ namespace Motoplay.Scripts
         private bool abortObdAdapterInitializationThreadIfRunning = false;
         private bool abortObdDataExtractionThreadIfRunning = false;
         private List<double> lastPingMesurements = new List<double>();
+        private long rpmInterpolationStartTime = DateTime.Now.Ticks;
+        private long rpmInterpolationCurrentTime = DateTime.Now.Ticks;
+        private long rpmInterpoltaionElpasedTime = 0;
+        private int lastRpmSampleStoredForInterpolation = 0;
+        private bool haveCalculedRpmSpeedRatioForGears = false;
+        private float rpmSpeedRatioForGear1 = -1;
+        private float rpmSpeedRatioForGear2 = -1;
+        private float rpmSpeedRatioForGear3 = -1;
+        private float rpmSpeedRatioForGear4 = -1;
+        private float rpmSpeedRatioForGear5 = -1;
+        private float rpmSpeedRatioForGear6 = -1;
 
         //Private variables
         private string rfcommSerialPortPath = "";
@@ -64,9 +76,21 @@ namespace Motoplay.Scripts
         private int channelToUseInRfcomm = -1;
         private string pairedObdDeviceName = "";
         private string pairedObdDeviceMac = "";
-        private event ClassDelegates.OnLostConnection onLostConnection = null;
         private event ClassDelegates.OnReceiveAlertDialog onReceiveAlertDialog = null;
         private event ClassDelegates.OnReceiveLog onReceiveLog = null;
+        private int rpmInterpolationSampleInterval = 0;
+        private float rpmInterpolationAggressiveness = 0.0f;
+        private int maxTransmissionGears = 0;
+        private int minGear1RpmToChangeToGear2 = 0;
+        private int minGear1SpeedToChangeToGear2 = 0;
+        private int maxPossibleGear1Speed = 0;
+        private int maxPossibleGear2Speed = 0;
+        private int maxPossibleGear3Speed = 0;
+        private int maxPossibleGear4Speed = 0;
+        private int maxPossibleGear5Speed = 0;
+        private int maxPossibleGear6Speed = 0;
+        private int engineMaxRpm = 0;
+        private event ClassDelegates.OnLostConnection onLostConnection = null;
 
         //Public variables
         public ConnectionStatus currentConnectionStatus = ConnectionStatus.None;
@@ -77,12 +101,14 @@ namespace Motoplay.Scripts
         public long commandResponseLosses = 0;
         public int sendAndReceivePing = 0;
         public int engineRpm = 0;
+        public int engineRpmInterpolated = 0;
         public int vehicleSpeedKmh = 0;
         public int vehicleSpeedMph = 0;
         public float batteryVoltage = 0.0f;
         public int coolantTemperatureCelsius = 0;
         public int coolantTemperatureFarenheit = 0;
         public int engineLoad = 0;
+        public int transmissionGear = 0;
 
         //Core methods
 
@@ -134,6 +160,59 @@ namespace Motoplay.Scripts
         {
             //Register the callback
             this.onReceiveLog = onReceiveLog;
+        }
+
+        public void SetRpmInterpolationSamplesInterval(int intervalMs)
+        {
+            //Save the data
+            this.rpmInterpolationSampleInterval = intervalMs;
+        }
+
+        public void SetRpmInterpolationAggressiveness(float aggressiveness)
+        {
+            //Save the data
+            this.rpmInterpolationAggressiveness = aggressiveness;
+        }
+
+        public void SetMaxTransmissionGears(int gears)
+        {
+            //Save the data
+            this.maxTransmissionGears = gears;
+        }
+
+        public void SetMinRpmToChangeFromGear1ToGear2(int rpm)
+        {
+            //Save the data
+            this.minGear1RpmToChangeToGear2 = rpm;
+        }
+
+        public void SetMinSpeedToChangeFromGear1ToGear2(int speed)
+        {
+            //Save the data
+            this.minGear1SpeedToChangeToGear2 = speed;
+        }
+
+        public void SetMaxPossibleSpeedAtGear(int gear, int speed)
+        {
+            //Save the data
+            if (gear == 1)
+                maxPossibleGear1Speed = speed;
+            if (gear == 2)
+                maxPossibleGear2Speed = speed;
+            if (gear == 3)
+                maxPossibleGear3Speed = speed;
+            if (gear == 4)
+                maxPossibleGear4Speed = speed;
+            if (gear == 5)
+                maxPossibleGear5Speed = speed;
+            if (gear == 6)
+                maxPossibleGear6Speed = speed;
+        }
+
+        public void SetEngineMaxRpm(int rpm)
+        {
+            //Save the data
+            this.engineMaxRpm = rpm;
         }
 
         public void RegisterOnLostConnectionCallback(ClassDelegates.OnLostConnection onLostConnection)
@@ -556,7 +635,10 @@ namespace Motoplay.Scripts
                     {
                         object rpm = GetInterpretedCommandResponse(SendCommandToObdAdapterAndCatchResponse(CommandType.cmd01, "01 0C"));
                         if (rpm != null)
+                        {
                             engineRpm = (int)rpm;
+                            UpdateEngineRpmInterpolated();
+                        }
                     }
                     if (queueOfCommands[0] == CommandsOfExtractionLoop.vehicleSpeed)
                     {
@@ -565,6 +647,7 @@ namespace Motoplay.Scripts
                         {
                             vehicleSpeedKmh = (int)speed;
                             vehicleSpeedMph = (int)((float)((int)speed) / 1.609344f);
+                            UpdateTransmissionGear();
                         }
                     }
                     if (queueOfCommands[0] == CommandsOfExtractionLoop.batteryVoltage)
@@ -956,6 +1039,190 @@ namespace Motoplay.Scripts
 
             //Return the value
             return toReturn;
+        }
+    
+        private void UpdateEngineRpmInterpolated()
+        {
+            //Update current time
+            rpmInterpolationCurrentTime = DateTime.Now.Ticks;
+
+            //Get elapsed time in milliseconds
+            rpmInterpoltaionElpasedTime += (long)(new TimeSpan(rpmInterpolationCurrentTime).TotalMilliseconds - new TimeSpan(rpmInterpolationStartTime).TotalMilliseconds);
+
+            //Update start time
+            rpmInterpolationStartTime = rpmInterpolationCurrentTime;
+
+            //If elapsed more than the configured sample interval, store the current RPM and reset the elapsed time
+            if (rpmInterpoltaionElpasedTime >= rpmInterpolationSampleInterval)
+            {
+                lastRpmSampleStoredForInterpolation = engineRpm;
+                rpmInterpoltaionElpasedTime = 0;
+            }
+                
+            //Generate the interpolated RPM
+            int rpmDiffSinceLastSample = (engineRpm - lastRpmSampleStoredForInterpolation);
+            int rpmInterpolationValue = (int)((float)rpmDiffSinceLastSample * rpmInterpolationAggressiveness);
+            int finalInterpolatedRpm = (engineRpm + rpmInterpolationValue);
+            engineRpmInterpolated = finalInterpolatedRpm;
+        }
+    
+        private void UpdateTransmissionGear()
+        {
+            /*
+             * The provision of the Gear by the ECUs was a new implementation in the OBD standard. For this reason, the vast majority of vehicles
+             * do not emit the Current Gear signal through the OBD port. For this reason, it is more reliable to detect the current Gait through calculations.
+             * 
+             * After doing some tests, I developed my own method to make this calculation. By following the steps of these comments, it is possible to discover
+             * the current March with very good accuracy.
+             * 
+             * First, we need to find the RPMxSpeed ​​Ratio of each Gear!
+             * 
+             * 1. First, learn the MAXIMUM SPEED (we'll call it "maxGearXSpeed") of each Gear in your Vehicle.
+             * 2. Drive the Vehicle in Gear 1 and identify the MINIMUM RPM ("minGear1Rpm") and MINIMUM SPEED ("minGear1Speed") to shift from Gear 1 to Gear 2.
+             * 3. Divide "maxGear1Speed" from Gear 1 by "minGear1Speed". We will call the result of this calculation "minMaxSpeedRatioGear1".
+             * 4. Now, divide the "maxGearXSpeed" of each Gear by "minMaxSpeedRatioGear1". Now, you have the MINIMUM SPEED ("minGearXSpeed") of each Gear.
+             * 5. Now to calculate the RPMxSpeed ​​Ratio of Gear 1, divide "minGear1Rpm" by "minGear1Speed" of Gear 1.
+             * 6. Repeat Step 5 to calculate the RPMxSpeed ​​Ratio for each Gear in your vehicle.
+             * 
+             * Moving on to practice, let's use the Honda CB500F as an example.
+             * 
+             * 1. Step 1 Calculation...
+             *    maxGear1Speed = 62km/h
+             *    maxGear2Speed = 95km/h
+             *    maxGear3Speed = 120km/h
+             *    maxGear4Speed = 142km/h
+             *    maxGear5Speed = 156km/h
+             *    maxGear6Speed = 170km/h
+             * 2. Step 2 Calculation...
+             *    minGear1Rpm = 4000rpm
+             *    minGear1Speed = 30km/h
+             * 3. Step 3 Calculation...
+             *    minMaxSpeedRatioGear1 = maxGear1Speed / minGear1Speed -> 2.07
+             * 4. Step 4 Calculation...
+             *    minGear1Speed = maxGear1Speed / minMaxSpeedRatioGear1 -> 62 / 2.07 ->  29.9km/h
+             *    minGear2Speed = maxGear2Speed / minMaxSpeedRatioGear1 -> 95 / 2.07 ->  45.9km/h
+             *    minGear3Speed = maxGear3Speed / minMaxSpeedRatioGear1 -> 120 / 2.07 -> 58.0km/h
+             *    minGear4Speed = maxGear4Speed / minMaxSpeedRatioGear1 -> 142 / 2.07 -> 68.6km/h
+             *    minGear5Speed = maxGear5Speed / minMaxSpeedRatioGear1 -> 156 / 2.07 -> 75.4km/h
+             *    minGear6Speed = maxGear6Speed / minMaxSpeedRatioGear1 -> 170 / 2.07 -> 82.1km/h
+             * 5. Step 5 and 6 Calculation...
+             *    rpmXspeedRatioForGear1 = minGear1Rpm / minGear1Speed -> 4000 / 29.9 -> 133.8
+             *    rpmXspeedRatioForGear2 = minGear1Rpm / minGear2Speed -> 4000 / 45.9 -> 87.2
+             *    rpmXspeedRatioForGear3 = minGear1Rpm / minGear3Speed -> 4000 / 58.0 -> 69.0
+             *    rpmXspeedRatioForGear4 = minGear1Rpm / minGear4Speed -> 4000 / 68.6 -> 58.3
+             *    rpmXspeedRatioForGear5 = minGear1Rpm / minGear5Speed -> 4000 / 75.4 -> 53.0
+             *    rpmXspeedRatioForGear6 = minGear1Rpm / minGear6Speed -> 4000 / 82.1 -> 48.7
+             *    
+             * Now, if we want to calculate to find out the Gear the Vehicle is in, we simply divide the CURRENT RPM ("currentRpm") by the CURRENT SPEED ("currentSpeed").
+             * Then look at the RPMxSpeed ​​ratios to find out the Gear.
+             * 
+             * Example 1: The CB500F in the example is traveling at 45km/h at 5234 RPM.
+             *            5234 / 45 = 116.3
+             *            Since 116 is smaller than 133.8 and greather than 87.2, we have that the Vehicle is in Gear 2!
+             * Example 2: The CB500F in the example is traveling at 143km/h at 4220 RPM.
+             *            4220 / 143 = 29.5
+             *            Since 29.5 is smaller than 48.7, we have that the Vehicle is in Gear 6!
+             *            
+             * Now you know how to use this "algorithm" to calculate the Vehicle's current Gears!
+             * 
+             * 
+             * 
+             * For example reference purposes, the example CB500F information table looks like this...
+             * 
+             * CB500F
+             * Min RPM to change from Gear 1 to Gear 2:   4000rpm
+             * Min Speed to change from Gear 1 to Gear 2: 30Km/h
+             * Gear 1 Min and Max
+             *   Min and Max Speed To Change To Next Gear:  30Km/h  - 62Km/h
+             *   Min and Max RPM To Change To Next Gear:    4000rpm - 8500rpm
+             * Gear 2 Min and Max
+             *   Min and Max Speed To Change To Next Gear:  46Km/h  - 95Km/h
+             *   Min and Max RPM To Change To Next Gear:    4000rpm - 8500rpm
+             * Gear 3 Min and Max
+             *   Min and Max Speed To Change To Next Gear:  58Km/h  - 120Km/h
+             *   Min and Max RPM To Change To Next Gear:    4000rpm - 8500rpm
+             * Gear 4 Min and Max
+             *   Min and Max Speed To Change To Next Gear:  69Km/h  - 142Km/h
+             *   Min and Max RPM To Change To Next Gear:    4000rpm - 8500rpm
+             * Gear 5 Min and Max
+             *   Min and Max Speed To Change To Next Gear:  75Km/h  - 156Km/h
+             *   Min and Max RPM To Change To Next Gear:    4000rpm - 8500rpm
+             * Gear 6 Min and Max
+             *   Min and Max Speed To Change To Next Gear:  82Km/h  - 170Km/h
+             *   Min and Max RPM To Change To Next Gear:    4000rpm - 8500rpm
+            */
+
+            //If not calculed the RPMxSpeed Ratio for gears yet, calcule
+            if (haveCalculedRpmSpeedRatioForGears == false)
+            {
+                //Determine the "minMaxSpeedRatioGear1"
+                float minMaxSpeedRatioGear1 = ((float)maxPossibleGear1Speed / (float)minGear1SpeedToChangeToGear2);
+
+                //Determine the min speed for all gears
+                float minSpeedForGear1 = ((float)maxPossibleGear1Speed / minMaxSpeedRatioGear1);
+                float minSpeedForGear2 = ((float)maxPossibleGear2Speed / minMaxSpeedRatioGear1);
+                float minSpeedForGear3 = ((float)maxPossibleGear3Speed / minMaxSpeedRatioGear1);
+                float minSpeedForGear4 = ((float)maxPossibleGear4Speed / minMaxSpeedRatioGear1);
+                float minSpeedForGear5 = ((float)maxPossibleGear5Speed / minMaxSpeedRatioGear1);
+                float minSpeedForGear6 = ((float)maxPossibleGear6Speed / minMaxSpeedRatioGear1);
+
+                //Determine the RPMxSpeed Ratio for each gear
+                rpmSpeedRatioForGear1 = ((float)minGear1RpmToChangeToGear2 / minSpeedForGear1);
+                rpmSpeedRatioForGear2 = ((float)minGear1RpmToChangeToGear2 / minSpeedForGear2);
+                rpmSpeedRatioForGear3 = ((float)minGear1RpmToChangeToGear2 / minSpeedForGear3);
+                rpmSpeedRatioForGear4 = ((float)minGear1RpmToChangeToGear2 / minSpeedForGear4);
+                rpmSpeedRatioForGear5 = ((float)minGear1RpmToChangeToGear2 / minSpeedForGear5);
+                rpmSpeedRatioForGear6 = ((float)minGear1RpmToChangeToGear2 / minSpeedForGear6);
+
+                //Inform that is calculed
+                haveCalculedRpmSpeedRatioForGears = true;
+            }
+
+            //Prepare the estiamted gear
+            int estimatedGear = -1;
+
+            //Determine the current RPM and Speed relation
+            float currentRpmSpeedRelation = ((float) engineRpm / (float) vehicleSpeedKmh);
+
+            //Determine the current estimated gear
+            if (maxTransmissionGears <= 5)
+            {
+                if (currentRpmSpeedRelation > rpmSpeedRatioForGear1)
+                    estimatedGear = 1;
+                if (currentRpmSpeedRelation > rpmSpeedRatioForGear2 && currentRpmSpeedRelation <= rpmSpeedRatioForGear1)
+                    estimatedGear = 2;
+                if (currentRpmSpeedRelation > rpmSpeedRatioForGear3 && currentRpmSpeedRelation <= rpmSpeedRatioForGear2)
+                    estimatedGear = 3;
+                if (currentRpmSpeedRelation > rpmSpeedRatioForGear4 && currentRpmSpeedRelation <= rpmSpeedRatioForGear3)
+                    estimatedGear = 4;
+                if (currentRpmSpeedRelation <= rpmSpeedRatioForGear4)
+                    estimatedGear = 5;
+            }
+            if (maxTransmissionGears == 6)
+            {
+                if (currentRpmSpeedRelation > rpmSpeedRatioForGear1)
+                    estimatedGear = 1;
+                if (currentRpmSpeedRelation > rpmSpeedRatioForGear2 && currentRpmSpeedRelation <= rpmSpeedRatioForGear1)
+                    estimatedGear = 2;
+                if (currentRpmSpeedRelation > rpmSpeedRatioForGear3 && currentRpmSpeedRelation <= rpmSpeedRatioForGear2)
+                    estimatedGear = 3;
+                if (currentRpmSpeedRelation > rpmSpeedRatioForGear4 && currentRpmSpeedRelation <= rpmSpeedRatioForGear3)
+                    estimatedGear = 4;
+                if (currentRpmSpeedRelation > rpmSpeedRatioForGear5 && currentRpmSpeedRelation <= rpmSpeedRatioForGear4)
+                    estimatedGear = 5;
+                if (currentRpmSpeedRelation <= rpmSpeedRatioForGear5)
+                    estimatedGear = 6;
+            }
+
+            //If the vehicle is stopped, show gear 0 (neutral)
+            if (vehicleSpeedKmh <= 10)
+                estimatedGear = 0;
+            //If the vehicle is not stopped, but the RPM is lower than 25%, show gear -1 (clutch pressed)
+            if (vehicleSpeedKmh > 10 && engineRpm <= ((float)engineMaxRpm * 0.25f))
+                estimatedGear = -1;
+
+            //Update the gear
+            transmissionGear = estimatedGear;
         }
     }
 }

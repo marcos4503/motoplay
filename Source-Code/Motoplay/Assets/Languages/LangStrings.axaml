@@ -55,7 +55,7 @@ Attempt #%n</x:String>
 	<x:String x:Key="vehiclePanel_drawer_adapterTab_deviceMac">OBD Adapter Device MAC Address</x:String>
 	<x:String x:Key="vehiclePanel_drawer_adapterTab_devicePin">OBD Adapter Device PIN</x:String>
 	<x:String x:Key="vehiclePanel_drawer_logsTab_title">Logs</x:String>
-	<x:String x:Key="vehiclePanel_gearGauge_title">GEAR</x:String>
+	<x:String x:Key="vehiclePanel_gearGauge_title">E. GEAR</x:String>
 	<x:String x:Key="vehiclePanel_speedGauge_titleKmh">KM/h</x:String>
 	<x:String x:Key="vehiclePanel_speedGauge_titleMph">MP/h</x:String>
 
@@ -86,5 +86,22 @@ Attempt #%n</x:String>
 	<x:String x:Key="appPreferences_panelTab_maxObdConnectTries">Bluetooth OBD Adapter Connection Max Attempts</x:String>
 	<x:String x:Key="appPreferences_panelTab_obdAdapterBaudRate">Bluetooth OBD Adapter Baud Rate</x:String>
 	<x:String x:Key="appPreferences_panelTab_vehicleMaxRpm">Max RPM of Vehicle</x:String>
+	<x:String x:Key="appPreferences_panelTab_rpmDisplayType">RPM Display Type on Gauge</x:String>
+	<x:String x:Key="appPreferences_panelTab_rpmInterpolationInterval">RPM Interpolation Sample Interval (Requires Enabled Interpolation)</x:String>
+	<x:String x:Key="appPreferences_panelTab_rpmInterpolationAggressiveness">RPM Interpolation Aggressiveness (Requires Enabled Interpolation)</x:String>
+	<x:String x:Key="appPreferences_panelTab_rpmMinigaugeDisplayType">RPM Mini Gauge Display Type</x:String>
+	<x:String x:Key="appPreferences_panelTab_speedDisplayUnit">Speed Display Unit</x:String>
+	<x:String x:Key="appPreferences_panelTab_temperatureUnit">Temperature Unit</x:String>
+	<x:String x:Key="appPreferences_panelTab_maxTransmissionGears">Maximum Number of Gears</x:String>
+	<x:String x:Key="appPreferences_panelTab_minGear1RpmToChangeToGear2">Gears: Minimum RPM Required to Shift from Gear 1 to 2</x:String>
+	<x:String x:Key="appPreferences_panelTab_minGear1SpeedToChangeToGear2">Gears: Minimum Speed (Km/h) Required to Shift from Gear 1 to 2</x:String>
+	<x:String x:Key="appPreferences_panelTab_maxSpeedForGear1">Gears: Maximum Possible Speed (Km/h) ​​In Gear 1</x:String>
+	<x:String x:Key="appPreferences_panelTab_maxSpeedForGear2">Gears: Maximum Possible Speed (Km/h) ​​In Gear 2</x:String>
+	<x:String x:Key="appPreferences_panelTab_maxSpeedForGear3">Gears: Maximum Possible Speed (Km/h) ​​In Gear 3</x:String>
+	<x:String x:Key="appPreferences_panelTab_maxSpeedForGear4">Gears: Maximum Possible Speed (Km/h) ​​In Gear 4</x:String>
+	<x:String x:Key="appPreferences_panelTab_maxSpeedForGear5">Gears: Maximum Possible Speed (Km/h) ​​In Gear 5</x:String>
+	<x:String x:Key="appPreferences_panelTab_maxSpeedForGear6">Gears: Maximum Possible Speed (Km/h) ​​In Gear 6</x:String>
+	<x:String x:Key="appPreferences_panelTab_letterToUseForVehicleStopped">Gears: Letter to Display for Stopped Vehicle (or Neutral)</x:String>
+	<x:String x:Key="appPreferences_panelTab_letterToUseForClutchPressed">Gears: Letter to Display for Clutch Pressed</x:String>
 
 </ResourceDictionary>

@@ -12,6 +12,7 @@ using HarfBuzzSharp;
 using MarcosTomaz.ATS;
 using Motoplay.Scripts;
 using MsBox.Avalonia;
+using MsBox.Avalonia.Base;
 using MsBox.Avalonia.Enums;
 using System;
 using System.Collections;
@@ -113,6 +114,12 @@ public partial class MainWindow : Window
     private ActiveCoroutine panelCommandLossUpdateRoutine = null;
     private ActiveCoroutine panelCommandPingUpdateRoutine = null;
     private ActiveCoroutine panelRpmUpdateRoutine = null;
+    private ActiveCoroutine panelRpmTextUpdateRoutine = null;
+    private ActiveCoroutine panelSpeedUpdateRoutine = null;
+    private ActiveCoroutine panelCoolantTemperatureUpdateRoutine = null;
+    private ActiveCoroutine panelEngineLoadUpdateRoutine = null;
+    private ActiveCoroutine panelBatteryVoltageUpdateRoutine = null;
+    private ActiveCoroutine panelGearUpdateRoutine = null;
 
     //Private variables
     private string[] receivedCliArgs = null;
@@ -1350,6 +1357,18 @@ public partial class MainWindow : Window
             newObdAdapterHandlerConnection.SetPairedObdDeviceMac(appPrefs.loadedData.configuredObdBtAdapter.deviceMac);
             newObdAdapterHandlerConnection.RegisterOnReceiveAlertDialogCallback((title, message) => { MessageBoxManager.GetMessageBoxStandard(title, message, ButtonEnum.Ok).ShowAsync(); });
             newObdAdapterHandlerConnection.RegisterOnReceiveLogCallback((message) => { SendVehiclePanelLog(message); });
+            newObdAdapterHandlerConnection.SetRpmInterpolationSamplesInterval(appPrefs.loadedData.rpmInterpolationSampleIntervalMs);
+            newObdAdapterHandlerConnection.SetRpmInterpolationAggressiveness(appPrefs.loadedData.rpmInterpolationAggressiveness);
+            newObdAdapterHandlerConnection.SetMaxTransmissionGears(appPrefs.loadedData.maxTransmissionGears);
+            newObdAdapterHandlerConnection.SetMinRpmToChangeFromGear1ToGear2(appPrefs.loadedData.minGear1RpmToChangeToGear2);
+            newObdAdapterHandlerConnection.SetMinSpeedToChangeFromGear1ToGear2(appPrefs.loadedData.minGear1SpeedToChangeToGear2);
+            newObdAdapterHandlerConnection.SetMaxPossibleSpeedAtGear(1, appPrefs.loadedData.maxPossibleGear1Speed);
+            newObdAdapterHandlerConnection.SetMaxPossibleSpeedAtGear(2, appPrefs.loadedData.maxPossibleGear2Speed);
+            newObdAdapterHandlerConnection.SetMaxPossibleSpeedAtGear(3, appPrefs.loadedData.maxPossibleGear3Speed);
+            newObdAdapterHandlerConnection.SetMaxPossibleSpeedAtGear(4, appPrefs.loadedData.maxPossibleGear4Speed);
+            newObdAdapterHandlerConnection.SetMaxPossibleSpeedAtGear(5, appPrefs.loadedData.maxPossibleGear5Speed);
+            newObdAdapterHandlerConnection.SetMaxPossibleSpeedAtGear(6, appPrefs.loadedData.maxPossibleGear6Speed);
+            newObdAdapterHandlerConnection.SetEngineMaxRpm(appPrefs.loadedData.vehicleMaxRpm);
 
             //Try to connect to OBD Adapter and Stablish a Serial Port
             newObdAdapterHandlerConnection.TryConnect();
@@ -1514,6 +1533,36 @@ public partial class MainWindow : Window
             panelRpmUpdateRoutine.Cancel();
             panelRpmUpdateRoutine = null;
         }
+        if (panelSpeedUpdateRoutine != null)
+        {
+            panelSpeedUpdateRoutine.Cancel();
+            panelSpeedUpdateRoutine = null;
+        }
+        if (panelRpmTextUpdateRoutine != null)
+        {
+            panelRpmTextUpdateRoutine.Cancel();
+            panelRpmTextUpdateRoutine = null;
+        }
+        if (panelCoolantTemperatureUpdateRoutine != null)
+        {
+            panelCoolantTemperatureUpdateRoutine.Cancel();
+            panelCoolantTemperatureUpdateRoutine = null;
+        }
+        if (panelEngineLoadUpdateRoutine != null)
+        {
+            panelEngineLoadUpdateRoutine.Cancel();
+            panelEngineLoadUpdateRoutine = null;
+        }
+        if (panelBatteryVoltageUpdateRoutine != null)
+        {
+            panelBatteryVoltageUpdateRoutine.Cancel();
+            panelBatteryVoltageUpdateRoutine = null;
+        }
+        if (panelGearUpdateRoutine != null)
+        {
+            panelGearUpdateRoutine.Cancel();
+            panelGearUpdateRoutine = null;
+        }
 
         //Clear the reference for the active connection for OBD Adapter Handler
         activeObdConnection = null;
@@ -1584,6 +1633,18 @@ public partial class MainWindow : Window
             panelCommandPingUpdateRoutine = CoroutineHandler.Start(PanelCommandSendAndReceivePingUpdateRoutine());
         if (panelRpmUpdateRoutine == null)
             panelRpmUpdateRoutine = CoroutineHandler.Start(PanelRpmUpdateRoutine());
+        if (panelSpeedUpdateRoutine == null)
+            panelSpeedUpdateRoutine = CoroutineHandler.Start(PanelSpeedUpdateRoutine());
+        if (panelRpmTextUpdateRoutine == null)
+            panelRpmTextUpdateRoutine = CoroutineHandler.Start(PanelRpmTextUpdateRoutine());
+        if (panelCoolantTemperatureUpdateRoutine == null)
+            panelCoolantTemperatureUpdateRoutine = CoroutineHandler.Start(PanelCoolantTemperatureUpdateRoutine());
+        if (panelEngineLoadUpdateRoutine == null)
+            panelEngineLoadUpdateRoutine = CoroutineHandler.Start(PanelEngineLoadUpdateRoutine());
+        if (panelBatteryVoltageUpdateRoutine == null)
+            panelBatteryVoltageUpdateRoutine = CoroutineHandler.Start(PanelBatteryVoltageUpdateRoutine());
+        if (panelGearUpdateRoutine == null)
+            panelGearUpdateRoutine = CoroutineHandler.Start(PanelGearUpdateRoutine());
     }
 
     private IEnumerator<Wait> PanelCommandLossUpdateRoutine()
@@ -1634,6 +1695,39 @@ public partial class MainWindow : Window
 
     private IEnumerator<Wait> PanelRpmUpdateRoutine()
     {
+        //Show the RPM numbers
+        int rpmAt25percent = (int)Math.Ceiling((((float)appPrefs.loadedData.vehicleMaxRpm * 0.25f) / 1000.0f));
+        int rpmAt50percent = (int)Math.Ceiling((((float)appPrefs.loadedData.vehicleMaxRpm * 0.50f) / 1000.0f));
+        int rpmAt75percent = (int)Math.Ceiling((((float)appPrefs.loadedData.vehicleMaxRpm * 0.75f) / 1000.0f));
+        int rpmAt100percent = (int)Math.Ceiling((((float)appPrefs.loadedData.vehicleMaxRpm * 1.0f) / 1000.0f));
+        vehiclePanel_rpmGauge.RpmValueAt0Percent = "00";
+        if (rpmAt25percent < 10)
+            vehiclePanel_rpmGauge.RpmValueAt25Percent = ("0" + rpmAt25percent);
+        if (rpmAt25percent >= 10)
+            vehiclePanel_rpmGauge.RpmValueAt25Percent = rpmAt25percent.ToString();
+        if (rpmAt50percent < 10)
+            vehiclePanel_rpmGauge.RpmValueAt50Percent = ("0" + rpmAt50percent);
+        if (rpmAt50percent >= 10)
+            vehiclePanel_rpmGauge.RpmValueAt50Percent = rpmAt50percent.ToString();
+        if (rpmAt75percent < 10)
+            vehiclePanel_rpmGauge.RpmValueAt75Percent = ("0" + rpmAt75percent);
+        if (rpmAt75percent >= 10)
+            vehiclePanel_rpmGauge.RpmValueAt75Percent = rpmAt75percent.ToString();
+        if (rpmAt100percent < 10)
+            vehiclePanel_rpmGauge.RpmValueAt100Percent = ("0" + rpmAt100percent);
+        if (rpmAt100percent >= 10)
+            vehiclePanel_rpmGauge.RpmValueAt100Percent = rpmAt100percent.ToString();
+
+        //If the secondary pointer is not necessary, hide it
+        if (appPrefs.loadedData.rpmDisplayType != 2)
+            vehiclePanel_rpmGauge.SecondayPointerVisible = false;
+        //If the secondary pointer is necessary, show it
+        if (appPrefs.loadedData.rpmDisplayType == 2)
+            vehiclePanel_rpmGauge.SecondayPointerVisible = true;
+
+        //Prepare the RPM pointer suavization multiplier
+        float RPM_POINTER_SMOOTH_MULTIPLIER = 6.0f;
+
         //Prepare the interval time
         Wait intervalTime = new Wait(0.022f);
 
@@ -1658,7 +1752,7 @@ public partial class MainWindow : Window
             float targetAngle = (float)(((float)activeObdConnection.adapterInitializationCurrentStep / (float)activeObdConnection.adapterInitializationMaxSteps) * 250.0f);
 
             //Do a linear interpolation suavized animation
-            vehiclePanel_rpmGauge.PrimaryPointerAngle = (((targetAngle - currentAngle) * (deltaTime * 6.0f)) + currentAngle);
+            vehiclePanel_rpmGauge.PrimaryPointerAngle = (((targetAngle - currentAngle) * (deltaTime * RPM_POINTER_SMOOTH_MULTIPLIER)) + currentAngle);
 
             //Fix the angle if passed
             if (vehiclePanel_rpmGauge.PrimaryPointerAngle < 0.0f)
@@ -1691,7 +1785,7 @@ public partial class MainWindow : Window
             float targetAngle = 0.0f;
 
             //Do a linear interpolation suavized animation
-            vehiclePanel_rpmGauge.PrimaryPointerAngle = (((targetAngle - currentAngle) * (deltaTime * 6.0f)) + currentAngle);
+            vehiclePanel_rpmGauge.PrimaryPointerAngle = (((targetAngle - currentAngle) * (deltaTime * RPM_POINTER_SMOOTH_MULTIPLIER)) + currentAngle);
 
             //Fix the angle if passed
             if (vehiclePanel_rpmGauge.PrimaryPointerAngle < 0.0f)
@@ -1729,18 +1823,200 @@ public partial class MainWindow : Window
             //Update the start time
             startTime = currentTime;
 
+            //Prepare the RPM source
+            int rpmSource = 0;
+            if (appPrefs.loadedData.rpmDisplayType == 0)   //<- If is desired RAW RPM
+                rpmSource = activeObdConnection.engineRpm;
+            if (appPrefs.loadedData.rpmDisplayType == 1 || appPrefs.loadedData.rpmDisplayType == 2)   //<- If is desired Interpolated RPM
+                rpmSource = activeObdConnection.engineRpmInterpolated;
+
             //Get the current and the target angle for the pointer of RPM gauge
             float currentAngle = (float)vehiclePanel_rpmGauge.PrimaryPointerAngle;
-            float targetAngle = (((float)activeObdConnection.engineRpm / (float)maxRpm) * 250.0f);
+            float targetAngle = (((float)rpmSource / (float)maxRpm) * 250.0f);
 
             //Do a linear interpolation suavized animation
-            vehiclePanel_rpmGauge.PrimaryPointerAngle = (((targetAngle - currentAngle) * (deltaTime * 6.0f)) + currentAngle);
+            vehiclePanel_rpmGauge.PrimaryPointerAngle = (((targetAngle - currentAngle) * (deltaTime * RPM_POINTER_SMOOTH_MULTIPLIER)) + currentAngle);
 
             //Fix the angle if passed
             if (vehiclePanel_rpmGauge.PrimaryPointerAngle < 0.0f)
                 vehiclePanel_rpmGauge.PrimaryPointerAngle = 0.0f;
             if (vehiclePanel_rpmGauge.PrimaryPointerAngle > 250.0f)
                 vehiclePanel_rpmGauge.PrimaryPointerAngle = 250.0f;
+
+            //If is desired to show the RAW RPM on secondary pointer
+            if (appPrefs.loadedData.rpmDisplayType == 2)
+            {
+                //Get the current and the target angle for the secondary pointer of RPM gauge
+                float sCurrentAngle = (float)vehiclePanel_rpmGauge.SecondaryPointerAngle;
+                float sTargetAngle = (((float)activeObdConnection.engineRpm / (float)maxRpm) * 250.0f);
+
+                //Do a linear interpolation suavized animation
+                vehiclePanel_rpmGauge.SecondaryPointerAngle = (((sTargetAngle - sCurrentAngle) * (deltaTime * RPM_POINTER_SMOOTH_MULTIPLIER)) + sCurrentAngle);
+
+                //Fix the angle if passed
+                if (vehiclePanel_rpmGauge.SecondaryPointerAngle < 0.0f)
+                    vehiclePanel_rpmGauge.SecondaryPointerAngle = 0.0f;
+                if (vehiclePanel_rpmGauge.SecondaryPointerAngle > 250.0f)
+                    vehiclePanel_rpmGauge.SecondaryPointerAngle = 250.0f;
+            }
+
+            //Wait time
+            yield return intervalTime;
+        }
+    }
+
+    private IEnumerator<Wait> PanelRpmTextUpdateRoutine()
+    {
+        //Prepare the interval time
+        Wait intervalTime = new Wait(0.15f);
+
+        //Start the update loop
+        while (true)
+        {
+            //If the panel is not currently active, just continues
+            if (pageContentForPanel.IsVisible == false)
+            {
+                yield return intervalTime;
+                continue;
+            }
+
+            //Update the RPM text
+            if (appPrefs.loadedData.rpmTextDisplayType == 0)
+                vehiclePanel_rpmText.Text = (activeObdConnection.engineRpm + " rpm");
+            if (appPrefs.loadedData.rpmTextDisplayType == 1)
+                vehiclePanel_rpmText.Text = (activeObdConnection.engineRpmInterpolated + " rpm");
+
+            //Wait time
+            yield return intervalTime;
+        }
+    }
+
+    private IEnumerator<Wait> PanelSpeedUpdateRoutine()
+    {
+        //Show the speed unit
+        if (appPrefs.loadedData.speedDisplayUnit == 0)
+            vehiclePanel_speedometerUnitText.Text = GetStringApplicationResource("vehiclePanel_speedGauge_titleMph");
+        if (appPrefs.loadedData.speedDisplayUnit == 1)
+            vehiclePanel_speedometerUnitText.Text = GetStringApplicationResource("vehiclePanel_speedGauge_titleKmh");
+
+        //Prepare the interval time
+        Wait intervalTime = new Wait(0.25f);
+
+        //Start the update loop
+        while (true)
+        {
+            //If the panel is not currently active, just continues
+            if (pageContentForPanel.IsVisible == false)
+            {
+                yield return intervalTime;
+                continue;
+            }
+
+            //Update the speed gauge
+            if (appPrefs.loadedData.speedDisplayUnit == 0)
+                vehiclePanel_speedometerText.Text = activeObdConnection.vehicleSpeedMph.ToString();
+            if (appPrefs.loadedData.speedDisplayUnit == 1)
+                vehiclePanel_speedometerText.Text = activeObdConnection.vehicleSpeedKmh.ToString();
+
+            //Wait time
+            yield return intervalTime;
+        }
+    }
+
+    private IEnumerator<Wait> PanelCoolantTemperatureUpdateRoutine()
+    {
+        //Prepare the interval time
+        Wait intervalTime = new Wait(0.5f);
+
+        //Start the update loop
+        while (true)
+        {
+            //If the panel is not currently active, just continues
+            if (pageContentForPanel.IsVisible == false)
+            {
+                yield return intervalTime;
+                continue;
+            }
+
+            //Update the coolant temperature gauge
+            if (appPrefs.loadedData.temperatureUnit == 0)
+                vehiclePanel_coolTemperatureText.Text = (activeObdConnection.coolantTemperatureCelsius + " °C");
+            if (appPrefs.loadedData.temperatureUnit == 1)
+                vehiclePanel_coolTemperatureText.Text = (activeObdConnection.coolantTemperatureFarenheit + " °F");
+
+            //Wait time
+            yield return intervalTime;
+        }
+    }
+
+    private IEnumerator<Wait> PanelEngineLoadUpdateRoutine()
+    {
+        //Prepare the interval time
+        Wait intervalTime = new Wait(0.25f);
+
+        //Start the update loop
+        while (true)
+        {
+            //If the panel is not currently active, just continues
+            if (pageContentForPanel.IsVisible == false)
+            {
+                yield return intervalTime;
+                continue;
+            }
+
+            //Update the engine load gauge
+            vehiclePanel_engineLoadText.Text = (activeObdConnection.engineLoad + "%");
+
+            //Wait time
+            yield return intervalTime;
+        }
+    }
+
+    private IEnumerator<Wait> PanelBatteryVoltageUpdateRoutine()
+    {
+        //Prepare the interval time
+        Wait intervalTime = new Wait(0.5f);
+
+        //Start the update loop
+        while (true)
+        {
+            //If the panel is not currently active, just continues
+            if (pageContentForPanel.IsVisible == false)
+            {
+                yield return intervalTime;
+                continue;
+            }
+
+            //Update the battery voltage gauge
+            vehiclePanel_batterVoltageText.Text = (activeObdConnection.batteryVoltage + "v");
+
+            //Wait time
+            yield return intervalTime;
+        }
+    }
+
+    private IEnumerator<Wait> PanelGearUpdateRoutine()
+    {
+        //Prepare the interval time
+        Wait intervalTime = new Wait(0.25f);
+
+        //Start the update loop
+        while (true)
+        {
+            //If the panel is not currently active, just continues
+            if (pageContentForPanel.IsVisible == false)
+            {
+                yield return intervalTime;
+                continue;
+            }
+
+            //Update the gear gauge
+            if (activeObdConnection.transmissionGear == -1)
+                vehiclePanel_gearIndicatorText.Text = appPrefs.loadedData.letterToUseAsClutchPressed;
+            if (activeObdConnection.transmissionGear == 0)
+                vehiclePanel_gearIndicatorText.Text = appPrefs.loadedData.letterToUseAsGearStopped;
+            if (activeObdConnection.transmissionGear > 0)
+                vehiclePanel_gearIndicatorText.Text = activeObdConnection.transmissionGear.ToString();
 
             //Wait time
             yield return intervalTime;
@@ -2258,7 +2534,18 @@ public partial class MainWindow : Window
         preferences_saveButton.Click += (s, e) => { SaveAllPreferences(); };
 
         //Prepare the validation for textbox of "pref_panel_vehicleMaxRpm" preference
-        pref_panel_vehicleMaxRpm.RegisterOnTextChangedValidationCallback((currentInput) => 
+        pref_panel_vehicleMaxRpm.RegisterOnTextChangedValidationCallback((currentInput) => { return ValidateIfInputIsValidIntegerAndGetResult(currentInput); });
+        pref_panel_minGear1RpmToChangeToGear2.RegisterOnTextChangedValidationCallback((currentInput) => { return ValidateIfInputIsValidIntegerAndGetResult(currentInput); });
+        pref_panel_minGear1SpeedToChangeToGear2.RegisterOnTextChangedValidationCallback((currentInput) => { return ValidateIfInputIsValidIntegerAndGetResult(currentInput); });
+        pref_panel_maxSpeedForGear1.RegisterOnTextChangedValidationCallback((currentInput) => { return ValidateIfInputIsValidIntegerAndGetResult(currentInput); });
+        pref_panel_maxSpeedForGear2.RegisterOnTextChangedValidationCallback((currentInput) => { return ValidateIfInputIsValidIntegerAndGetResult(currentInput); });
+        pref_panel_maxSpeedForGear3.RegisterOnTextChangedValidationCallback((currentInput) => { return ValidateIfInputIsValidIntegerAndGetResult(currentInput); });
+        pref_panel_maxSpeedForGear4.RegisterOnTextChangedValidationCallback((currentInput) => { return ValidateIfInputIsValidIntegerAndGetResult(currentInput); });
+        pref_panel_maxSpeedForGear5.RegisterOnTextChangedValidationCallback((currentInput) => { return ValidateIfInputIsValidIntegerAndGetResult(currentInput); });
+        pref_panel_maxSpeedForGear6.RegisterOnTextChangedValidationCallback((currentInput) => { return ValidateIfInputIsValidIntegerAndGetResult(currentInput); });
+
+        //Prepare validation for gears letters
+        pref_panel_letterForVehicleStopped.RegisterOnTextChangedValidationCallback((currentInput) => 
         {
             //Prepare the value to return
             string toReturn = "";
@@ -2266,16 +2553,45 @@ public partial class MainWindow : Window
             //Check if is empty, cancel here
             if (currentInput == "")
             {
-                toReturn = "Enter a value!";
+                toReturn = "Enter a letter!";
                 return toReturn;
             }
-            //Check if is too long
-            if (int.TryParse(currentInput, out _) == false)
-                toReturn = "Enter a number!";
+            //Check if have more than one character
+            if (currentInput.Length > 1)
+                toReturn = "Inser only one character!";
 
             //Return the value
             return toReturn;
         });
+        pref_panel_letterForClutchPressed.RegisterOnTextChangedValidationCallback((currentInput) =>
+        {
+            //Prepare the value to return
+            string toReturn = "";
+
+            //Check if is empty, cancel here
+            if (currentInput == "")
+            {
+                toReturn = "Enter a letter!";
+                return toReturn;
+            }
+            //Check if have more than one character
+            if (currentInput.Length > 1)
+                toReturn = "Inser only one character!";
+
+            //Return the value
+            return toReturn;
+        });
+
+        //Prepare the auto hide of max speed for gear 6, field
+        pref_panel_maxTransmissionGears.SelectionChanged += (s, e) => 
+        {
+            if (pref_panel_maxTransmissionGears.SelectedIndex == 0)
+                pref_panel_maxSpeedForGear6_root.IsVisible = false;
+            if (pref_panel_maxTransmissionGears.SelectedIndex == 1)
+                pref_panel_maxSpeedForGear6_root.IsVisible = true;
+        };
+        if (appPrefs.loadedData.maxTransmissionGears < 6)
+            pref_panel_maxSpeedForGear6_root.IsVisible = false;
     }
 
     private void UpdatePreferencesOnUI()
@@ -2359,6 +2675,77 @@ public partial class MainWindow : Window
             pref_panel_obdAdapterBaudRate.SelectedIndex = 7;
         //*** pref_panel_vehicleMaxRpm
         pref_panel_vehicleMaxRpm.textBox.Text = appPrefs.loadedData.vehicleMaxRpm.ToString();
+        //*** pref_panel_rpmDisplayType
+        pref_panel_rpmDisplayType.SelectedIndex = appPrefs.loadedData.rpmDisplayType;
+        //*** pref_panel_rpmInterpolationSampleInterval
+        if (appPrefs.loadedData.rpmInterpolationSampleIntervalMs == 100)
+            pref_panel_rpmInterpolationSampleInterval.SelectedIndex = 0;
+        if (appPrefs.loadedData.rpmInterpolationSampleIntervalMs == 250)
+            pref_panel_rpmInterpolationSampleInterval.SelectedIndex = 1;
+        if (appPrefs.loadedData.rpmInterpolationSampleIntervalMs == 350)
+            pref_panel_rpmInterpolationSampleInterval.SelectedIndex = 2;
+        if (appPrefs.loadedData.rpmInterpolationSampleIntervalMs == 500)
+            pref_panel_rpmInterpolationSampleInterval.SelectedIndex = 3;
+        if (appPrefs.loadedData.rpmInterpolationSampleIntervalMs == 700)
+            pref_panel_rpmInterpolationSampleInterval.SelectedIndex = 4;
+        if (appPrefs.loadedData.rpmInterpolationSampleIntervalMs == 850)
+            pref_panel_rpmInterpolationSampleInterval.SelectedIndex = 5;
+        if (appPrefs.loadedData.rpmInterpolationSampleIntervalMs == 1000)
+            pref_panel_rpmInterpolationSampleInterval.SelectedIndex = 6;
+        if (appPrefs.loadedData.rpmInterpolationSampleIntervalMs == 1250)
+            pref_panel_rpmInterpolationSampleInterval.SelectedIndex = 7;
+        if (appPrefs.loadedData.rpmInterpolationSampleIntervalMs == 1500)
+            pref_panel_rpmInterpolationSampleInterval.SelectedIndex = 8;
+        //*** pref_panel_rpmInterpolationAggressiveness
+        if (appPrefs.loadedData.rpmInterpolationAggressiveness == 0.5f)
+            pref_panel_rpmInterpolationAggressiveness.SelectedIndex = 0;
+        if (appPrefs.loadedData.rpmInterpolationAggressiveness == 0.8f)
+            pref_panel_rpmInterpolationAggressiveness.SelectedIndex = 1;
+        if (appPrefs.loadedData.rpmInterpolationAggressiveness == 1.0f)
+            pref_panel_rpmInterpolationAggressiveness.SelectedIndex = 2;
+        if (appPrefs.loadedData.rpmInterpolationAggressiveness == 1.25f)
+            pref_panel_rpmInterpolationAggressiveness.SelectedIndex = 3;
+        if (appPrefs.loadedData.rpmInterpolationAggressiveness == 1.5f)
+            pref_panel_rpmInterpolationAggressiveness.SelectedIndex = 4;
+        if (appPrefs.loadedData.rpmInterpolationAggressiveness == 1.75f)
+            pref_panel_rpmInterpolationAggressiveness.SelectedIndex = 5;
+        if (appPrefs.loadedData.rpmInterpolationAggressiveness == 2.0f)
+            pref_panel_rpmInterpolationAggressiveness.SelectedIndex = 6;
+        if (appPrefs.loadedData.rpmInterpolationAggressiveness == 2.5f)
+            pref_panel_rpmInterpolationAggressiveness.SelectedIndex = 7;
+        if (appPrefs.loadedData.rpmInterpolationAggressiveness == 3.0f)
+            pref_panel_rpmInterpolationAggressiveness.SelectedIndex = 8;
+        //*** pref_panel_speedDisplayUnit
+        pref_panel_speedDisplayUnit.SelectedIndex = appPrefs.loadedData.speedDisplayUnit;
+        //*** pref_panel_rpmMiniGaugeDisplayUnit
+        pref_panel_rpmMiniGaugeDisplayUnit.SelectedIndex = appPrefs.loadedData.rpmTextDisplayType;
+        //*** pref_panel_temperatureUnit
+        pref_panel_temperatureUnit.SelectedIndex = appPrefs.loadedData.temperatureUnit;
+        //*** pref_panel_maxTransmissionGears
+        if (appPrefs.loadedData.maxTransmissionGears == 5)
+            pref_panel_maxTransmissionGears.SelectedIndex = 0;
+        if (appPrefs.loadedData.maxTransmissionGears == 6)
+            pref_panel_maxTransmissionGears.SelectedIndex = 1;
+        //*** pref_panel_minGear1RpmToChangeToGear2
+        pref_panel_minGear1RpmToChangeToGear2.textBox.Text = appPrefs.loadedData.minGear1RpmToChangeToGear2.ToString();
+        //*** pref_panel_minGear1SpeedToChangeToGear2
+        pref_panel_minGear1SpeedToChangeToGear2.textBox.Text = appPrefs.loadedData.minGear1SpeedToChangeToGear2.ToString();
+        //*** pref_panel_maxSpeedForGear1
+        pref_panel_maxSpeedForGear1.textBox.Text = appPrefs.loadedData.maxPossibleGear1Speed.ToString();
+        //*** pref_panel_maxSpeedForGear2
+        pref_panel_maxSpeedForGear2.textBox.Text = appPrefs.loadedData.maxPossibleGear2Speed.ToString();
+        //*** pref_panel_maxSpeedForGear3
+        pref_panel_maxSpeedForGear3.textBox.Text = appPrefs.loadedData.maxPossibleGear3Speed.ToString();
+        //*** pref_panel_maxSpeedForGear4
+        pref_panel_maxSpeedForGear4.textBox.Text = appPrefs.loadedData.maxPossibleGear4Speed.ToString();
+        //*** pref_panel_maxSpeedForGear5
+        pref_panel_maxSpeedForGear5.textBox.Text = appPrefs.loadedData.maxPossibleGear5Speed.ToString();
+        //*** pref_panel_maxSpeedForGear6
+        pref_panel_maxSpeedForGear6.textBox.Text = appPrefs.loadedData.maxPossibleGear6Speed.ToString();
+        //*** pref_panel_letterForVehicleStopped
+        pref_panel_letterForVehicleStopped.textBox.Text = appPrefs.loadedData.letterToUseAsGearStopped;
+        //*** pref_panel_letterForClutchPressed
+        pref_panel_letterForClutchPressed.textBox.Text = appPrefs.loadedData.letterToUseAsClutchPressed;
     }
 
     private void SaveAllPreferences()
@@ -2443,6 +2830,87 @@ public partial class MainWindow : Window
         //*** pref_panel_vehicleMaxRpm
         if (pref_panel_vehicleMaxRpm.hasError() == false)
             appPrefs.loadedData.vehicleMaxRpm = int.Parse(pref_panel_vehicleMaxRpm.textBox.Text);
+        //*** pref_panel_rpmDisplayType
+        appPrefs.loadedData.rpmDisplayType = pref_panel_rpmDisplayType.SelectedIndex;
+        //*** pref_panel_rpmInterpolationSampleInterval
+        if (pref_panel_rpmInterpolationSampleInterval.SelectedIndex == 0)
+            appPrefs.loadedData.rpmInterpolationSampleIntervalMs = 100;
+        if (pref_panel_rpmInterpolationSampleInterval.SelectedIndex == 1)
+            appPrefs.loadedData.rpmInterpolationSampleIntervalMs = 250;
+        if (pref_panel_rpmInterpolationSampleInterval.SelectedIndex == 2)
+            appPrefs.loadedData.rpmInterpolationSampleIntervalMs = 350;
+        if (pref_panel_rpmInterpolationSampleInterval.SelectedIndex == 3)
+            appPrefs.loadedData.rpmInterpolationSampleIntervalMs = 500;
+        if (pref_panel_rpmInterpolationSampleInterval.SelectedIndex == 4)
+            appPrefs.loadedData.rpmInterpolationSampleIntervalMs = 700;
+        if (pref_panel_rpmInterpolationSampleInterval.SelectedIndex == 5)
+            appPrefs.loadedData.rpmInterpolationSampleIntervalMs = 850;
+        if (pref_panel_rpmInterpolationSampleInterval.SelectedIndex == 6)
+            appPrefs.loadedData.rpmInterpolationSampleIntervalMs = 1000;
+        if (pref_panel_rpmInterpolationSampleInterval.SelectedIndex == 7)
+            appPrefs.loadedData.rpmInterpolationSampleIntervalMs = 1250;
+        if (pref_panel_rpmInterpolationSampleInterval.SelectedIndex == 8)
+            appPrefs.loadedData.rpmInterpolationSampleIntervalMs = 1500;
+        //*** pref_panel_rpmInterpolationAggressiveness
+        if (pref_panel_rpmInterpolationAggressiveness.SelectedIndex == 0)
+            appPrefs.loadedData.rpmInterpolationAggressiveness = 0.5f;
+        if (pref_panel_rpmInterpolationAggressiveness.SelectedIndex == 1)
+            appPrefs.loadedData.rpmInterpolationAggressiveness = 0.8f;
+        if (pref_panel_rpmInterpolationAggressiveness.SelectedIndex == 2)
+            appPrefs.loadedData.rpmInterpolationAggressiveness = 1.0f;
+        if (pref_panel_rpmInterpolationAggressiveness.SelectedIndex == 3)
+            appPrefs.loadedData.rpmInterpolationAggressiveness = 1.25f;
+        if (pref_panel_rpmInterpolationAggressiveness.SelectedIndex == 4)
+            appPrefs.loadedData.rpmInterpolationAggressiveness = 1.5f;
+        if (pref_panel_rpmInterpolationAggressiveness.SelectedIndex == 5)
+            appPrefs.loadedData.rpmInterpolationAggressiveness = 1.75f;
+        if (pref_panel_rpmInterpolationAggressiveness.SelectedIndex == 6)
+            appPrefs.loadedData.rpmInterpolationAggressiveness = 2.0f;
+        if (pref_panel_rpmInterpolationAggressiveness.SelectedIndex == 7)
+            appPrefs.loadedData.rpmInterpolationAggressiveness = 2.5f;
+        if (pref_panel_rpmInterpolationAggressiveness.SelectedIndex == 8)
+            appPrefs.loadedData.rpmInterpolationAggressiveness = 3.0f;
+        //*** pref_panel_speedDisplayUnit
+        appPrefs.loadedData.speedDisplayUnit = pref_panel_speedDisplayUnit.SelectedIndex;
+        //*** pref_panel_rpmMiniGaugeDisplayUnit
+        appPrefs.loadedData.rpmTextDisplayType = pref_panel_rpmMiniGaugeDisplayUnit.SelectedIndex;
+        //*** pref_panel_temperatureUnit
+        appPrefs.loadedData.temperatureUnit = pref_panel_temperatureUnit.SelectedIndex;
+        //*** pref_panel_maxTransmissionGears
+        if (pref_panel_maxTransmissionGears.SelectedIndex == 0)
+            appPrefs.loadedData.maxTransmissionGears = 5;
+        if (pref_panel_maxTransmissionGears.SelectedIndex == 1)
+            appPrefs.loadedData.maxTransmissionGears = 6;
+        //*** pref_panel_minGear1RpmToChangeToGear2
+        if (pref_panel_minGear1RpmToChangeToGear2.hasError() == false)
+            appPrefs.loadedData.minGear1RpmToChangeToGear2 = int.Parse(pref_panel_minGear1RpmToChangeToGear2.textBox.Text);
+        //*** pref_panel_minGear1SpeedToChangeToGear2
+        if (pref_panel_minGear1SpeedToChangeToGear2.hasError() == false)
+            appPrefs.loadedData.minGear1SpeedToChangeToGear2 = int.Parse(pref_panel_minGear1SpeedToChangeToGear2.textBox.Text);
+        //*** pref_panel_maxSpeedForGear1
+        if (pref_panel_maxSpeedForGear1.hasError() == false)
+            appPrefs.loadedData.maxPossibleGear1Speed = int.Parse(pref_panel_maxSpeedForGear1.textBox.Text);
+        //*** pref_panel_maxSpeedForGear2
+        if (pref_panel_maxSpeedForGear2.hasError() == false)
+            appPrefs.loadedData.maxPossibleGear2Speed = int.Parse(pref_panel_maxSpeedForGear2.textBox.Text);
+        //*** pref_panel_maxSpeedForGear3
+        if (pref_panel_maxSpeedForGear3.hasError() == false)
+            appPrefs.loadedData.maxPossibleGear3Speed = int.Parse(pref_panel_maxSpeedForGear3.textBox.Text);
+        //*** pref_panel_maxSpeedForGear4
+        if (pref_panel_maxSpeedForGear4.hasError() == false)
+            appPrefs.loadedData.maxPossibleGear4Speed = int.Parse(pref_panel_maxSpeedForGear4.textBox.Text);
+        //*** pref_panel_maxSpeedForGear5
+        if (pref_panel_maxSpeedForGear5.hasError() == false)
+            appPrefs.loadedData.maxPossibleGear5Speed = int.Parse(pref_panel_maxSpeedForGear5.textBox.Text);
+        //*** pref_panel_maxSpeedForGear6
+        if (pref_panel_maxSpeedForGear6.hasError() == false)
+            appPrefs.loadedData.maxPossibleGear6Speed = int.Parse(pref_panel_maxSpeedForGear6.textBox.Text);
+        //*** pref_panel_letterForVehicleStopped
+        if (pref_panel_letterForVehicleStopped.hasError() == false)
+            appPrefs.loadedData.letterToUseAsGearStopped = pref_panel_letterForVehicleStopped.textBox.Text;
+        //*** pref_panel_letterForClutchPressed
+        if (pref_panel_letterForClutchPressed.hasError() == false)
+            appPrefs.loadedData.letterToUseAsClutchPressed = pref_panel_letterForClutchPressed.textBox.Text;
 
         //Save the preferences to file
         appPrefs.Save();
@@ -3073,6 +3541,25 @@ public partial class MainWindow : Window
         }
 
         //Return the data
+        return toReturn;
+    }
+
+    private string ValidateIfInputIsValidIntegerAndGetResult(string input)
+    {
+        //Prepare the value to return
+        string toReturn = "";
+
+        //Check if is empty, cancel here
+        if (input == "")
+        {
+            toReturn = "Enter a value!";
+            return toReturn;
+        }
+        //Check if is a int number
+        if (int.TryParse(input, out _) == false)
+            toReturn = "Enter a number!";
+
+        //Return the value
         return toReturn;
     }
 

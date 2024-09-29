@@ -631,6 +631,127 @@
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_vehicleMaxRpm}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
 											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_vehicleMaxRpm" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
 										</DockPanel>
+										<!-- pref_panel_rpmDisplayType -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_rpmDisplayType}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_panel_rpmDisplayType" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+												<ComboBoxItem>Raw</ComboBoxItem>
+												<ComboBoxItem>Interpolated (Delay Compensation)</ComboBoxItem>
+												<ComboBoxItem>Interpolated and Raw</ComboBoxItem>
+											</ComboBox>
+										</DockPanel>
+										<!-- pref_panel_rpmInterpolationSampleInterval -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_rpmInterpolationInterval}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_panel_rpmInterpolationSampleInterval" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+												<ComboBoxItem>0.1 Seconds</ComboBoxItem>
+												<ComboBoxItem>0.25 Seconds</ComboBoxItem>
+												<ComboBoxItem>0.35 Seconds</ComboBoxItem>
+												<ComboBoxItem>0.5 Seconds</ComboBoxItem>
+												<ComboBoxItem>0.7 Seconds</ComboBoxItem>
+												<ComboBoxItem>0.85 Seconds</ComboBoxItem>
+												<ComboBoxItem>1.0 Seconds</ComboBoxItem>
+												<ComboBoxItem>1.25 Seconds</ComboBoxItem>
+												<ComboBoxItem>1.5 Seconds</ComboBoxItem>
+											</ComboBox>
+										</DockPanel>
+										<!-- pref_panel_rpmInterpolationAggressiveness -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_rpmInterpolationAggressiveness}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_panel_rpmInterpolationAggressiveness" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+												<ComboBoxItem>50%</ComboBoxItem>
+												<ComboBoxItem>80%</ComboBoxItem>
+												<ComboBoxItem>100%</ComboBoxItem>
+												<ComboBoxItem>125%</ComboBoxItem>
+												<ComboBoxItem>150%</ComboBoxItem>
+												<ComboBoxItem>175%</ComboBoxItem>
+												<ComboBoxItem>200%</ComboBoxItem>
+												<ComboBoxItem>250%</ComboBoxItem>
+												<ComboBoxItem>300%</ComboBoxItem>
+											</ComboBox>
+										</DockPanel>
+										<!-- pref_panel_rpmMiniGaugeDisplayUnit -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_rpmMinigaugeDisplayType}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_panel_rpmMiniGaugeDisplayUnit" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+												<ComboBoxItem>Raw</ComboBoxItem>
+												<ComboBoxItem>Interpolated (Delay Compensation)</ComboBoxItem>
+											</ComboBox>
+										</DockPanel>
+										<!-- pref_panel_speedDisplayUnit -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_speedDisplayUnit}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_panel_speedDisplayUnit" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+												<ComboBoxItem>MP/h</ComboBoxItem>
+												<ComboBoxItem>KM/h</ComboBoxItem>
+											</ComboBox>
+										</DockPanel>
+										<!-- pref_panel_temperatureUnit -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_temperatureUnit}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_panel_temperatureUnit" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+												<ComboBoxItem>°C</ComboBoxItem>
+												<ComboBoxItem>°F</ComboBoxItem>
+											</ComboBox>
+										</DockPanel>
+										<!-- pref_panel_maxTransmissionGears -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_maxTransmissionGears}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_panel_maxTransmissionGears" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+												<ComboBoxItem>5 Gears</ComboBoxItem>
+												<ComboBoxItem>6 Gears</ComboBoxItem>
+											</ComboBox>
+										</DockPanel>
+										<!-- pref_panel_minGear1RpmToChangeToGear2 -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_minGear1RpmToChangeToGear2}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_minGear1RpmToChangeToGear2" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
+										</DockPanel>
+										<!-- pref_panel_minGear1SpeedToChangeToGear2 -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_minGear1SpeedToChangeToGear2}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_minGear1SpeedToChangeToGear2" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
+										</DockPanel>
+										<!-- pref_panel_maxSpeedForGear1 -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_maxSpeedForGear1}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_maxSpeedForGear1" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
+										</DockPanel>
+										<!-- pref_panel_maxSpeedForGear2 -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_maxSpeedForGear2}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_maxSpeedForGear2" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
+										</DockPanel>
+										<!-- pref_panel_maxSpeedForGear3 -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_maxSpeedForGear3}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_maxSpeedForGear3" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
+										</DockPanel>
+										<!-- pref_panel_maxSpeedForGear4 -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_maxSpeedForGear4}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_maxSpeedForGear4" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
+										</DockPanel>
+										<!-- pref_panel_maxSpeedForGear5 -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_maxSpeedForGear5}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_maxSpeedForGear5" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
+										</DockPanel>
+										<!-- pref_panel_maxSpeedForGear6 -->
+										<DockPanel Name="pref_panel_maxSpeedForGear6_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_maxSpeedForGear6}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_maxSpeedForGear6" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
+										</DockPanel>
+										<!-- pref_panel_letterForVehicleStopped -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_letterToUseForVehicleStopped}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_letterForVehicleStopped" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
+										</DockPanel>
+										<!-- pref_panel_letterForClutchPressed -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_letterToUseForClutchPressed}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_letterForClutchPressed" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
+										</DockPanel>
 									</StackPanel>
 								</ScrollViewer>
 							</TabItem>
