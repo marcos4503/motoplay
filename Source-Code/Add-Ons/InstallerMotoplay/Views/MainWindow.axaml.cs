@@ -1187,6 +1187,30 @@ public partial class MainWindow : Window
         //Wait time
         yield return new Wait(1.0f);
 
+        //Create a .desktop file for the keyboard
+        StringBuilder motoplayKbdContent = new StringBuilder();
+        motoplayKbdContent.AppendLine("[Desktop Entry]");
+        motoplayKbdContent.AppendLine("Encoding=UTF-8");
+        motoplayKbdContent.AppendLine("Name=Motoplay Virtual Keyboard");
+        motoplayKbdContent.AppendLine("GenericName=keyboard");
+        motoplayKbdContent.AppendLine("Categories=Other");
+        motoplayKbdContent.AppendLine("Comment=The Virtual Keyboard of Motoplay App!");
+        motoplayKbdContent.AppendLine("Type=Application");
+        motoplayKbdContent.AppendLine("Terminal=false");
+        motoplayKbdContent.AppendLine(("Exec=" + motoplayRootPath + "/Keyboard/wvkbd-mobintl"));
+        motoplayKbdContent.AppendLine(("Icon=" + motoplayRootPath + "/App/Assets/motoplay-logo-redistributable.png"));
+        motoplayKbdContent.AppendLine("StartupWMClass=wvkbd-mobintl");
+        File.WriteAllText(("/home/" + systemCurrentUsername + "/.local/share/applications/Motoplay Virtual Keyboard.desktop"), motoplayKbdContent.ToString());
+
+        //Send a command to make the .desktop file, executable
+        SendCommandToTerminalAndClearCurrentOutputLines("chmod +x \"" + ("/home/" + systemCurrentUsername + "/.local/share/applications/Motoplay Virtual Keyboard.desktop") + "\"");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution() == false)
+            yield return new Wait(0.1f);
+
+        //Wait time
+        yield return new Wait(1.0f);
+
         //Send a command to update the desktop files database
         SendCommandToTerminalAndClearCurrentOutputLines("sudo update-desktop-database");
         //Wait the end of command execution

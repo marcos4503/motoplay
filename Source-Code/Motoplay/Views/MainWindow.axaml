@@ -65,11 +65,11 @@
 				<!-- Pages Background Area -->
 				<Grid Background="White" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 					<!-- Vehicle Panel Background -->
-					<Grid Name="pageBgForPanel" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+					<Grid Name="pageBgForPanel" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 						<!-- Background for Panel Setup and Connection Screen -->
 						<Grid Name="backgroundForPanelSetupAndConnect" IsVisible="False" Background="White" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Grid>
 						<!-- Background for Ready Panel Screen -->
-						<Grid Name="backgroundForPanelContent" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<Grid Name="backgroundForPanelContent" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 							<Grid ColumnDefinitions="12.6*,2,88*" x:CompileBindings="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 								<Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Grid>
 								<Grid Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Grid>
@@ -87,6 +87,8 @@
 											</Grid>
 										</Grid>
 									</Grid>
+									<!-- Dark Mode Overlay -->
+									<Grid Name="vehiclePanel_background_wallDarkOverlay" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#000000" Opacity="0.7" Margin="0, -8, 0, 0"></Grid>
 									<!-- Background Arcs -->
 									<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 										<Arc Name="vehiclePanel_background_speedArc40Kmh" IsVisible="True" StartAngle="0" SweepAngle="360" StrokeThickness="100" StrokeLineCap="Flat" Stroke="#53707a" HorizontalAlignment="Center" VerticalAlignment="Center" Width="834" Height="834" Margin="0, 0, 0, 24" Opacity="0.7">
@@ -125,7 +127,7 @@
 										<Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Grid>
 										<Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 											<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, -72, 0, 0">
-												<Image Source="/Assets/panel-ground.png" HorizontalAlignment="Center" VerticalAlignment="Top" Stretch="Fill" RenderOptions.BitmapInterpolationMode="HighQuality" Margin="0, -22, 0, 0" Width="716" Height="332"></Image>
+												<Image Name="vehiclePanel_background_groundImage" Source="/Assets/panel-ground.png" HorizontalAlignment="Center" VerticalAlignment="Top" Stretch="Fill" RenderOptions.BitmapInterpolationMode="HighQuality" Margin="0, -22, 0, 0" Width="716" Height="332"></Image>
 											</Grid>
 										</Grid>
 									</Grid>
@@ -142,7 +144,7 @@
 															<Rotate3DTransform.AngleZ>0</Rotate3DTransform.AngleZ>
 														</Rotate3DTransform>
 													</Grid.RenderTransform>
-													<Arc StartAngle="0" SweepAngle="112" StrokeThickness="38" StrokeLineCap="Flat" Stroke="#FA972D" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+													<Arc Name="vehiclePanel_background_speedArc100Kmh_reflection_arc" StartAngle="0" SweepAngle="112" StrokeThickness="38" StrokeLineCap="Flat" Stroke="#FA972D" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 														<Arc.RenderTransform>
 															<TransformGroup>
 																<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
@@ -160,7 +162,7 @@
 															<Rotate3DTransform.AngleZ>0</Rotate3DTransform.AngleZ>
 														</Rotate3DTransform>
 													</Grid.RenderTransform>
-													<Arc StartAngle="0" SweepAngle="112" StrokeThickness="40" StrokeLineCap="Flat" Stroke="#509eba" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+													<Arc Name="vehiclePanel_background_speedArc70Kmh_reflection_arc" StartAngle="0" SweepAngle="112" StrokeThickness="40" StrokeLineCap="Flat" Stroke="#509eba" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 														<Arc.RenderTransform>
 															<TransformGroup>
 																<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
@@ -178,7 +180,7 @@
 															<Rotate3DTransform.AngleZ>0</Rotate3DTransform.AngleZ>
 														</Rotate3DTransform>
 													</Grid.RenderTransform>
-													<Arc StartAngle="0" SweepAngle="112" StrokeThickness="64" StrokeLineCap="Flat" Stroke="#53707a" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+													<Arc Name="vehiclePanel_background_speedArc40Kmh_reflection_arc" StartAngle="0" SweepAngle="112" StrokeThickness="64" StrokeLineCap="Flat" Stroke="#53707a" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 														<Arc.RenderTransform>
 															<TransformGroup>
 																<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
@@ -194,28 +196,29 @@
 								</Grid>
 							</Grid>
 						</Grid>
+						<!-- End of Background for -->
 					</Grid>
-					<!-- General Metrics Button -->
+					<!-- General Metrics Background -->
 					<Grid Name="pageBgForMetrics" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-						<Grid Background="Yellow"></Grid>
+						<Image Source="/Assets/background-charts.png" HorizontalAlignment="Right" VerticalAlignment="Center" Width="432" RenderOptions.BitmapInterpolationMode="HighQuality" Margin="0, 0, -16, -272" Opacity="0.05"></Image>
 					</Grid>
-					<!-- Music Player Button -->
+					<!-- Music Player Background -->
 					<Grid Name="pageBgForPlayer" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 						<Grid Background="Pink"></Grid>
 					</Grid>
-					<!-- Web Browser Button -->
+					<!-- Web Browser Background -->
 					<Grid Name="pageBgForBrowser" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 						<Grid Background="Orange"></Grid>
 					</Grid>
-					<!-- USB Camera Button -->
+					<!-- USB Camera Background -->
 					<Grid Name="pageBgForCamera" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 						<Grid Background="Red"></Grid>
 					</Grid>
-					<!-- Mirror Phone Button -->
+					<!-- Mirror Phone Background -->
 					<Grid Name="pageBgForPhone" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 						<Grid Background="Green"></Grid>
 					</Grid>
-					<!-- App Preferences Button -->
+					<!-- App Preferences Background -->
 					<Grid Name="pageBgForPreferences" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 						<Image Source="/Assets/background-gears.png" HorizontalAlignment="Right" VerticalAlignment="Bottom" Height="300" Opacity="0.03" Margin="0, 0, -28, 0"></Image>
 					</Grid>
@@ -313,7 +316,7 @@
 						<Image Source="/Assets/background-motoplay-logo.png" HorizontalAlignment="Center" VerticalAlignment="Center" Width="256" Height="256" Opacity="0.05"></Image>
 					</Grid>
 					<!-- Vehicle Panel Page Content -->
-					<Grid Name="pageContentForPanel" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+					<Grid Name="pageContentForPanel" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 						<!-- OBD Adapter Setup -->
 						<Grid Name="vehiclePanel_obdSetupScreen" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 							<Grid Name="vehiclePanel_obdSetup_InitialStep" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -383,22 +386,21 @@
 							</StackPanel>
 						</Grid>
 						<!-- Panel -->
-						<Grid Name="vehiclePanel_panelScreen" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<Grid Name="vehiclePanel_panelScreen" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 							<!-- Panel Elements -->
 							<Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="400" Height="400" Margin="0, 0, 0, 24">
 								<!-- RPM Gauge -->
 								<local:RpmGauge Name="vehiclePanel_rpmGauge" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" PrimaryPointerAngle="0"></local:RpmGauge>
 								<!-- Gear Gauge -->
 								<Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="128" Height="128">
-									<Grid HorizontalAlignment="Center" VerticalAlignment="Top" Width="32" Height="32" Margin="0, 2, 0, 0">
-										<Polygon Name="vehiclePanel_shiftLight_up" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Points="0,24 16,0 32,24" Fill="#00aaff"></Polygon>
-										<Polygon Name="vehiclePanel_shiftLight_down" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Points="0,0 16,24 32,0" Fill="#00aaff"></Polygon>
+									<Grid Name="vehiclePanel_shiftLight_root" HorizontalAlignment="Center" VerticalAlignment="Top" Width="32" Height="32" Margin="0, 2, 0, 0">
+										<Polygon Name="vehiclePanel_shiftLight_light" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Points="0,26 16,6 32,26" Fill="#00aaff"></Polygon>
 									</Grid>
 									<TextBlock Name="vehiclePanel_gearIndicatorText" Text="0" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="{StaticResource Nasalization}" FontWeight="Bold" FontSize="80" LineHeight="64" Margin="0, 0, 0, 0"></TextBlock>
-									<TextBlock Text="{DynamicResource ResourceKey=vehiclePanel_gearGauge_title}" HorizontalAlignment="Center" VerticalAlignment="Bottom" FontFamily="{StaticResource Panton}" FontSize="10" Margin="0, 0, 0, 0" Opacity="0.7"></TextBlock>
+									<TextBlock Name="vehiclePanel_gearIndicatorTitle" Text="{DynamicResource ResourceKey=vehiclePanel_gearGauge_title}" HorizontalAlignment="Center" VerticalAlignment="Bottom" FontFamily="{StaticResource Panton}" FontSize="10" Margin="0, 0, 0, 0" Opacity="0.7"></TextBlock>
 								</Grid>
 								<!-- Speed Gauge -->
-								<Border HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="#d4d4d4" BorderThickness="4" CornerRadius="8" Width="178" Height="80" Margin="0, 242, 0, 0">
+								<Border HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="#a6a6a6" BorderThickness="4" CornerRadius="8" Width="178" Height="80" Margin="0, 242, 0, 0">
 									<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 										<TextBlock Name="vehiclePanel_speedometerText" Text="000" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="{StaticResource Nasalization}" FontWeight="Bold" FontSize="60" LineHeight="48" Margin="0, 0, 0, 12"></TextBlock>
 										<TextBlock Name="vehiclePanel_speedometerUnitText" Text="{DynamicResource ResourceKey=vehiclePanel_speedGauge_titleMph}" HorizontalAlignment="Center" VerticalAlignment="Bottom" FontFamily="{StaticResource Panton}" FontSize="10" Margin="0, 0, 0, 2" LineHeight="12" Opacity="0.7"></TextBlock>
@@ -409,7 +411,7 @@
 							<Grid ColumnDefinitions="*,*,*,*,*,*" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="16, 0, 16, 8">
 								<!-- RPM Mini Gauge -->
 								<Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
-									<Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="96" Height="40" BorderThickness="2" BorderBrush="#d4d4d4" CornerRadius="8" Padding="4, 4, 4, 4" Background="#d9ffffff">
+									<Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="96" Height="40" BorderThickness="2" BorderBrush="#a6a6a6" CornerRadius="8" Padding="4, 4, 4, 4" Background="#d9ffffff">
 										<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 											<Image Source="/Assets/rpm-icon.png" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="0, 6, 0, 6" Opacity="0.7"></Image>
 											<TextBlock Name="vehiclePanel_rpmText" Text="0 rpm" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="{StaticResource Panton}" FontSize="12" LineHeight="12" Opacity="0.7" TextAlignment="Center" Margin="0, 2, 0, 0"></TextBlock>
@@ -418,7 +420,7 @@
 								</Grid>
 								<!-- Coolant Temperatura Mini Gauge -->
 								<Grid Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
-									<Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="96" Height="40" BorderThickness="2" BorderBrush="#d4d4d4" CornerRadius="8" Padding="4, 4, 4, 4" Background="#d9ffffff">
+									<Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="96" Height="40" BorderThickness="2" BorderBrush="#a6a6a6" CornerRadius="8" Padding="4, 4, 4, 4" Background="#d9ffffff">
 										<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 											<Image Source="/Assets/coolant-temperature-icon.png" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="0, 6, 0, 6" Opacity="0.7"></Image>
 											<TextBlock Name="vehiclePanel_coolTemperatureText" Text="0 °C" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="{StaticResource Panton}" FontSize="12" LineHeight="12" Opacity="0.7" TextAlignment="Center" Margin="0, 2, 0, 0"></TextBlock>
@@ -427,7 +429,7 @@
 								</Grid>
 								<!-- Engine Load Mini Gauge -->
 								<Grid Grid.Row="0" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
-									<Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="96" Height="40" BorderThickness="2" BorderBrush="#d4d4d4" CornerRadius="8" Padding="4, 4, 4, 4" Background="#d9ffffff">
+									<Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="96" Height="40" BorderThickness="2" BorderBrush="#a6a6a6" CornerRadius="8" Padding="4, 4, 4, 4" Background="#d9ffffff">
 										<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 											<Image Source="/Assets/engine-load-icon.png" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="0, 6, 0, 6" Opacity="0.7"></Image>
 											<TextBlock Name="vehiclePanel_engineLoadText" Text="0%" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="{StaticResource Panton}" FontSize="12" LineHeight="12" Opacity="0.7" TextAlignment="Center" Margin="0, 2, 0, 0"></TextBlock>
@@ -436,7 +438,7 @@
 								</Grid>
 								<!-- Battery Voltage Mini Gauge -->
 								<Grid Grid.Row="0" Grid.Column="3" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
-									<Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="96" Height="40" BorderThickness="2" BorderBrush="#d4d4d4" CornerRadius="8" Padding="4, 4, 4, 4" Background="#d9ffffff">
+									<Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="96" Height="40" BorderThickness="2" BorderBrush="#a6a6a6" CornerRadius="8" Padding="4, 4, 4, 4" Background="#d9ffffff">
 										<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 											<Image Source="/Assets/battery-icon.png" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="0, 6, 0, 6" Opacity="0.7"></Image>
 											<TextBlock Name="vehiclePanel_batterVoltageText" Text="0.0v" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="{StaticResource Panton}" FontSize="12" LineHeight="12" Opacity="0.7" TextAlignment="Center" Margin="0, 2, 0, 0"></TextBlock>
@@ -445,7 +447,7 @@
 								</Grid>
 								<!-- OBD Adapter Loss Mini Gauge -->
 								<Grid Grid.Row="0" Grid.Column="4" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
-									<Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="96" Height="40" BorderThickness="2" BorderBrush="#d4d4d4" CornerRadius="8" Padding="4, 4, 4, 4" Background="#d9ffffff">
+									<Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="96" Height="40" BorderThickness="2" BorderBrush="#a6a6a6" CornerRadius="8" Padding="4, 4, 4, 4" Background="#d9ffffff">
 										<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 											<Image Source="/Assets/obd-adapter-loss-icon.png" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="0, 6, 0, 6" Opacity="0.7"></Image>
 											<TextBlock Name="vehiclePanel_adapterLossText" Text="0 cl" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="{StaticResource Panton}" FontSize="12" LineHeight="12" Opacity="0.7" TextAlignment="Center" Margin="0, 2, 0, 0"></TextBlock>
@@ -454,13 +456,26 @@
 								</Grid>
 								<!-- OBD Adapter Ping Mini Gauge -->
 								<Grid Grid.Row="0" Grid.Column="5" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
-									<Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="96" Height="40" BorderThickness="2" BorderBrush="#d4d4d4" CornerRadius="8" Padding="4, 4, 4, 4" Background="#d9ffffff">
+									<Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="96" Height="40" BorderThickness="2" BorderBrush="#a6a6a6" CornerRadius="8" Padding="4, 4, 4, 4" Background="#d9ffffff">
 										<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 											<Image Source="/Assets/obd-adapter-ping-icon.png" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="0, 6, 0, 6" Opacity="0.7"></Image>
 											<TextBlock Name="vehiclePanel_adapterPingText" Text="0 ms" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="{StaticResource Panton}" FontSize="12" LineHeight="12" Opacity="0.7" TextAlignment="Center" Margin="0, 2, 0, 0"></TextBlock>
 										</Grid>
 									</Border>
 								</Grid>
+							</Grid>
+							<!-- Shutdown Shortcut Button -->
+							<Grid Name="vehiclePanel_shutdownShortcut_root" HorizontalAlignment="Left" VerticalAlignment="Top" Width="72" Height="72" Margin="8, 8, 0, 0" Opacity="0.75"> <!-- Closed Margin: 8, -80, 0, 0 -->
+								<Grid.Transitions>
+									<Transitions>
+										<ThicknessTransition Property="Margin" Duration="0:0:0.5"></ThicknessTransition>
+									</Transitions>
+								</Grid.Transitions>
+								<Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch" BorderThickness="4" BorderBrush="#8a0000" Background="#cf3636" CornerRadius="16">
+									<Button Name="vehiclePanel_shutdownShortcutButton" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" CornerRadius="16" Background="#cf3636" Padding="12, 12, 12, 12" BorderThickness="0">
+										<Image Source="/Assets/shutdown-shortcut.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+									</Button>
+								</Border>
 							</Grid>
 							<!-- Fade Cover -->
 							<Grid Name="vehiclePanel_fadeCover" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#ffffff" Margin="0, -8, 0, 0" Opacity="1.0"></Grid>
@@ -523,7 +538,44 @@
 					</Grid>
 					<!-- General Metrics Page Content -->
 					<Grid Name="pageContentForMetrics" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-						<TextBlock Text="Metrics"></TextBlock>
+						<TextBlock Text="{DynamicResource ResourceKey=generalMetrics_title}" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Medium" FontSize="16" LineHeight="32" Margin="16, 8, 0, 0"></TextBlock>
+						<Rectangle Fill="#ababab" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="1" Margin="0, 48, 0, 0" Opacity="0.5"></Rectangle>
+						<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Offset="0, 0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 48, 0, 0">
+							<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="16, 8, 16, 32">
+								<ComboBox Name="generalMetrics_contentSelector" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+									<ComboBoxItem>Number of Disconnections with OBD Adapter</ComboBoxItem>
+									<ComboBoxItem>OBD Adapter Response Time (Ping)</ComboBoxItem>
+									<ComboBoxItem>Time Spent In Each Gear</ComboBoxItem>
+								</ComboBox>
+								<Grid HorizontalAlignment="Stretch" VerticalAlignment="Top">
+									<Grid Name="generalMetrics_content_disconnectionCount" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+										<Border HorizontalAlignment="Stretch" VerticalAlignment="Top" BorderThickness="2" BorderBrush="#a6a6a6" CornerRadius="8" Padding="8, 8, 8, 8">
+											<Grid HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="48">
+												<TextBlock Name="generalMetrics_content_disconnectionCount_text" Text="0" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="20" FontWeight="Bold"></TextBlock>
+												<TextBlock Name="generalMetrics_content_disconnectionCount_textUpdate" Text="-" HorizontalAlignment="Center" VerticalAlignment="Bottom" FontSize="12" Opacity="0.7"></TextBlock>
+											</Grid>
+										</Border>
+									</Grid>
+									<Grid Name="generalMetrics_content_obdResponseTime" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+										<Border HorizontalAlignment="Stretch" VerticalAlignment="Top" BorderThickness="2" BorderBrush="#a6a6a6" CornerRadius="8" Padding="0, 0, 0, 0" ClipToBounds="True">
+											<Grid HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="332">
+												<local:RealtimeChart Name="generalMetrics_content_obdResponseTime_chart" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 0, 0, 24"></local:RealtimeChart>
+												<TextBlock Text="{DynamicResource ResourceKey=generalMetrics_timeSpentInEachGear_inMilliseconds}" HorizontalAlignment="Center" VerticalAlignment="Bottom" LineHeight="24" Opacity="0.7"></TextBlock>
+											</Grid>
+										</Border>
+									</Grid>
+									<Grid Name="generalMetrics_content_timeSpentInGears" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+										<Border HorizontalAlignment="Stretch" VerticalAlignment="Top" BorderThickness="2" BorderBrush="#a6a6a6" CornerRadius="8" Padding="0, 0, 0, 0" ClipToBounds="True">
+											<Grid HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="332">
+												<local:BarsChart Name="generalMetrics_content_timeSpentInGears_chart" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 0, 0, 36"></local:BarsChart>
+												<TextBlock Text="{DynamicResource ResourceKey=generalMetrics_timeSpentInEachGear_inMinutes}" HorizontalAlignment="Center" VerticalAlignment="Bottom" LineHeight="24" Opacity="0.7" Margin="0, 0, 0, 12"></TextBlock>
+												<TextBlock Name="generalMetrics_content_timeSpentInGears_textUpdate" Text="-" HorizontalAlignment="Center" VerticalAlignment="Bottom" FontSize="12" LineHeight="18" Opacity="0.7"></TextBlock>
+											</Grid>
+										</Border>
+									</Grid>
+								</Grid>
+							</StackPanel>
+						</ScrollViewer>
 					</Grid>
 					<!-- Music Player Page Content -->
 					<Grid Name="pageContentForPlayer" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -751,6 +803,15 @@
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_letterToUseForClutchPressed}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
 											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_letterForClutchPressed" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
+										</DockPanel>
+										<!-- pref_panel_panelColorScheme -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_panelColorScheme}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_panel_panelColorScheme" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+												<ComboBoxItem>Automatic</ComboBoxItem>
+												<ComboBoxItem>Dark</ComboBoxItem>
+												<ComboBoxItem>Light</ComboBoxItem>
+											</ComboBox>
 										</DockPanel>
 									</StackPanel>
 								</ScrollViewer>

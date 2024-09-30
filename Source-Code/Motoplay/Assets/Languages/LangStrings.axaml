@@ -59,6 +59,20 @@ Attempt #%n</x:String>
 	<x:String x:Key="vehiclePanel_speedGauge_titleKmh">KM/h</x:String>
 	<x:String x:Key="vehiclePanel_speedGauge_titleMph">MP/h</x:String>
 
+	<!-- General Metrics -->
+	<x:String x:Key="generalMetrics_title">General Metrics</x:String>
+	<x:String x:Key="generalMetrics_timeSpentInEachGear_stopped">Stopped</x:String>
+	<x:String x:Key="generalMetrics_timeSpentInEachGear_clutch">Clutch</x:String>
+	<x:String x:Key="generalMetrics_timeSpentInEachGear_gear1">Gear 1</x:String>
+	<x:String x:Key="generalMetrics_timeSpentInEachGear_gear2">Gear 2</x:String>
+	<x:String x:Key="generalMetrics_timeSpentInEachGear_gear3">Gear 3</x:String>
+	<x:String x:Key="generalMetrics_timeSpentInEachGear_gear4">Gear 4</x:String>
+	<x:String x:Key="generalMetrics_timeSpentInEachGear_gear5">Gear 5</x:String>
+	<x:String x:Key="generalMetrics_timeSpentInEachGear_gear6">Gear 6</x:String>
+	<x:String x:Key="generalMetrics_timeSpentInEachGear_inMinutes">(In Minutes)</x:String>
+	<x:String x:Key="generalMetrics_timeSpentInEachGear_inMilliseconds">(In Milliseconds)</x:String>
+	<x:String x:Key="generalMetrics_metricsUpdate">The metric will be updated in %d seconds!</x:String>
+
 
 
 
@@ -103,5 +117,6 @@ Attempt #%n</x:String>
 	<x:String x:Key="appPreferences_panelTab_maxSpeedForGear6">Gears: Maximum Possible Speed (Km/h) ​​In Gear 6</x:String>
 	<x:String x:Key="appPreferences_panelTab_letterToUseForVehicleStopped">Gears: Letter to Display for Stopped Vehicle (or Neutral)</x:String>
 	<x:String x:Key="appPreferences_panelTab_letterToUseForClutchPressed">Gears: Letter to Display for Clutch Pressed</x:String>
+	<x:String x:Key="appPreferences_panelTab_panelColorScheme">Panel Color Scheme</x:String>
 
 </ResourceDictionary>

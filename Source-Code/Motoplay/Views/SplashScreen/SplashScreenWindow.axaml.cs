@@ -55,7 +55,7 @@ public partial class SplashScreenWindow : Window
         long startTime = DateTime.Now.Ticks;
         long currentTime = startTime;
         long elapsedTime = 0;
-        int loadingTimeSecs = 2;
+        int loadingTimeSecs = 1;
 
         //Start a timer of progress
         while ((currentTime - startTime) <= (TimeSpan.TicksPerSecond * loadingTimeSecs))

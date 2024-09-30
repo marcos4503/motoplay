@@ -72,6 +72,17 @@ public partial class MainWindow : Window
         kmh70Arc,
         kmh100Arc
     }
+    public enum LightShiftColorState
+    {
+        Blue,
+        Green,
+        Red
+    }
+    public enum LightShiftRotationState
+    {
+        Up,
+        Down
+    }
 
     //Classes of script
     private class BluetoothDeviceInScanLogs()
@@ -108,9 +119,13 @@ public partial class MainWindow : Window
     private List<PanelLogItem> instantiatedPanelLogsInUi = new List<PanelLogItem>();
     private ActiveCoroutine panelEntryAnimationPhase1Routine = null;
     private ActiveCoroutine panelEntryAnimationPhase2Routine = null;
+    private bool isPanelEntryAnimationFinished = false;
     private ActiveCoroutine panelSpeedArc40kmhEntryRoutine = null;
+    private bool isSpeedArc40kmhEnabled = true;
     private ActiveCoroutine panelSpeedArc70kmhEntryRoutine = null;
+    private bool isSpeedArc70kmhEnabled = true;
     private ActiveCoroutine panelSpeedArc100kmhEntryRoutine = null;
+    private bool isSpeedArc100kmhEnabled = true;
     private ActiveCoroutine panelCommandLossUpdateRoutine = null;
     private ActiveCoroutine panelCommandPingUpdateRoutine = null;
     private ActiveCoroutine panelRpmUpdateRoutine = null;
@@ -120,6 +135,12 @@ public partial class MainWindow : Window
     private ActiveCoroutine panelEngineLoadUpdateRoutine = null;
     private ActiveCoroutine panelBatteryVoltageUpdateRoutine = null;
     private ActiveCoroutine panelGearUpdateRoutine = null;
+    private ActiveCoroutine panelSpeedArcsUpdateRoutine = null;
+    private ActiveCoroutine panelLightShiftBlinkRoutine = null;
+    private ActiveCoroutine panelLightShiftUpdateRoutine = null;
+    private ActiveCoroutine panelShutdownShortcutUpdateRoutine = null;
+    private int disconnectionsCounterWithObdAdapter = 0;
+    private Grid[] arrayOfMetricsContents = null;
 
     //Private variables
     private string[] receivedCliArgs = null;
@@ -396,6 +417,9 @@ public partial class MainWindow : Window
         //Prepare the UI for Vehicle Panel
         PrepareTheVehiclePanel();
 
+        //Prepare the UI for General Metrics
+        PrepareTheGeneralMetrics();
+
         //Prepare the UI for Preferences
         PrepareThePreferences();
     }
@@ -626,6 +650,8 @@ public partial class MainWindow : Window
         vehiclePanel_drawerHandler.PointerPressed += (s, e) => { ToggleVehiclePanelDrawer(); };
         vehiclePanel_drawerBackground.PointerPressed += (s, e) => { ToggleVehiclePanelDrawer(); };
         vehiclePanel_drawer_adapterTab_unpairButton.Click += (s, e) => { UnpairTheCurrentlyPairedBluetoothObdDevice(); };
+        vehiclePanel_shutdownShortcut_root.Margin = new Thickness(8.0f, -80.0f, 0.0f, 0.0f);
+        vehiclePanel_shutdownShortcutButton.Click += (s, e) => { CoroutineHandler.Start(PanelShutdownShortcutRoutine()); };
 
         //Start the vehicle panel
         StartVehiclePanel();
@@ -1295,10 +1321,19 @@ public partial class MainWindow : Window
             yield return new Wait(0.1f);
 
         //Wait time
-        yield return new Wait(0.5f);
+        yield return new Wait(1.0f);
 
         //Send command to start the bluetooth service
         SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo systemctl start bluetooth.service");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+        //Wait time
+        yield return new Wait(8.0f);
+
+        //Send command to disconnect, if is connected
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo bluetoothctl disconnect " + appPrefs.loadedData.configuredObdBtAdapter.deviceMac);
         //Wait the end of command execution
         while (isLastCommandFinishedExecution(rKey) == false)
             yield return new Wait(0.1f);
@@ -1345,6 +1380,9 @@ public partial class MainWindow : Window
 
             //Show the icon of trying to connect in status bar
             tryingConnectToObdButton.IsVisible = true;
+
+            //Send raw command to force disconnect and release rfcomm port, if have a possible use
+            terminalCliProcess.StandardInput.WriteLine(("sudo bluetoothctl disconnect " + appPrefs.loadedData.configuredObdBtAdapter.deviceMac + ";sudo killall rfcomm"));
 
             //Create a new OBD Adapter Handler
             ObdAdapterHandler newObdAdapterHandlerConnection = new ObdAdapterHandler();
@@ -1563,9 +1601,32 @@ public partial class MainWindow : Window
             panelGearUpdateRoutine.Cancel();
             panelGearUpdateRoutine = null;
         }
+        if (panelSpeedArcsUpdateRoutine != null)
+        {
+            panelSpeedArcsUpdateRoutine.Cancel();
+            panelSpeedArcsUpdateRoutine = null;
+        }
+        if (panelLightShiftBlinkRoutine != null)
+        {
+            panelLightShiftBlinkRoutine.Cancel();
+            panelLightShiftBlinkRoutine = null;
+        }
+        if (panelLightShiftUpdateRoutine != null)
+        {
+            panelLightShiftUpdateRoutine.Cancel();
+            panelLightShiftUpdateRoutine = null;
+        }
+        if (panelShutdownShortcutUpdateRoutine != null)
+        {
+            panelShutdownShortcutUpdateRoutine.Cancel();
+            panelShutdownShortcutUpdateRoutine = null;
+        }
 
         //Clear the reference for the active connection for OBD Adapter Handler
         activeObdConnection = null;
+
+        //Increase the disconnections counter
+        disconnectionsCounterWithObdAdapter += 1;
 
         //Restart the vehicle panel
         StartVehiclePanel();
@@ -1583,6 +1644,9 @@ public partial class MainWindow : Window
         vehiclePanel_obdSetupScreen.IsVisible = false;
         vehiclePanel_obdConnectScreen.IsVisible = false;
         vehiclePanel_panelScreen.IsVisible = true;
+
+        //Set to Dark mode, if necessary
+        SetPanelDarkModeIfNecessary();
 
         //Show the information of adapter in the place
         vehiclePanel_drawer_adapterTab_deviceName.Text = appPrefs.loadedData.configuredObdBtAdapter.deviceName;
@@ -1608,8 +1672,7 @@ public partial class MainWindow : Window
         vehiclePanel_rpmGauge.RpmValueAt88Visible = false;
         vehiclePanel_rpmGauge.RpmValueAt100Percent = "14";
         vehiclePanel_rpmGauge.RpmValueAt100Visible = false;
-        vehiclePanel_shiftLight_up.IsVisible = false;
-        vehiclePanel_shiftLight_down.IsVisible = false;
+        vehiclePanel_shiftLight_root.IsVisible = false;
         vehiclePanel_gearIndicatorText.Text = "-";
         vehiclePanel_speedometerText.Text = "0";
         vehiclePanel_speedometerUnitText.Text = GetStringApplicationResource("vehiclePanel_speedGauge_titleKmh");
@@ -1645,6 +1708,14 @@ public partial class MainWindow : Window
             panelBatteryVoltageUpdateRoutine = CoroutineHandler.Start(PanelBatteryVoltageUpdateRoutine());
         if (panelGearUpdateRoutine == null)
             panelGearUpdateRoutine = CoroutineHandler.Start(PanelGearUpdateRoutine());
+        if (panelSpeedArcsUpdateRoutine == null)
+            panelSpeedArcsUpdateRoutine = CoroutineHandler.Start(PanelSpeedArcsUpdateRoutine());
+        if (panelLightShiftBlinkRoutine == null)
+            panelLightShiftBlinkRoutine = CoroutineHandler.Start(PanelLightShiftBlinkRoutine());
+        if (panelLightShiftUpdateRoutine == null)
+            panelLightShiftUpdateRoutine = CoroutineHandler.Start(PanelLightShiftUpdateRoutine());
+        if (panelShutdownShortcutUpdateRoutine == null)
+            panelShutdownShortcutUpdateRoutine = CoroutineHandler.Start(PanelShutdownShortcutUpdateRoutine());
     }
 
     private IEnumerator<Wait> PanelCommandLossUpdateRoutine()
@@ -2023,8 +2094,276 @@ public partial class MainWindow : Window
         }
     }
 
+    private IEnumerator<Wait> PanelSpeedArcsUpdateRoutine()
+    {
+        //Wait the panel entry animation finish
+        while (isPanelEntryAnimationFinished == false)
+            yield return new Wait(0.5f);
+
+        //Prepare the interval time
+        Wait intervalTime = new Wait(0.2f);
+
+        //Start the update loop
+        while (true)
+        {
+            //If the panel is not currently active, just continues
+            if (pageContentForPanel.IsVisible == false)
+            {
+                yield return intervalTime;
+                continue;
+            }
+
+            //Control the speed arc of 40km/h
+            if (activeObdConnection.vehicleSpeedKmh >= 40)
+                EnableSpeedArc(SpeedArc.kmh40Arc);
+            if (activeObdConnection.vehicleSpeedKmh < 40)
+                DisableSpeedArc(SpeedArc.kmh40Arc);
+
+            //Control the speed arc of 70km/h
+            if (activeObdConnection.vehicleSpeedKmh >= 70)
+                EnableSpeedArc(SpeedArc.kmh70Arc);
+            if (activeObdConnection.vehicleSpeedKmh < 70)
+                DisableSpeedArc(SpeedArc.kmh70Arc);
+
+            //Control the speed arc of 100km/h
+            if (activeObdConnection.vehicleSpeedKmh >= 100)
+                EnableSpeedArc(SpeedArc.kmh100Arc);
+            if (activeObdConnection.vehicleSpeedKmh < 100)
+                DisableSpeedArc(SpeedArc.kmh100Arc);
+
+            //Wait time
+            yield return intervalTime;
+        }
+    }
+
+    private IEnumerator<Wait> PanelLightShiftBlinkRoutine()
+    {
+        //Reset the state of the light shift
+        vehiclePanel_shiftLight_root.IsVisible = false;
+
+        //Prepare the interval time
+        Wait intervalTime = new Wait(0.25f);
+
+        //Start the update loop
+        while (true)
+        {
+            //If the panel is not currently active, just continues
+            if (pageContentForPanel.IsVisible == false)
+            {
+                yield return intervalTime;
+                continue;
+            }
+
+            //Blink the light shift
+            vehiclePanel_shiftLight_root.IsVisible = !vehiclePanel_shiftLight_root.IsVisible;
+
+            //Wait time
+            yield return intervalTime;
+        }
+    }
+
+    private IEnumerator<Wait> PanelLightShiftUpdateRoutine()
+    {
+        //Prepare possible colors for lightshift
+        SolidColorBrush blueColor = new SolidColorBrush(new Color(255, 0, 170, 225));
+        SolidColorBrush greenColor = new SolidColorBrush(new Color(255, 14, 227, 78));
+        SolidColorBrush redColor = new SolidColorBrush(new Color(255, 255, 0, 0));
+
+        //Prepare possible rotations for lightshift
+        RotateTransform toUp = new RotateTransform(0);
+        RotateTransform toDown = new RotateTransform(180);
+
+        //Reset the state of the light shift
+        vehiclePanel_shiftLight_light.Opacity = 0.0f;
+        vehiclePanel_shiftLight_light.Fill = blueColor;
+        vehiclePanel_shiftLight_light.RenderTransform = toUp;
+
+        //Prepare the states of light shift
+        LightShiftColorState currentColorState = LightShiftColorState.Blue;
+        LightShiftRotationState currentRotationState = LightShiftRotationState.Up;
+
+        //Prepare the interval time
+        Wait intervalTime = new Wait(0.2f);
+
+        //Start the update loop
+        while (true)
+        {
+            //If the panel is not currently active, just continues
+            if (pageContentForPanel.IsVisible == false)
+            {
+                yield return intervalTime;
+                continue;
+            }
+
+            //Prepare the target state
+            float targetOpacity = 0.0f;
+            LightShiftColorState targetColorState = LightShiftColorState.Blue;
+            LightShiftRotationState targetRotationState = LightShiftRotationState.Up;
+
+            //Detect the new state for light shift
+            targetOpacity = 0.0f;
+            //Low
+            if (activeObdConnection.engineRpm <= ((float)appPrefs.loadedData.vehicleMaxRpm * 0.47f))
+            {
+                targetOpacity = 1.0f;
+                targetColorState = LightShiftColorState.Blue;
+                targetRotationState = LightShiftRotationState.Down;
+            }
+            if (activeObdConnection.engineRpm <= ((float)appPrefs.loadedData.vehicleMaxRpm * 0.39f))
+            {
+                targetOpacity = 1.0f;
+                targetColorState = LightShiftColorState.Green;
+                targetRotationState = LightShiftRotationState.Down;
+            }
+            if (activeObdConnection.engineRpm <= ((float)appPrefs.loadedData.vehicleMaxRpm * 0.3f))
+            {
+                targetOpacity = 1.0f;
+                targetColorState = LightShiftColorState.Red;
+                targetRotationState = LightShiftRotationState.Down;
+            }
+            //Up
+            if (activeObdConnection.engineRpm >= ((float)appPrefs.loadedData.vehicleMaxRpm * 0.6f))
+            {
+                targetOpacity = 1.0f;
+                targetColorState = LightShiftColorState.Blue;
+                targetRotationState = LightShiftRotationState.Up;
+            }
+            if (activeObdConnection.engineRpm >= ((float)appPrefs.loadedData.vehicleMaxRpm * 0.7f))
+            {
+                targetOpacity = 1.0f;
+                targetColorState = LightShiftColorState.Green;
+                targetRotationState = LightShiftRotationState.Up;
+            }
+            if (activeObdConnection.engineRpm >= ((float)appPrefs.loadedData.vehicleMaxRpm * 0.8f))
+            {
+                targetOpacity = 1.0f;
+                targetColorState = LightShiftColorState.Red;
+                targetRotationState = LightShiftRotationState.Up;
+            }
+            //If the vehicle is stopped, force light shift disable
+            if (activeObdConnection.transmissionGear <= 0)
+                targetOpacity = 0.0f;
+
+            //Update the state of the light shift
+            if (vehiclePanel_shiftLight_light.Opacity != targetOpacity)
+                vehiclePanel_shiftLight_light.Opacity = targetOpacity;
+            if (currentColorState != targetColorState)
+            {
+                if (targetColorState == LightShiftColorState.Blue)
+                    vehiclePanel_shiftLight_light.Fill = blueColor;
+                if (targetColorState == LightShiftColorState.Green)
+                    vehiclePanel_shiftLight_light.Fill = greenColor;
+                if (targetColorState == LightShiftColorState.Red)
+                    vehiclePanel_shiftLight_light.Fill = redColor;
+                currentColorState = targetColorState;
+            }
+            if (currentRotationState != targetRotationState)
+            {
+                if (targetRotationState == LightShiftRotationState.Up)
+                    vehiclePanel_shiftLight_light.RenderTransform = toUp;
+                if (targetRotationState == LightShiftRotationState.Down)
+                    vehiclePanel_shiftLight_light.RenderTransform = toDown;
+                currentRotationState = targetRotationState;
+            }
+
+            //Wait time
+            yield return intervalTime;
+        }
+    }
+
+    private IEnumerator<Wait> PanelShutdownShortcutUpdateRoutine()
+    {
+        //Wait the panel entry animation finish
+        while (isPanelEntryAnimationFinished == false)
+            yield return new Wait(0.5f);
+
+        //Prepare the margins for the button
+        Thickness openedMargin = new Thickness(8.0f, 8.0f, 0.0f, 0.0f);
+        Thickness closedMargin = new Thickness(8.0f, -80.0f, 0.0f, 0.0f);
+
+        //Reset the state of 
+        vehiclePanel_shutdownShortcut_root.Margin = closedMargin;
+        bool isButtonClosed = true;
+
+        //Prepare the interval time
+        Wait intervalTime = new Wait(1.0f);
+
+        //Start the update loop
+        while (true)
+        {
+            //If the panel is not currently active, just continues
+            if (pageContentForPanel.IsVisible == false)
+            {
+                yield return intervalTime;
+                continue;
+            }
+
+            //Prepare the target state
+            bool shouldDisplayButton = false;
+
+            //Detect the new target state
+            if (activeObdConnection.transmissionGear <= 0)
+                shouldDisplayButton = true;
+
+            //Sync the state
+            if (shouldDisplayButton == true)
+                if (isButtonClosed == true)
+                {
+                    vehiclePanel_shutdownShortcut_root.Margin = openedMargin;
+                    isButtonClosed = false;
+                }
+            if (shouldDisplayButton == false)
+                if (isButtonClosed == false)
+                {
+                    vehiclePanel_shutdownShortcut_root.Margin = closedMargin;
+                    isButtonClosed = true;
+                }
+
+            //Wait time
+            yield return intervalTime;
+        }
+    }
+
+    private IEnumerator<Wait> PanelShutdownShortcutRoutine()
+    {
+        //Disable the shutdown button
+        vehiclePanel_shutdownShortcutButton.IsEnabled = false;
+
+
+        //Add this task running
+        AddTask("shutdownNow", "Shut down the Raspberry Pi");
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+
+
+        //Wait time
+        yield return new Wait(0.1f);
+
+        //Send command to kill Motoplay and shutdown the device
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo pkill -f App/Motoplay.Desktop;shutdown now");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //Remove the task running
+        RemoveTask("shutdownNow");
+    }
+
     private void RunPanelEntryAnimation()
     {
+        //Reset the entry animation status
+        isPanelEntryAnimationFinished = false;
+
         //If is already running the entry animation, stop coroutines
         if (panelEntryAnimationPhase1Routine != null)
         {
@@ -2158,6 +2497,9 @@ public partial class MainWindow : Window
         //Disable the 100km/h arc
         DisableSpeedArc(SpeedArc.kmh100Arc);
 
+        //Inform that the entry animation was finished
+        isPanelEntryAnimationFinished = true;
+
         //Inform that was finished
         panelEntryAnimationPhase2Routine = null;
     }
@@ -2167,6 +2509,9 @@ public partial class MainWindow : Window
         //Enable the desired arc
         if (targetArc == SpeedArc.kmh40Arc)
         {
+            //If is already active, cancel
+            if (isSpeedArc40kmhEnabled == true)
+                return;
             //Stop if is already running
             if (panelSpeedArc40kmhEntryRoutine != null)
             {
@@ -2175,9 +2520,14 @@ public partial class MainWindow : Window
             }
             //Start the entry animation
             panelSpeedArc40kmhEntryRoutine = CoroutineHandler.Start(Kmh40SpeedArcEntryRoutine());
+            //Inform that is active
+            isSpeedArc40kmhEnabled = true;
         }
         if (targetArc == SpeedArc.kmh70Arc)
         {
+            //If is already active, cancel
+            if (isSpeedArc70kmhEnabled == true)
+                return;
             //Stop if is already running
             if (panelSpeedArc70kmhEntryRoutine != null)
             {
@@ -2186,9 +2536,14 @@ public partial class MainWindow : Window
             }
             //Start the entry animation
             panelSpeedArc70kmhEntryRoutine = CoroutineHandler.Start(Kmh70SpeedArcEntryRoutine());
+            //Inform that is active
+            isSpeedArc70kmhEnabled = true;
         }
         if (targetArc == SpeedArc.kmh100Arc)
         {
+            //If is already active, cancel
+            if (isSpeedArc100kmhEnabled == true)
+                return;
             //Stop if is already running
             if (panelSpeedArc100kmhEntryRoutine != null)
             {
@@ -2197,6 +2552,8 @@ public partial class MainWindow : Window
             }
             //Start the entry animation
             panelSpeedArc100kmhEntryRoutine = CoroutineHandler.Start(Kmh100SpeedArcEntryRoutine());
+            //Inform that is active
+            isSpeedArc100kmhEnabled = true;
         }
     }
 
@@ -2319,6 +2676,9 @@ public partial class MainWindow : Window
         //Disable the desired arc
         if (targetArc == SpeedArc.kmh40Arc)
         {
+            //If is already disabled, cancel
+            if (isSpeedArc40kmhEnabled == false)
+                return;
             if (panelSpeedArc40kmhEntryRoutine != null)
             {
                 panelSpeedArc40kmhEntryRoutine.Cancel();
@@ -2326,9 +2686,14 @@ public partial class MainWindow : Window
             }
             vehiclePanel_background_speedArc40Kmh.IsVisible = false;
             vehiclePanel_background_speedArc40Kmh_reflection.IsVisible = false;
+            //Inform that is disabled
+            isSpeedArc40kmhEnabled = false;
         }
         if (targetArc == SpeedArc.kmh70Arc)
         {
+            //If is already disabled, cancel
+            if (isSpeedArc70kmhEnabled == false)
+                return;
             if (panelSpeedArc70kmhEntryRoutine != null)
             {
                 panelSpeedArc70kmhEntryRoutine.Cancel();
@@ -2336,9 +2701,14 @@ public partial class MainWindow : Window
             }
             vehiclePanel_background_speedArc70Kmh.IsVisible = false;
             vehiclePanel_background_speedArc70Kmh_reflection.IsVisible = false;
+            //Inform that is disabled
+            isSpeedArc70kmhEnabled = false;
         }
         if (targetArc == SpeedArc.kmh100Arc)
         {
+            //If is already disabled, cancel
+            if (isSpeedArc100kmhEnabled == false)
+                return;
             if (panelSpeedArc100kmhEntryRoutine != null)
             {
                 panelSpeedArc100kmhEntryRoutine.Cancel();
@@ -2346,6 +2716,8 @@ public partial class MainWindow : Window
             }
             vehiclePanel_background_speedArc100Kmh.IsVisible = false;
             vehiclePanel_background_speedArc100Kmh_reflection.IsVisible = false;
+            //Inform that is disabled
+            isSpeedArc100kmhEnabled = false;
         }
     }
 
@@ -2456,6 +2828,244 @@ public partial class MainWindow : Window
         foreach (PanelLogItem item in instantiatedPanelLogsInUi)
             vehiclePanel_drawer_logsTab_logList.Children.Remove(item);
         instantiatedPanelLogsInUi.Clear();
+    }
+
+    private void SetPanelDarkModeIfNecessary()
+    {
+        //Prepare the result
+        bool isDarkModeNecessary = false;
+
+        //If the automatic mode is enabled, detect the dark mode using time
+        if (appPrefs.loadedData.panelColorScheme == 0)
+        {
+            int currentHour = DateTime.Now.Hour;
+            if (currentHour >= 19 || currentHour <= 7)
+                isDarkModeNecessary = true;
+        }
+
+        //If the dark mode is enabled, force dark mode
+        if (appPrefs.loadedData.panelColorScheme == 1)
+            isDarkModeNecessary = true;
+
+        //If the light mode is enabled, force to not use dark mode
+        if (appPrefs.loadedData.panelColorScheme == 2)
+            isDarkModeNecessary = false;
+
+        //If not necessary, cancel here
+        if (isDarkModeNecessary == false)
+            return;
+
+        //Do the changes to UI
+        vehiclePanel_background_wallDarkOverlay.IsVisible = true;
+        vehiclePanel_background_groundImage.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/panel-ground-dark-mode.png")));
+        vehiclePanel_rpmGauge.RpmValuesColor = "#adadad";
+        LinearGradientBrush brightRingGradient = new LinearGradientBrush();
+        brightRingGradient.StartPoint = new RelativePoint(0.2f, 0.1f, RelativeUnit.Relative);
+        brightRingGradient.EndPoint = new RelativePoint(0.5f, 1.0f, RelativeUnit.Relative);
+        brightRingGradient.GradientStops.Add(new GradientStop(new Color(255, 0, 212, 255), 0.0f));
+        brightRingGradient.GradientStops.Add(new GradientStop(new Color(255, 189, 244, 255), 1.0f));
+        vehiclePanel_rpmGauge.brightRing.Stroke = brightRingGradient;
+        vehiclePanel_gearIndicatorText.Foreground = new SolidColorBrush(new Color(255, 252, 252, 252));
+        vehiclePanel_gearIndicatorTitle.Foreground = new SolidColorBrush(new Color(255, 227, 227, 227));
+        vehiclePanel_speedometerText.Foreground = new SolidColorBrush(new Color(255, 224, 224, 224));
+        vehiclePanel_speedometerUnitText.Foreground = new SolidColorBrush(new Color(255, 227, 227, 227));
+        vehiclePanel_background_speedArc40Kmh.Stroke = new SolidColorBrush(new Color(255, 84, 184, 250));
+        vehiclePanel_background_speedArc40Kmh_reflection_arc.Stroke = new SolidColorBrush(new Color(255, 84, 184, 250));
+        vehiclePanel_background_speedArc70Kmh.Stroke = new SolidColorBrush(new Color(255, 111, 143, 165));
+        vehiclePanel_background_speedArc70Kmh_reflection_arc.Stroke = new SolidColorBrush(new Color(255, 111, 143, 165));
+        vehiclePanel_background_speedArc100Kmh.Stroke = new SolidColorBrush(new Color(255, 250, 215, 85));
+        vehiclePanel_background_speedArc100Kmh_reflection_arc.Stroke = new SolidColorBrush(new Color(255, 250, 215, 85));
+    }
+
+    //General Metrics
+
+    private void PrepareTheGeneralMetrics()
+    {
+        //Initialize the array of contents
+        arrayOfMetricsContents = new Grid[3];
+        arrayOfMetricsContents[0] = generalMetrics_content_disconnectionCount;
+        arrayOfMetricsContents[1] = generalMetrics_content_obdResponseTime;
+        arrayOfMetricsContents[2] = generalMetrics_content_timeSpentInGears;
+
+        //Disable all contents
+        foreach (Grid item in arrayOfMetricsContents)
+            item.IsVisible = false;
+
+        //Enable the default content
+        arrayOfMetricsContents[0].IsVisible = true;
+
+        //Detect the content change
+        generalMetrics_contentSelector.SelectionChanged += (s, e) =>
+        {
+            //Disable all contents
+            foreach (Grid item in arrayOfMetricsContents)
+                item.IsVisible = false;
+
+            //Enable the required content
+            arrayOfMetricsContents[generalMetrics_contentSelector.SelectedIndex].IsVisible = true;
+        };
+
+        //Start the routine of general metrics
+        CoroutineHandler.Start(GeneralMetricsRoutine());
+    }
+
+    private IEnumerator<Wait> GeneralMetricsRoutine()
+    {
+        //Prepare the cache data
+        int secondsElapsedSinceLastUpdateOnDisconnectionsCounter = 0;
+        int secondsElapsedSinceLastUpdateOfTimeSpendInEachGear = 0;
+        TimeSpan timeElapsedOnGearStopped = new TimeSpan(0);
+        TimeSpan timeElapsedOnGearClutch = new TimeSpan(0);
+        TimeSpan timeElapsedOnGear1 = new TimeSpan(0);
+        TimeSpan timeElapsedOnGear2 = new TimeSpan(0);
+        TimeSpan timeElapsedOnGear3 = new TimeSpan(0);
+        TimeSpan timeElapsedOnGear4 = new TimeSpan(0);
+        TimeSpan timeElapsedOnGear5 = new TimeSpan(0);
+        TimeSpan timeElapsedOnGear6 = new TimeSpan(0);
+
+        //Initialize the "Time Spent In Each Gear" chart
+        generalMetrics_content_timeSpentInGears_chart.InitializeForUse();
+        generalMetrics_content_timeSpentInGears_chart.AddBar(GetStringApplicationResource("generalMetrics_timeSpentInEachGear_stopped"), 0.0f);
+        generalMetrics_content_timeSpentInGears_chart.AddBar(GetStringApplicationResource("generalMetrics_timeSpentInEachGear_clutch"), 0.0f);
+        generalMetrics_content_timeSpentInGears_chart.AddBar(GetStringApplicationResource("generalMetrics_timeSpentInEachGear_gear1"), 0.0f);
+        generalMetrics_content_timeSpentInGears_chart.AddBar(GetStringApplicationResource("generalMetrics_timeSpentInEachGear_gear2"), 0.0f);
+        generalMetrics_content_timeSpentInGears_chart.AddBar(GetStringApplicationResource("generalMetrics_timeSpentInEachGear_gear3"), 0.0f);
+        generalMetrics_content_timeSpentInGears_chart.AddBar(GetStringApplicationResource("generalMetrics_timeSpentInEachGear_gear4"), 0.0f);
+        generalMetrics_content_timeSpentInGears_chart.AddBar(GetStringApplicationResource("generalMetrics_timeSpentInEachGear_gear5"), 0.0f);
+        generalMetrics_content_timeSpentInGears_chart.AddBar(GetStringApplicationResource("generalMetrics_timeSpentInEachGear_gear6"), 0.0f);
+        generalMetrics_content_timeSpentInGears_chart.BuildChart();
+
+        //Prepare the interval time
+        Wait intervalTime = new Wait(1.0f);
+
+        //Start the data collector loop
+        while (true)
+        {
+            //START: ================= Number of Disconnections with OBD Adapter =================
+
+            //Update the timer on UI
+            if (pageContentForMetrics.IsVisible == true)
+                generalMetrics_content_disconnectionCount_textUpdate.Text = GetStringApplicationResource("generalMetrics_metricsUpdate").
+                                                                            Replace("%d", secondsElapsedSinceLastUpdateOnDisconnectionsCounter.ToString());
+
+            //Decrese the time
+            secondsElapsedSinceLastUpdateOnDisconnectionsCounter -= 1;
+
+            //Update the counter if elpased minimum time
+            if (secondsElapsedSinceLastUpdateOnDisconnectionsCounter <= 0)
+            {
+                //Do the update
+                UpdateMetricsForNumberOfDisconnectionsOfObdAdapter(disconnectionsCounterWithObdAdapter);
+
+                //Set a new timer
+                secondsElapsedSinceLastUpdateOnDisconnectionsCounter = 5;
+            }
+
+            //END: ================= Number of Disconnections with OBD Adapter =================
+
+
+
+
+
+            //START: ================= OBD Adapter Response Time (Ping) =================
+
+            //Update the chart
+            if (activeObdConnection != null)
+                UpdateMetricsForObdAdapterResponseTime(activeObdConnection.sendAndReceivePing);
+            if (activeObdConnection == null)
+                UpdateMetricsForObdAdapterResponseTime(0);
+
+            //END: ================= OBD Adapter Response Time (Ping) =================
+
+
+
+
+
+            //START: ================= Time Spent In Each Gear =================
+
+            //Update the timer on UI
+            if (pageContentForMetrics.IsVisible == true)
+                generalMetrics_content_timeSpentInGears_textUpdate.Text = GetStringApplicationResource("generalMetrics_metricsUpdate").
+                                                                          Replace("%d", secondsElapsedSinceLastUpdateOfTimeSpendInEachGear.ToString());
+
+            //Decrese the time
+            secondsElapsedSinceLastUpdateOfTimeSpendInEachGear -= 1;
+
+            //Update the chart if elpased minimum time
+            if (secondsElapsedSinceLastUpdateOfTimeSpendInEachGear <= 0)
+            {
+                //Do the update
+                UpdateMetricsForTimeSpentInEachGear(timeElapsedOnGearStopped.TotalMinutes, timeElapsedOnGearClutch.TotalMinutes, timeElapsedOnGear1.TotalMinutes,
+                                                    timeElapsedOnGear2.TotalMinutes, timeElapsedOnGear3.TotalMinutes, timeElapsedOnGear4.TotalMinutes, timeElapsedOnGear5.TotalMinutes,
+                                                    timeElapsedOnGear6.TotalMinutes);
+
+                //Set a new timer
+                secondsElapsedSinceLastUpdateOfTimeSpendInEachGear = 5;
+            }
+
+            //Collect the data
+            if (activeObdConnection != null && activeObdConnection.currentConnectionStatus == ObdAdapterHandler.ConnectionStatus.Connected)
+            {
+                if (activeObdConnection.transmissionGear == -1)
+                    timeElapsedOnGearClutch += TimeSpan.FromSeconds(1.0f);
+                if (activeObdConnection.transmissionGear == 0)
+                    timeElapsedOnGearStopped += TimeSpan.FromSeconds(1.0f);
+                if (activeObdConnection.transmissionGear == 1)
+                    timeElapsedOnGear1 += TimeSpan.FromSeconds(1.0f);
+                if (activeObdConnection.transmissionGear == 2)
+                    timeElapsedOnGear2 += TimeSpan.FromSeconds(1.0f);
+                if (activeObdConnection.transmissionGear == 3)
+                    timeElapsedOnGear3 += TimeSpan.FromSeconds(1.0f);
+                if (activeObdConnection.transmissionGear == 4)
+                    timeElapsedOnGear4 += TimeSpan.FromSeconds(1.0f);
+                if (activeObdConnection.transmissionGear == 5)
+                    timeElapsedOnGear5 += TimeSpan.FromSeconds(1.0f);
+                if (activeObdConnection.transmissionGear == 6)
+                    timeElapsedOnGear6 += TimeSpan.FromSeconds(1.0f);
+            }
+
+            //END: ================= Time Spent In Each Gear =================
+
+            //Wait the interval
+            yield return intervalTime;
+        }
+    }
+
+    private void UpdateMetricsForNumberOfDisconnectionsOfObdAdapter(int number)
+    {
+        //If the metrics page is not enabled, don't update
+        if (pageContentForMetrics.IsVisible == false)
+            return;
+
+        //Update metric in UI
+        generalMetrics_content_disconnectionCount_text.Text = number.ToString();
+    }
+
+    private void UpdateMetricsForTimeSpentInEachGear(double stoppedMins, double clutchMins, double gear1Mins, double gear2Mins, double gear3Mins, double gear4Mins, double gear5Mins, double gear6Mins)
+    {
+        //If the metrics page is not enabled, don't update
+        if (pageContentForMetrics.IsVisible == false)
+            return;
+
+        //Update metric in UI
+        generalMetrics_content_timeSpentInGears_chart.UpdateBar(0, stoppedMins);
+        generalMetrics_content_timeSpentInGears_chart.UpdateBar(1, clutchMins);
+        generalMetrics_content_timeSpentInGears_chart.UpdateBar(2, gear1Mins);
+        generalMetrics_content_timeSpentInGears_chart.UpdateBar(3, gear2Mins);
+        generalMetrics_content_timeSpentInGears_chart.UpdateBar(4, gear3Mins);
+        generalMetrics_content_timeSpentInGears_chart.UpdateBar(5, gear4Mins);
+        generalMetrics_content_timeSpentInGears_chart.UpdateBar(6, gear5Mins);
+        generalMetrics_content_timeSpentInGears_chart.UpdateBar(7, gear6Mins);
+    }
+
+    private void UpdateMetricsForObdAdapterResponseTime(int ping)
+    {
+        //If the metrics page is not enabled, don't update
+        if (pageContentForMetrics.IsVisible == false)
+            return;
+
+        //Update metric in UI
+        generalMetrics_content_obdResponseTime_chart.AddValue(ping);
     }
 
     //Pages Manager
@@ -2746,6 +3356,8 @@ public partial class MainWindow : Window
         pref_panel_letterForVehicleStopped.textBox.Text = appPrefs.loadedData.letterToUseAsGearStopped;
         //*** pref_panel_letterForClutchPressed
         pref_panel_letterForClutchPressed.textBox.Text = appPrefs.loadedData.letterToUseAsClutchPressed;
+        //*** pref_panel_panelColorScheme
+        pref_panel_panelColorScheme.SelectedIndex = appPrefs.loadedData.panelColorScheme;
     }
 
     private void SaveAllPreferences()
@@ -2911,6 +3523,8 @@ public partial class MainWindow : Window
         //*** pref_panel_letterForClutchPressed
         if (pref_panel_letterForClutchPressed.hasError() == false)
             appPrefs.loadedData.letterToUseAsClutchPressed = pref_panel_letterForClutchPressed.textBox.Text;
+        //*** pref_panel_panelColorScheme
+        appPrefs.loadedData.panelColorScheme = pref_panel_panelColorScheme.SelectedIndex;
 
         //Save the preferences to file
         appPrefs.Save();

@@ -27,7 +27,7 @@
 	<!-- Root Element -->
 	<Grid Name="rootElement" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 		<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="43, 43, 43, 43">
-			<Arc StartAngle="0" SweepAngle="250" StrokeThickness="80" StrokeLineCap="Flat" Stroke="#d6d6d6" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
+			<Arc StartAngle="0" SweepAngle="250" StrokeThickness="80" StrokeLineCap="Flat" Stroke="#bfbfbf" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
 				<Arc.RenderTransform>
 					<TransformGroup>
 						<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
@@ -44,7 +44,7 @@
 						<RotateTransform CenterX="0" CenterY="0" Angle="-35"></RotateTransform>
 					</TransformGroup>
 				</Grid.RenderTransform>
-				<Border Background="#d6d6d6" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80" Height="8"></Border>
+				<Border Background="#bfbfbf" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80" Height="8"></Border>
 			</Grid>
 			<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 				<Grid.RenderTransform>
@@ -54,7 +54,7 @@
 						<RotateTransform CenterX="0" CenterY="0" Angle="215"></RotateTransform>
 					</TransformGroup>
 				</Grid.RenderTransform>
-				<Border Background="#d6d6d6" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80" Height="8"></Border>
+				<Border Background="#bfbfbf" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80" Height="8"></Border>
 			</Grid>
 			<Arc StartAngle="0" SweepAngle="{Binding PrimaryPointerAngle}" x:CompileBindings="False" StrokeThickness="70" StrokeLineCap="Flat" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="5, 5, 5, 5">
 				<Arc.RenderTransform>
@@ -126,8 +126,8 @@
 				</Arc.Stroke>
 			</Arc>
 			<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-				<Border IsVisible="{Binding RpmValueAt0Visible}" x:CompileBindings="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="12" Height="4" Background="#d6d6d6" CornerRadius="8" Margin="-16, 0, 0, 0"></Border>
-				<TextBlock Text="{Binding RpmValueAt0Percent}" x:CompileBindings="False" IsVisible="{Binding RpmValueAt0Visible}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="-42, 1, 0, 0" FontFamily="{StaticResource Panton}" TextAlignment="Center" Width="24" Foreground="#424242">
+				<Border IsVisible="{Binding RpmValueAt0Visible}" x:CompileBindings="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="12" Height="4" Background="#bfbfbf" CornerRadius="8" Margin="-16, 0, 0, 0"></Border>
+				<TextBlock Text="{Binding RpmValueAt0Percent}" x:CompileBindings="False" IsVisible="{Binding RpmValueAt0Visible}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="-42, 1, 0, 0" FontFamily="{StaticResource Panton}" TextAlignment="Center" Width="24" Foreground="{Binding RpmValuesColor}">
 					<TextBlock.RenderTransform>
 						<TransformGroup>
 							<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
@@ -145,8 +145,8 @@
 				</Grid.RenderTransform>
 			</Grid>
 			<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-				<Border IsVisible="{Binding RpmValueAt100Visible}" x:CompileBindings="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="12" Height="4" Background="#d6d6d6" CornerRadius="8" Margin="-16, 0, 0, 0"></Border>
-				<TextBlock Text="{Binding RpmValueAt100Percent}" x:CompileBindings="False" IsVisible="{Binding RpmValueAt100Visible}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="-40, -6, 0, 0" FontFamily="{StaticResource Panton}" TextAlignment="Center" Width="24" Foreground="#424242">
+				<Border IsVisible="{Binding RpmValueAt100Visible}" x:CompileBindings="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="12" Height="4" Background="#bfbfbf" CornerRadius="8" Margin="-16, 0, 0, 0"></Border>
+				<TextBlock Text="{Binding RpmValueAt100Percent}" x:CompileBindings="False" IsVisible="{Binding RpmValueAt100Visible}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="-40, -6, 0, 0" FontFamily="{StaticResource Panton}" TextAlignment="Center" Width="24" Foreground="{Binding RpmValuesColor}">
 					<TextBlock.RenderTransform>
 						<TransformGroup>
 							<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
@@ -164,8 +164,8 @@
 				</Grid.RenderTransform>
 			</Grid>
 			<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-				<Border IsVisible="{Binding RpmValueAt50Visible}" x:CompileBindings="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="12" Height="4" Background="#d6d6d6" CornerRadius="8" Margin="-16, 0, 0, 0"></Border>
-				<TextBlock Text="{Binding RpmValueAt50Percent}" x:CompileBindings="False" IsVisible="{Binding RpmValueAt50Visible}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="-38, 1, 0, 0" FontFamily="{StaticResource Panton}" TextAlignment="Center" Width="24" Foreground="#424242">
+				<Border IsVisible="{Binding RpmValueAt50Visible}" x:CompileBindings="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="12" Height="4" Background="#bfbfbf" CornerRadius="8" Margin="-16, 0, 0, 0"></Border>
+				<TextBlock Text="{Binding RpmValueAt50Percent}" x:CompileBindings="False" IsVisible="{Binding RpmValueAt50Visible}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="-38, 1, 0, 0" FontFamily="{StaticResource Panton}" TextAlignment="Center" Width="24" Foreground="{Binding RpmValuesColor}">
 					<TextBlock.RenderTransform>
 						<TransformGroup>
 							<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
@@ -183,8 +183,8 @@
 				</Grid.RenderTransform>
 			</Grid>
 			<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-				<Border IsVisible="{Binding RpmValueAt25Visible}" x:CompileBindings="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="12" Height="4" Background="#d6d6d6" CornerRadius="8" Margin="-16, 0, 0, 0"></Border>
-				<TextBlock Text="{Binding RpmValueAt25Percent}" x:CompileBindings="False" IsVisible="{Binding RpmValueAt25Visible}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="-42, 1, 0, 0" FontFamily="{StaticResource Panton}" TextAlignment="Center" Width="24" Foreground="#424242">
+				<Border IsVisible="{Binding RpmValueAt25Visible}" x:CompileBindings="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="12" Height="4" Background="#bfbfbf" CornerRadius="8" Margin="-16, 0, 0, 0"></Border>
+				<TextBlock Text="{Binding RpmValueAt25Percent}" x:CompileBindings="False" IsVisible="{Binding RpmValueAt25Visible}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="-42, 1, 0, 0" FontFamily="{StaticResource Panton}" TextAlignment="Center" Width="24" Foreground="{Binding RpmValuesColor}">
 					<TextBlock.RenderTransform>
 						<TransformGroup>
 							<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
@@ -202,8 +202,8 @@
 				</Grid.RenderTransform>
 			</Grid>
 			<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-				<Border IsVisible="{Binding RpmValueAt75Visible}" x:CompileBindings="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="12" Height="4" Background="#d6d6d6" CornerRadius="8" Margin="-16, 0, 0, 0"></Border>
-				<TextBlock Text="{Binding RpmValueAt75Percent}" x:CompileBindings="False" IsVisible="{Binding RpmValueAt75Visible}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="-40, 2, 0, 0" FontFamily="{StaticResource Panton}" TextAlignment="Center" Width="24" Foreground="#424242">
+				<Border IsVisible="{Binding RpmValueAt75Visible}" x:CompileBindings="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="12" Height="4" Background="#bfbfbf" CornerRadius="8" Margin="-16, 0, 0, 0"></Border>
+				<TextBlock Text="{Binding RpmValueAt75Percent}" x:CompileBindings="False" IsVisible="{Binding RpmValueAt75Visible}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="-40, 2, 0, 0" FontFamily="{StaticResource Panton}" TextAlignment="Center" Width="24" Foreground="{Binding RpmValuesColor}">
 					<TextBlock.RenderTransform>
 						<TransformGroup>
 							<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
@@ -221,7 +221,7 @@
 				</Grid.RenderTransform>
 			</Grid>
 			<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-				<Border IsVisible="{Binding RpmValueAt12Visible}" x:CompileBindings="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="12" Height="4" Background="#d6d6d6" CornerRadius="8" Margin="-16, 0, 0, 0"></Border>
+				<Border IsVisible="{Binding RpmValueAt12Visible}" x:CompileBindings="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="12" Height="4" Background="#bfbfbf" CornerRadius="8" Margin="-16, 0, 0, 0"></Border>
 				<Grid.RenderTransform>
 					<TransformGroup>
 						<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
@@ -231,7 +231,7 @@
 				</Grid.RenderTransform>
 			</Grid>
 			<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-				<Border IsVisible="{Binding RpmValueAt38Visible}" x:CompileBindings="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="12" Height="4" Background="#d6d6d6" CornerRadius="8" Margin="-16, 0, 0, 0"></Border>
+				<Border IsVisible="{Binding RpmValueAt38Visible}" x:CompileBindings="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="12" Height="4" Background="#bfbfbf" CornerRadius="8" Margin="-16, 0, 0, 0"></Border>
 				<Grid.RenderTransform>
 					<TransformGroup>
 						<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
@@ -241,7 +241,7 @@
 				</Grid.RenderTransform>
 			</Grid>
 			<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-				<Border IsVisible="{Binding RpmValueAt62Visible}" x:CompileBindings="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="12" Height="4" Background="#d6d6d6" CornerRadius="8" Margin="-16, 0, 0, 0"></Border>
+				<Border IsVisible="{Binding RpmValueAt62Visible}" x:CompileBindings="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="12" Height="4" Background="#bfbfbf" CornerRadius="8" Margin="-16, 0, 0, 0"></Border>
 				<Grid.RenderTransform>
 					<TransformGroup>
 						<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
@@ -251,7 +251,7 @@
 				</Grid.RenderTransform>
 			</Grid>
 			<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-				<Border IsVisible="{Binding RpmValueAt88Visible}" x:CompileBindings="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="12" Height="4" Background="#d6d6d6" CornerRadius="8" Margin="-16, 0, 0, 0"></Border>
+				<Border IsVisible="{Binding RpmValueAt88Visible}" x:CompileBindings="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="12" Height="4" Background="#bfbfbf" CornerRadius="8" Margin="-16, 0, 0, 0"></Border>
 				<Grid.RenderTransform>
 					<TransformGroup>
 						<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
@@ -260,7 +260,7 @@
 					</TransformGroup>
 				</Grid.RenderTransform>
 			</Grid>
-			<Arc Classes="insideCircle" StartAngle="0" SweepAngle="360" StrokeThickness="2" StrokeLineCap="Flat" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="86, 86, 86, 86" Opacity="0.5">
+			<Arc Name="brightRing" Classes="insideCircle" StartAngle="0" SweepAngle="360" StrokeThickness="2" StrokeLineCap="Flat" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="86, 86, 86, 86" Opacity="0.5">
 				<Arc.RenderTransform>
 					<TransformGroup>
 						<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>

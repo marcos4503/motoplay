@@ -49,6 +49,7 @@ namespace Motoplay.Scripts
             public int maxPossibleGear6Speed = 170;
             public string letterToUseAsGearStopped = "S";
             public string letterToUseAsClutchPressed = "C";
+            public int panelColorScheme = 0;   //0 = Automatic, 1 = Dark, 2 = Light
         }
 
         //Private variables

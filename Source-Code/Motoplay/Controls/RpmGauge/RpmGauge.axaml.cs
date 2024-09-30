@@ -53,6 +53,16 @@ public partial class RpmGauge : UserControl
         set { SetValue(SecondayPointerVisibleProperty, value); }
     }
 
+    //*** RpmValuesColor Property ***//
+
+    public static readonly StyledProperty<string> RpmValuesColorProperty = AvaloniaProperty.Register<PanelLogItem, string>(nameof(RpmValuesColor), "#424242");
+
+    public string RpmValuesColor
+    {
+        get { return (string)GetValue(RpmValuesColorProperty); }
+        set { SetValue(RpmValuesColorProperty, value); }
+    }
+
     //*** RpmValueAt0Percent Property ***//
 
     public static readonly StyledProperty<string> RpmValueAt0PercentProperty = AvaloniaProperty.Register<PanelLogItem, string>(nameof(RpmValueAt0Percent), "00");
