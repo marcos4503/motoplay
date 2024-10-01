@@ -203,7 +203,7 @@
 						<Image Source="/Assets/background-charts.png" HorizontalAlignment="Right" VerticalAlignment="Center" Width="432" RenderOptions.BitmapInterpolationMode="HighQuality" Margin="0, 0, -16, -272" Opacity="0.05"></Image>
 					</Grid>
 					<!-- Music Player Background -->
-					<Grid Name="pageBgForPlayer" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+					<Grid Name="pageBgForPlayer" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 						<Grid Background="Pink"></Grid>
 					</Grid>
 					<!-- Web Browser Background -->
@@ -535,6 +535,10 @@
 								</Grid>
 							</Grid>
 						</Grid>
+						<!-- Max Connection Tries Excedeed -->
+						<Grid Name="vehiclePanel_connectTriesExcedeed" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+							<Button Name="vehiclePanel_rebootButton" Content="{DynamicResource ResourceKey=vehiclePanel_rebootButton}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="164" Height="48" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"></Button>
+						</Grid>
 					</Grid>
 					<!-- General Metrics Page Content -->
 					<Grid Name="pageContentForMetrics" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -578,7 +582,7 @@
 						</ScrollViewer>
 					</Grid>
 					<!-- Music Player Page Content -->
-					<Grid Name="pageContentForPlayer" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+					<Grid Name="pageContentForPlayer" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 						<TextBlock Text="Player"></TextBlock>
 					</Grid>
 					<!-- Web Browser Page Content -->
@@ -659,6 +663,8 @@
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_maxObdConnectTries}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
 											<ComboBox DockPanel.Dock="Right" Name="pref_panel_maxObdConnectTries" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+												<ComboBoxItem>2 Attempts</ComboBoxItem>
+												<ComboBoxItem>3 Attempts</ComboBoxItem>
 												<ComboBoxItem>5 Attempts</ComboBoxItem>
 												<ComboBoxItem>15 Attempts</ComboBoxItem>
 												<ComboBoxItem>∞ Attempts</ComboBoxItem>

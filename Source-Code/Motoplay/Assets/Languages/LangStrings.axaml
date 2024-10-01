@@ -47,7 +47,7 @@ Error Code: "%e".</x:String>
 	<x:String x:Key="vehiclePanel_odbConnectTryStatus">Establishing Bluetooth Serial Connection With %d
 Attempt #%n</x:String>
 	<x:String x:Key="vehiclePanel_odbConnectErrorMsg">Connection to Bluetooth OBD Adapter: %e.</x:String>
-	<x:String x:Key="vehiclePanel_odbConnectExcedeedTries">The maximum number of attempts to connect to Bluetooth OBD Adapter "%d" has been reached. Please restart Motoplay to continue trying.</x:String>
+	<x:String x:Key="vehiclePanel_odbConnectExcedeedTries">The maximum number of attempts to connect to Bluetooth OBD Adapter "%d" has been reached. Please restart Motoplay or Reboot device to continue trying.</x:String>
 	<x:String x:Key="vehiclePanel_odbConnectLostConnection">The connection to the Bluetooth OBD Adapter "%d" has been lost. Please make sure the device is still available for connection and that the vehicle ECU and Ignition are still on!</x:String>
 	<x:String x:Key="vehiclePanel_drawer_adapterTab_title">Adapter</x:String>
 	<x:String x:Key="vehiclePanel_drawer_adapterTab_unpairButton">Disconnect and Unpair</x:String>
@@ -58,6 +58,7 @@ Attempt #%n</x:String>
 	<x:String x:Key="vehiclePanel_gearGauge_title">E. GEAR</x:String>
 	<x:String x:Key="vehiclePanel_speedGauge_titleKmh">KM/h</x:String>
 	<x:String x:Key="vehiclePanel_speedGauge_titleMph">MP/h</x:String>
+	<x:String x:Key="vehiclePanel_rebootButton">Reboot Device</x:String>
 
 	<!-- General Metrics -->
 	<x:String x:Key="generalMetrics_title">General Metrics</x:String>

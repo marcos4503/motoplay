@@ -9,6 +9,7 @@ using Avalonia.Platform;
 using Avalonia.Threading;
 using Coroutine;
 using HarfBuzzSharp;
+using LibVLCSharp.Shared;
 using MarcosTomaz.ATS;
 using Motoplay.Scripts;
 using MsBox.Avalonia;
@@ -18,6 +19,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Tracing;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -420,6 +422,9 @@ public partial class MainWindow : Window
         //Prepare the UI for General Metrics
         PrepareTheGeneralMetrics();
 
+        //Prepare the UI for Music Player
+        PrepareTheMusicPlayer();
+
         //Prepare the UI for Preferences
         PrepareThePreferences();
     }
@@ -639,7 +644,7 @@ public partial class MainWindow : Window
     }
 
     //Vehicle Panel methods
-
+    
     private void PrepareTheVehiclePanel()
     {
         //Prepare the UI of Vehicle Panel
@@ -652,6 +657,7 @@ public partial class MainWindow : Window
         vehiclePanel_drawer_adapterTab_unpairButton.Click += (s, e) => { UnpairTheCurrentlyPairedBluetoothObdDevice(); };
         vehiclePanel_shutdownShortcut_root.Margin = new Thickness(8.0f, -80.0f, 0.0f, 0.0f);
         vehiclePanel_shutdownShortcutButton.Click += (s, e) => { CoroutineHandler.Start(PanelShutdownShortcutRoutine()); };
+        vehiclePanel_rebootButton.Click += (s, e) => { CoroutineHandler.Start(PanelRebootShortcutRoutine()); };
 
         //Start the vehicle panel
         StartVehiclePanel();
@@ -1312,7 +1318,7 @@ public partial class MainWindow : Window
 
 
         //Wait time
-        yield return new Wait(1.0f);
+        yield return new Wait(0.5f);
 
         //Send command to stop the bluetooth service
         SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo systemctl stop bluetooth.service");
@@ -1321,10 +1327,19 @@ public partial class MainWindow : Window
             yield return new Wait(0.1f);
 
         //Wait time
-        yield return new Wait(1.0f);
+        yield return new Wait(0.5f);
 
         //Send command to start the bluetooth service
         SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo systemctl start bluetooth.service");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+        //Wait time
+        yield return new Wait(0.5f);
+
+        //Send command to restart the daemon
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo systemctl daemon-reload");
         //Wait the end of command execution
         while (isLastCommandFinishedExecution(rKey) == false)
             yield return new Wait(0.1f);
@@ -1334,6 +1349,15 @@ public partial class MainWindow : Window
 
         //Send command to disconnect, if is connected
         SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo bluetoothctl disconnect " + appPrefs.loadedData.configuredObdBtAdapter.deviceMac);
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+        //Wait time
+        yield return new Wait(0.5f);
+
+        //Send command to kill the rfcomm port, if have
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo fuser -k " + appPrefs.loadedData.bluetoothSerialPortToUse);
         //Wait the end of command execution
         while (isLastCommandFinishedExecution(rKey) == false)
             yield return new Wait(0.1f);
@@ -1380,9 +1404,6 @@ public partial class MainWindow : Window
 
             //Show the icon of trying to connect in status bar
             tryingConnectToObdButton.IsVisible = true;
-
-            //Send raw command to force disconnect and release rfcomm port, if have a possible use
-            terminalCliProcess.StandardInput.WriteLine(("sudo bluetoothctl disconnect " + appPrefs.loadedData.configuredObdBtAdapter.deviceMac + ";sudo killall rfcomm"));
 
             //Create a new OBD Adapter Handler
             ObdAdapterHandler newObdAdapterHandlerConnection = new ObdAdapterHandler();
@@ -1511,6 +1532,9 @@ public partial class MainWindow : Window
         vehiclePanel_obdSetupScreen.IsVisible = false;
         vehiclePanel_obdConnectScreen.IsVisible = false;
         vehiclePanel_panelScreen.IsVisible = false;
+
+        //Enable the maximum connection tries excedeed UI
+        vehiclePanel_connectTriesExcedeed.IsVisible = true;
     }
 
     private void OnActiveConnectionForObdHandlerFinished()
@@ -2359,6 +2383,41 @@ public partial class MainWindow : Window
         RemoveTask("shutdownNow");
     }
 
+    private IEnumerator<Wait> PanelRebootShortcutRoutine()
+    {
+        //Disable the reboot button
+        vehiclePanel_rebootButton.IsEnabled = false;
+
+
+        //Add this task running
+        AddTask("rebootNow", "Reboot the Raspberry Pi");
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+
+
+        //Wait time
+        yield return new Wait(0.1f);
+
+        //Send command to kill Motoplay and reboot the device
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo pkill -f App/Motoplay.Desktop;sudo reboot");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //Remove the task running
+        RemoveTask("rebootNow");
+    }
+
     private void RunPanelEntryAnimation()
     {
         //Reset the entry animation status
@@ -3068,6 +3127,25 @@ public partial class MainWindow : Window
         generalMetrics_content_obdResponseTime_chart.AddValue(ping);
     }
 
+    //Music Player
+
+    private void PrepareTheMusicPlayer()
+    {
+        //If the musics folder, not exists, create it
+        if (Directory.Exists((motoplayRootPath + "/Musics")) == false)
+            Directory.CreateDirectory((motoplayRootPath + "/Musics"));
+
+        //Core.Initialize();
+        //LibVLC a = new LibVLC("--file-caching=15000", "--disc-caching=15000");
+        //MediaPlayer mp = new MediaPlayer(new Media(a, (motoplayRootPath + "/Musics/Ark Patrol - Ambition.mp3")));
+        //mp.Play();
+    }
+
+    private void InitializeTheMusicPlayer()
+    {
+
+    }
+
     //Pages Manager
 
     private void SwitchAppPage(AppPage targetPage)
@@ -3260,12 +3338,16 @@ public partial class MainWindow : Window
         if (appPrefs.loadedData.invervalOfObdConnectionRetry == 300)
             pref_panel_intervalObdConnectTries.SelectedIndex = 2;
         //*** pref_panel_maxObdConnectTries
-        if (appPrefs.loadedData.maxOfObdConnectionRetry == 5)
+        if (appPrefs.loadedData.maxOfObdConnectionRetry == 2)
             pref_panel_maxObdConnectTries.SelectedIndex = 0;
-        if (appPrefs.loadedData.maxOfObdConnectionRetry == 15)
+        if (appPrefs.loadedData.maxOfObdConnectionRetry == 3)
             pref_panel_maxObdConnectTries.SelectedIndex = 1;
-        if (appPrefs.loadedData.maxOfObdConnectionRetry == 999999999)
+        if (appPrefs.loadedData.maxOfObdConnectionRetry == 5)
             pref_panel_maxObdConnectTries.SelectedIndex = 2;
+        if (appPrefs.loadedData.maxOfObdConnectionRetry == 15)
+            pref_panel_maxObdConnectTries.SelectedIndex = 3;
+        if (appPrefs.loadedData.maxOfObdConnectionRetry == 999999999)
+            pref_panel_maxObdConnectTries.SelectedIndex = 4;
         //*** pref_panel_obdAdapterBaudRate
         if (appPrefs.loadedData.bluetoothBaudRate == 4096)
             pref_panel_obdAdapterBaudRate.SelectedIndex = 0;
@@ -3417,10 +3499,14 @@ public partial class MainWindow : Window
             appPrefs.loadedData.invervalOfObdConnectionRetry = 300;
         //*** pref_panel_maxObdConnectTries
         if (pref_panel_maxObdConnectTries.SelectedIndex == 0)
-            appPrefs.loadedData.maxOfObdConnectionRetry = 5;
+            appPrefs.loadedData.maxOfObdConnectionRetry = 2;
         if (pref_panel_maxObdConnectTries.SelectedIndex == 1)
-            appPrefs.loadedData.maxOfObdConnectionRetry = 15;
+            appPrefs.loadedData.maxOfObdConnectionRetry = 3;
         if (pref_panel_maxObdConnectTries.SelectedIndex == 2)
+            appPrefs.loadedData.maxOfObdConnectionRetry = 5;
+        if (pref_panel_maxObdConnectTries.SelectedIndex == 3)
+            appPrefs.loadedData.maxOfObdConnectionRetry = 15;
+        if (pref_panel_maxObdConnectTries.SelectedIndex == 4)
             appPrefs.loadedData.maxOfObdConnectionRetry = 999999999;
         //*** pref_panel_obdAdapterBaudRate
         if (pref_panel_obdAdapterBaudRate.SelectedIndex == 0)
