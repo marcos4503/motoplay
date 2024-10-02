@@ -143,6 +143,10 @@ public partial class MainWindow : Window
     private ActiveCoroutine panelShutdownShortcutUpdateRoutine = null;
     private int disconnectionsCounterWithObdAdapter = 0;
     private Grid[] arrayOfMetricsContents = null;
+    private List<string> musicPlayerDependenciesToInstall = new List<string>();
+    private MusicPlayer musicPlayerHandler = null;
+    private List<string> musicPlayerFileList = new List<string>();
+    private int musicPlayerCurrentPlayingIndex = 0;
 
     //Private variables
     private string[] receivedCliArgs = null;
@@ -3135,15 +3139,452 @@ public partial class MainWindow : Window
         if (Directory.Exists((motoplayRootPath + "/Musics")) == false)
             Directory.CreateDirectory((motoplayRootPath + "/Musics"));
 
-        //Core.Initialize();
-        //LibVLC a = new LibVLC("--file-caching=15000", "--disc-caching=15000");
-        //MediaPlayer mp = new MediaPlayer(new Media(a, (motoplayRootPath + "/Musics/Ark Patrol - Ambition.mp3")));
-        //mp.Play();
+        //Prepare the base UI
+        musicPlayer_dependenciesScreen_installButton.Click += (s, e) => { CoroutineHandler.Start(InstallMusicPlayerDependencies()); };
+        musicPlayer_skipPreviousButton.Click += (s, e) => { MusicPlayerSkipToPrevious(); };
+        musicPlayer_playPauseButton.Click += (s, e) => { MusicPlayerPlayPause(); };
+        musicPlayer_skipNextButton.Click += (s, e) => { MusicPlayerSkipToNext(); };
+        musicPlayer_volumeUpButton.Click += (s, e) => { MusicPlayerVolumeUp(); };
+        musicPlayer_volumeDownButton.Click += (s, e) => { MusicPlayerVolumeDown(); };
+
+        //Change to background of loading
+        musicPlayer_background_loading.IsVisible = true;
+        musicPlayer_background_player.IsVisible = false;
+
+        //Change to screen of loading
+        musicPlayer_loadScreen.IsVisible = true;
+        musicPlayer_dependenciesScreen.IsVisible = false;
+        musicPlayer_playerScreen.IsVisible = false;
+
+        //Start the dependencies checking
+        CoroutineHandler.Start(CheckMusicPlayerDependencies());
+    }
+
+    private IEnumerator<Wait> CheckMusicPlayerDependencies()
+    {
+        //Change to background of loading
+        musicPlayer_background_loading.IsVisible = true;
+        musicPlayer_background_player.IsVisible = false;
+
+        //Change to screen of loading
+        musicPlayer_loadScreen.IsVisible = true;
+        musicPlayer_dependenciesScreen.IsVisible = false;
+        musicPlayer_playerScreen.IsVisible = false;
+
+        //Add this task running
+        AddTask("musicPlayerDependenciesCheck", "Checks dependencies for Motoplay Music Player functionality.");
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+        //If Linux, continue...
+        if (OperatingSystem.IsLinux() == true)
+        {
+            //Send a command to check if the "libvlc-dev" is installed
+            SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo dpkg -s libvlc-dev");
+            //Wait the end of command execution
+            while (isLastCommandFinishedExecution(rKey) == false)
+                yield return new Wait(0.1f);
+
+            //If not installed, add to list of install
+            if (isThermFoundInTerminalOutputLines(rKey, "is not installed") == true)
+                musicPlayerDependenciesToInstall.Add("libvlc-dev");
+
+            //Send a command to check if the "vlc" is installed
+            SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo dpkg -s vlc");
+            //Wait the end of command execution
+            while (isLastCommandFinishedExecution(rKey) == false)
+                yield return new Wait(0.1f);
+
+            //If not installed, add to list of install
+            if (isThermFoundInTerminalOutputLines(rKey, "is not installed") == true)
+                musicPlayerDependenciesToInstall.Add("vlc");
+        }
+
+        //If Windows, just continue...
+        if (OperatingSystem.IsWindows() == true)
+            AvaloniaDebug.WriteLine("None additional dependencie is required in Windows.");
+
+        //If have dependencies to install, change to install screen
+        if (musicPlayerDependenciesToInstall.Count > 0)
+        {
+            //Change to background of loading
+            musicPlayer_background_loading.IsVisible = true;
+            musicPlayer_background_player.IsVisible = false;
+
+            //Change to screen of dependencies install request
+            musicPlayer_loadScreen.IsVisible = false;
+            musicPlayer_dependenciesScreen.IsVisible = true;
+            musicPlayer_playerScreen.IsVisible = false;
+        }
+
+        //If not have dependencies to install, initialize the Music Player
+        if (musicPlayerDependenciesToInstall.Count == 0)
+            InitializeTheMusicPlayer();
+
+
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //Remove the task running
+        RemoveTask("musicPlayerDependenciesCheck");
+    }
+
+    private IEnumerator<Wait> InstallMusicPlayerDependencies()
+    {
+        //Disable the install dependencies button
+        musicPlayer_dependenciesScreen_installButton.IsEnabled = false;
+
+        //Change to background of loading
+        musicPlayer_background_loading.IsVisible = true;
+        musicPlayer_background_player.IsVisible = false;
+
+        //Change to screen of loading
+        musicPlayer_loadScreen.IsVisible = true;
+        musicPlayer_dependenciesScreen.IsVisible = false;
+        musicPlayer_playerScreen.IsVisible = false;
+
+        //Add this task running
+        AddTask("musicPlayerDependenciesInstall", "Install dependencies for Motoplay Music Player functionality.");
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+        //While have dependencies to install
+        while (musicPlayerDependenciesToInstall.Count > 0)
+        {
+            //Wait time
+            yield return new Wait(1.0f);
+
+            //Send a command to install the first package of list
+            SendCommandToTerminalAndClearCurrentOutputLines(rKey, ("sudo apt-get install " + musicPlayerDependenciesToInstall[0] + " -y"));
+            //Wait the end of command execution
+            while (isLastCommandFinishedExecution(rKey) == false)
+                yield return new Wait(0.1f);
+
+            //Wait time
+            yield return new Wait(1.0f);
+
+            //Send a command to confirm that the first package is installed
+            SendCommandToTerminalAndClearCurrentOutputLines(rKey, ("sudo dpkg -s " + musicPlayerDependenciesToInstall[0]));
+            //Wait the end of command execution
+            while (isLastCommandFinishedExecution(rKey) == false)
+                yield return new Wait(0.1f);
+
+            //If not installed, stop the program
+            if (isThermFoundInTerminalOutputLines(rKey, "is not installed") == true)
+            {
+                var diag = MessageBoxManager.GetMessageBoxStandard("Error", "There was a problem, when installing a required package. Check your Internet connection!", ButtonEnum.Ok).ShowAsync();
+                while (diag.IsCompleted == false)
+                    yield return new Wait(0.1f);
+                this.Close();
+            }
+
+            //Remove the first installed package from the list
+            musicPlayerDependenciesToInstall.RemoveAt(0);
+        }
+
+        //Go back to dependencies check
+        CoroutineHandler.Start(CheckMusicPlayerDependencies());
+
+
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //Remove the task running
+        RemoveTask("musicPlayerDependenciesInstall");
     }
 
     private void InitializeTheMusicPlayer()
     {
+        //Change to background of player
+        musicPlayer_background_loading.IsVisible = false;
+        musicPlayer_background_player.IsVisible = true;
 
+        //Change to screen of dependencies install request
+        musicPlayer_loadScreen.IsVisible = false;
+        musicPlayer_dependenciesScreen.IsVisible = false;
+        musicPlayer_playerScreen.IsVisible = true;
+
+        //Initialize the music player instance
+        if (musicPlayerHandler == null)
+        {
+            //Create a new instance
+            musicPlayerHandler = new MusicPlayer(appPrefs.loadedData.playerVolume);
+
+            //Register the callback of metadata receive
+            musicPlayerHandler.RegisterOnReceiveMetadataCallback((name, author, extension) => 
+            {
+                //Render the metadata
+                musicPlayer_musicName.Text = name;
+                musicPlayer_musicAuthor.Text = author;
+
+                //Show the time
+                musicPlayer_musicCurrentTime.Text = "00:00";
+                musicPlayer_musicProgress.Value = 0.0f;
+                musicPlayer_musicTotalTime.Text = "00:00";
+            });
+
+            //Register the callback of cover receive
+            musicPlayerHandler.RegisterOnReceiveCoverCallback((type, cover) => 
+            {
+                //If is current cover
+                if (type == MusicPlayer.CoverType.Current)
+                {
+                    musicPlayer_cover1.Source = cover;
+                    musicPlayer_background_album.Source = cover;
+                }
+                //If is for nexts
+                if (type == MusicPlayer.CoverType.Next2)
+                    musicPlayer_cover2.Source = cover;
+                if (type == MusicPlayer.CoverType.Next3)
+                    musicPlayer_cover3.Source = cover;
+                if (type == MusicPlayer.CoverType.Next4)
+                    musicPlayer_cover4.Source = cover;
+                if (type == MusicPlayer.CoverType.Next5)
+                    musicPlayer_cover5.Source = cover;
+            });
+
+            //Register the callback of pause
+            musicPlayerHandler.RegisterOnPausedCallback(() => 
+            {
+                //Change the UI
+                musicPlayer_skipPreviousButton.IsEnabled = true;
+                musicPlayer_playPauseButton.IsEnabled = true;
+                musicPlayer_playPauseImage.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/play-icon.png")));
+                musicPlayer_skipNextButton.IsEnabled = true;
+            });
+
+            //Register the callback of play
+            musicPlayerHandler.RegisterOnPlayedCallback(() =>
+            {
+                //Change the UI
+                musicPlayer_skipPreviousButton.IsEnabled = true;
+                musicPlayer_playPauseButton.IsEnabled = true;
+                musicPlayer_playPauseImage.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/pause-icon.png")));
+                musicPlayer_skipNextButton.IsEnabled = true;
+            });
+
+            //Register the callback of stop
+            musicPlayerHandler.RegisterOnStoppedCallback(() =>
+            {
+                //Change the UI
+                musicPlayer_skipPreviousButton.IsEnabled = false;
+                musicPlayer_playPauseButton.IsEnabled = false;
+                musicPlayer_playPauseImage.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/play-icon.png")));
+                musicPlayer_skipNextButton.IsEnabled = false;
+            });
+
+            //Register the callback of time changed
+            musicPlayerHandler.RegisterOnUpdateTimeCallback((curTime, maxTime, progress) => 
+            {
+                //Change the UI
+                musicPlayer_musicCurrentTime.Text = curTime;
+                musicPlayer_musicProgress.Value = progress;
+                musicPlayer_musicTotalTime.Text = maxTime;
+            });
+
+            //Register the callback of finished
+            musicPlayerHandler.RegisterOnFinishedTimeCallback(() => 
+            {
+                //Go to next music
+                MusicPlayerSkipToNext();
+            });
+        }
+
+        //Reset the file list
+        musicPlayerFileList.Clear();
+        //Reset the playing index
+        musicPlayerCurrentPlayingIndex = 0;
+
+        //Get the list of musics
+        foreach (FileInfo file in (new DirectoryInfo((motoplayRootPath + "/Musics")).GetFiles()))
+            if (Path.GetExtension(file.FullName).ToLower() == ".mp3")
+                musicPlayerFileList.Add(file.FullName);
+        foreach (FileInfo file in (new DirectoryInfo((motoplayRootPath + "/Musics")).GetFiles()))
+            if (Path.GetExtension(file.FullName).ToLower() == ".m4a")
+                musicPlayerFileList.Add(file.FullName);
+        foreach (FileInfo file in (new DirectoryInfo((motoplayRootPath + "/Musics")).GetFiles()))
+            if (Path.GetExtension(file.FullName).ToLower() == ".ogg")
+                musicPlayerFileList.Add(file.FullName);
+        foreach (FileInfo file in (new DirectoryInfo((motoplayRootPath + "/Musics")).GetFiles()))
+            if (Path.GetExtension(file.FullName).ToLower() == ".wmv")
+                musicPlayerFileList.Add(file.FullName);
+        foreach (FileInfo file in (new DirectoryInfo((motoplayRootPath + "/Musics")).GetFiles()))
+            if (Path.GetExtension(file.FullName).ToLower() == ".wav")
+                musicPlayerFileList.Add(file.FullName);
+
+        //If don't have musics
+        if (musicPlayerFileList.Count == 0)
+        {
+            //Set default background
+            musicPlayer_background_album.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/music-player-background.png")));
+
+            //Disable additional covers
+            musicPlayer_cover5.IsVisible = false;
+            musicPlayer_cover5.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
+            musicPlayer_cover4.IsVisible = false;
+            musicPlayer_cover4.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
+            musicPlayer_cover3.IsVisible = false;
+            musicPlayer_cover3.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
+            musicPlayer_cover2.IsVisible = false;
+            musicPlayer_cover2.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
+            musicPlayer_cover1.IsVisible = true;
+            musicPlayer_cover1.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
+
+            //Show empty name
+            musicPlayer_musicName.Text = GetStringApplicationResource("generalMetrics_noMusicsName");
+            musicPlayer_musicAuthor.Text = GetStringApplicationResource("generalMetrics_noMusicsArtist");
+
+            //Show the time
+            musicPlayer_musicCurrentTime.Text = "--:--";
+            musicPlayer_musicProgress.Value = 0.0f;
+            musicPlayer_musicTotalTime.Text = "--:--";
+
+            //Hide buttons
+            musicPlayer_skipPreviousButton.IsEnabled = false;
+            musicPlayer_playPauseButton.IsEnabled = false;
+            musicPlayer_playPauseImage.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/play-icon.png")));
+            musicPlayer_skipNextButton.IsEnabled = false;
+        }
+
+        //If have musics
+        if (musicPlayerFileList.Count > 0)
+        {
+            //Set default background
+            musicPlayer_background_album.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/music-player-background.png")));
+
+            //Disable additional covers
+            musicPlayer_cover5.IsVisible = true;
+            musicPlayer_cover5.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
+            musicPlayer_cover4.IsVisible = true;
+            musicPlayer_cover4.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
+            musicPlayer_cover3.IsVisible = true;
+            musicPlayer_cover3.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
+            musicPlayer_cover2.IsVisible = true;
+            musicPlayer_cover2.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
+            musicPlayer_cover1.IsVisible = true;
+            musicPlayer_cover1.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
+
+            //Show temp name
+            musicPlayer_musicName.Text = "-";
+            musicPlayer_musicAuthor.Text = "-";
+
+            //Show temp time
+            musicPlayer_musicCurrentTime.Text = "--:--";
+            musicPlayer_musicProgress.Value = 0.0f;
+            musicPlayer_musicTotalTime.Text = "--:--";
+
+            //Show buttons
+            musicPlayer_skipPreviousButton.IsEnabled = true;
+            musicPlayer_playPauseButton.IsEnabled = true;
+            musicPlayer_playPauseImage.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/play-icon.png")));
+            musicPlayer_skipNextButton.IsEnabled = true;
+
+            //Automatically change the Player to first music of list
+            musicPlayerHandler.ChangeMusicTo(musicPlayerCurrentPlayingIndex, ref musicPlayerFileList, false);
+        }
+
+        //Sync the volume to UI
+        musicPlayer_volumeProgress.Value = (((float)appPrefs.loadedData.playerVolume / 125.0f) * 100.0f);
+    }
+
+    private void MusicPlayerSkipToPrevious()
+    {
+        //Go to previous music
+        musicPlayerCurrentPlayingIndex -= 1;
+        if (musicPlayerCurrentPlayingIndex < 0)
+            musicPlayerCurrentPlayingIndex = (musicPlayerFileList.Count - 1);
+        musicPlayerHandler.ChangeMusicTo(musicPlayerCurrentPlayingIndex, ref musicPlayerFileList, true);
+    }
+
+    private void MusicPlayerPlayPause()
+    {
+        //If is playing, pause it
+        if (musicPlayerHandler.isPlaying() == true)
+        {
+            musicPlayerHandler.Pause();
+            return;
+        }
+
+        //If is paused, play it
+        if (musicPlayerHandler.isPlaying() == false)
+        {
+            musicPlayerHandler.Play();
+            return;
+        }
+    }
+
+    private void MusicPlayerStop()
+    {
+
+    }
+
+    private void MusicPlayerSkipToNext()
+    {
+        //Go to next music
+        musicPlayerCurrentPlayingIndex += 1;
+        if (musicPlayerCurrentPlayingIndex == musicPlayerFileList.Count)
+            musicPlayerCurrentPlayingIndex = 0;
+        musicPlayerHandler.ChangeMusicTo(musicPlayerCurrentPlayingIndex, ref musicPlayerFileList, true);
+    }
+
+    private void MusicPlayerVolumeUp()
+    {
+        //Add volume
+        appPrefs.loadedData.playerVolume += 15;
+
+        //Fix bound
+        if (appPrefs.loadedData.playerVolume > 125)
+            appPrefs.loadedData.playerVolume = 125;
+
+        //Save
+        SaveAllPreferences();
+
+        //Apply to media player
+        if (musicPlayerHandler != null)
+            musicPlayerHandler.SetVolume(appPrefs.loadedData.playerVolume);
+
+        //Sync the volume to UI
+        musicPlayer_volumeProgress.Value = (((float)appPrefs.loadedData.playerVolume / 125.0f) * 100.0f);
+    }
+
+    private void MusicPlayerVolumeDown()
+    {
+        //Subtract volume
+        appPrefs.loadedData.playerVolume -= 15;
+
+        //Fix bound
+        if (appPrefs.loadedData.playerVolume < 0)
+            appPrefs.loadedData.playerVolume = 0;
+
+        //Save
+        SaveAllPreferences();
+
+        //Apply to media player
+        if (musicPlayerHandler != null)
+            musicPlayerHandler.SetVolume(appPrefs.loadedData.playerVolume);
+
+        //Sync the volume to UI
+        musicPlayer_volumeProgress.Value = (((float)appPrefs.loadedData.playerVolume / 125.0f) * 100.0f);
     }
 
     //Pages Manager

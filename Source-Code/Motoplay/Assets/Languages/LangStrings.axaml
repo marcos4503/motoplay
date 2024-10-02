@@ -74,6 +74,11 @@ Attempt #%n</x:String>
 	<x:String x:Key="generalMetrics_timeSpentInEachGear_inMilliseconds">(In Milliseconds)</x:String>
 	<x:String x:Key="generalMetrics_metricsUpdate">The metric will be updated in %d seconds!</x:String>
 
+	<!-- Music Player -->
+	<x:String x:Key="generalMetrics_dependenciesMessage">Motoplay needs to install some dependencies on your device for this functionality to be possible. To continue, click the button below.</x:String>
+	<x:String x:Key="generalMetrics_dependenciesButton">Install</x:String>
+	<x:String x:Key="generalMetrics_noMusicsName">No Tracks Found</x:String>
+	<x:String x:Key="generalMetrics_noMusicsArtist">None</x:String>
 
 
 

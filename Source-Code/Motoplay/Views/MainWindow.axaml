@@ -204,7 +204,21 @@
 					</Grid>
 					<!-- Music Player Background -->
 					<Grid Name="pageBgForPlayer" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-						<Grid Background="Pink"></Grid>
+						<!-- Load Screen Background -->
+						<Grid Name="musicPlayer_background_loading" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="White"></Grid>
+						<!-- Player Background -->
+						<Grid Name="musicPlayer_background_player" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+							<Image Name="musicPlayer_background_album" Source="/Assets/music-player-background.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality" Margin="-64, -64, -64, -64">
+								<Image.Styles>
+									<Style Selector="Image">
+										<Setter Property="Effect">
+											<BlurEffect Radius="64"></BlurEffect>
+										</Setter>
+									</Style>
+								</Image.Styles>
+							</Image>
+							<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#000000" Opacity="0.35" Margin="0, -8, 0, 0"></Grid>
+						</Grid>
 					</Grid>
 					<!-- Web Browser Background -->
 					<Grid Name="pageBgForBrowser" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -583,7 +597,123 @@
 					</Grid>
 					<!-- Music Player Page Content -->
 					<Grid Name="pageContentForPlayer" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-						<TextBlock Text="Player"></TextBlock>
+						<!-- Load Screen -->
+						<Grid Name="musicPlayer_loadScreen" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+							<Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Height="150">
+								<gif:GifImage HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="avares://Motoplay/Assets/bluetooth-pairing-gif.gif" Stretch="Fill" Opacity="0.8"/>
+								<Image Source="/Assets/menu-musics-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7" Margin="44, 44, 44, 44"></Image>
+							</Grid>
+						</Grid>
+						<!-- Install Dependencies Screen -->
+						<Grid Name="musicPlayer_dependenciesScreen" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+							<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+								<Image Source="/Assets/music-dependencies.png" HorizontalAlignment="Center" VerticalAlignment="Top" Opacity="1.0" Height="128"></Image>
+								<TextBlock Text="{DynamicResource ResourceKey=generalMetrics_dependenciesMessage}" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Top" MaxWidth="400" TextAlignment="Center" Margin="0, 16, 0, 32"></TextBlock>
+								<Button Name="musicPlayer_dependenciesScreen_installButton" Content="{DynamicResource ResourceKey=generalMetrics_dependenciesButton}" HorizontalAlignment="Center" VerticalAlignment="Top" Width="128" HorizontalContentAlignment="Center"></Button>
+							</StackPanel>
+						</Grid>
+						<!-- Player Screen -->
+						<Grid Name="musicPlayer_playerScreen" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+							<Grid ColumnDefinitions="*,100,80" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="12, 0, 0, 0">
+								<Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+									<StackPanel Orientation="Vertical" Spacing="0" HorizontalAlignment="Left" VerticalAlignment="Top">
+										<Grid HorizontalAlignment="Stretch" VerticalAlignment="Top">
+											<Border HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="104" Height="104" CornerRadius="8, 8, 0, 8" ClipToBounds="True" Margin="368, 0, 0, 0">
+												<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+													<Image Name="musicPlayer_cover5" Source="/Assets/no-album-cover.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"></Image>
+												</Grid>
+											</Border>
+											<Rectangle HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="2" Height="104" Fill="#000000" Margin="436, 0, 0, 0"></Rectangle>
+											<Border HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="128" Height="128" CornerRadius="8, 8, 0, 8" ClipToBounds="True" Margin="308, 0, 0, 0">
+												<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+													<Image Name="musicPlayer_cover4" Source="/Assets/no-album-cover.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"></Image>
+												</Grid>
+											</Border>
+											<Rectangle HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="2" Height="128" Fill="#000000" Margin="382, 0, 0, 0"></Rectangle>
+											<Border HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="152" Height="152" CornerRadius="8, 8, 0, 8" ClipToBounds="True" Margin="230, 0, 0, 0">
+												<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+													<Image Name="musicPlayer_cover3" Source="/Assets/no-album-cover.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"></Image>
+												</Grid>
+											</Border>
+											<Rectangle HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="2" Height="152" Fill="#000000" Margin="300, 0, 0, 0"></Rectangle>
+											<Border HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="176" Height="176" CornerRadius="8, 8, 0, 8" ClipToBounds="True" Margin="124, 0, 0, 0">
+												<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+													<Image Name="musicPlayer_cover2" Source="/Assets/no-album-cover.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"></Image>
+												</Grid>
+											</Border>
+											<Rectangle HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="2" Height="176" Fill="#000000" Margin="200, 0, 0, 0"></Rectangle>
+											<Border HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Height="200" CornerRadius="8, 8, 0, 8" ClipToBounds="True">
+												<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+													<Image Name="musicPlayer_cover1" Source="/Assets/no-album-cover.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"></Image>
+												</Grid>
+											</Border>
+										</Grid>
+										<StackPanel Orientation="Horizontal" Spacing="0" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0, 8, 0, 0">
+											<TextBlock Name="musicPlayer_musicName" Text="Track Name" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="#f5f5f5" FontSize="18"></TextBlock>
+											<TextBlock Text="●" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="#f5f5f5" Opacity="0.35" FontSize="10" Margin="8, 0, 8, 0"></TextBlock>
+											<TextBlock Name="musicPlayer_musicAuthor" Text="Artist" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="#f5f5f5" FontSize="18"></TextBlock>
+										</StackPanel>
+										<StackPanel Orientation="Horizontal" Spacing="0" HorizontalAlignment="Left" VerticalAlignment="Top">
+											<TextBlock Name="musicPlayer_musicCurrentTime" Text="00:00" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="#f5f5f5" MinWidth="40" MaxWidth="40"></TextBlock>
+											<Slider Name="musicPlayer_musicProgress" Minimum="0" Value="50" Maximum="100" IsHitTestVisible="False" HorizontalAlignment="Left" VerticalAlignment="Center" Width="360" Background="#454545" Foreground="#ffffff" Margin="16, 0, 16, 0">
+												<Slider.Styles>
+													<Style Selector="Slider:horizontal">
+														<Style Selector="^ Track">
+															<Style Selector="^ RepeatButton Border">
+																<Setter Property="Height" Value="6"></Setter>
+															</Style>
+															<Style Selector="^ Thumb">
+																<Setter Property="Background">
+																	<SolidColorBrush Color="#ffffff"></SolidColorBrush>
+																</Setter>
+															</Style>
+														</Style>
+													</Style>
+												</Slider.Styles>
+											</Slider>
+											<TextBlock Name="musicPlayer_musicTotalTime" Text="00:00" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="#f5f5f5" MinWidth="40" MaxWidth="40"></TextBlock>
+										</StackPanel>
+										<StackPanel Orientation="Horizontal" Spacing="48" HorizontalAlignment="Center" VerticalAlignment="Top">
+											<Button Name="musicPlayer_skipPreviousButton" HorizontalAlignment="Left" VerticalAlignment="Center" Width="72" Height="72" CornerRadius="40" Background="#ededed" Padding="24, 24, 24, 24" BorderThickness="2" BorderBrush="#cfcfcf">
+												<Image Source="/Assets/skip-previous.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7"></Image>
+											</Button>
+											<Button Name="musicPlayer_playPauseButton" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80" Height="80" CornerRadius="40" Background="#ededed" Padding="24, 24, 24, 24" BorderThickness="2" BorderBrush="#cfcfcf">
+												<Image Name="musicPlayer_playPauseImage" Source="/Assets/play-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7"></Image>
+											</Button>
+											<Button Name="musicPlayer_skipNextButton" HorizontalAlignment="Left" VerticalAlignment="Center" Width="72" Height="72" CornerRadius="40" Background="#ededed" Padding="24, 24, 24, 24" BorderThickness="2" BorderBrush="#cfcfcf">
+												<Image Source="/Assets/skip-next.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7"></Image>
+											</Button>
+										</StackPanel>
+									</StackPanel>
+								</Grid>
+								<Grid Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Grid>
+								<Grid Grid.Row="0" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+									<Grid RowDefinitions="80,*,80">
+										<Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+											<Button Name="musicPlayer_volumeUpButton" HorizontalAlignment="Center" VerticalAlignment="Center" Width="80" Height="80" CornerRadius="40" Background="#ededed" Padding="24, 24, 24, 24" BorderThickness="2" BorderBrush="#cfcfcf">
+												<Image Source="/Assets/volume-up.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7"></Image>
+											</Button>
+										</Grid>
+										<Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+											<ProgressBar Name="musicPlayer_volumeProgress" Minimum="0" Value="50" Maximum="100" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="0" Width="164" Height="24" Background="#454545" Foreground="#ffffff" CornerRadius="8">
+												<ProgressBar.RenderTransform>
+													<TransformGroup>
+														<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
+														<TranslateTransform X="0" Y="0"></TranslateTransform>
+														<RotateTransform CenterX="0" CenterY="0" Angle="-90"></RotateTransform>
+													</TransformGroup>
+												</ProgressBar.RenderTransform>
+											</ProgressBar>
+										</Grid>
+										<Grid Grid.Row="2" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+											<Button Name="musicPlayer_volumeDownButton" HorizontalAlignment="Center" VerticalAlignment="Center" Width="80" Height="80" CornerRadius="40" Background="#ededed" Padding="24, 24, 24, 24" BorderThickness="2" BorderBrush="#cfcfcf">
+												<Image Source="/Assets/volume-down.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7"></Image>
+											</Button>
+										</Grid>
+									</Grid>
+								</Grid>
+							</Grid>
+						</Grid>
 					</Grid>
 					<!-- Web Browser Page Content -->
 					<Grid Name="pageContentForBrowser" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">

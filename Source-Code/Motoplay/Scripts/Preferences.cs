@@ -50,6 +50,8 @@ namespace Motoplay.Scripts
             public string letterToUseAsGearStopped = "S";
             public string letterToUseAsClutchPressed = "C";
             public int panelColorScheme = 0;   //0 = Automatic, 1 = Dark, 2 = Light
+
+            public int playerVolume = 100;
         }
 
         //Private variables
