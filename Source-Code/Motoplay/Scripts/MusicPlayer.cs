@@ -7,9 +7,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static Motoplay.Scripts.MusicPlayer;
+using System.Xml.Linq;
+using static Motoplay.Scripts.MusicPlayer.ClassDelegates;
 using static Motoplay.Scripts.ObdAdapterHandler.ClassDelegates;
 
 namespace Motoplay.Scripts
@@ -21,7 +25,7 @@ namespace Motoplay.Scripts
     public class MusicPlayer
     {
         //Enums of script
-        public enum CoverType
+        public enum MusicMetadata
         {
             Current,
             Next2,
@@ -33,8 +37,8 @@ namespace Motoplay.Scripts
         //Classes of script
         public class ClassDelegates
         {
-            public delegate void OnReceiveMetadata(string musicName, string musicAuthor, string musicExtension);
-            public delegate void OnReceiveCover(CoverType type, Bitmap coverBitmap);
+            public delegate void OnStartLoadingNewMusic();
+            public delegate void OnLoadMusicMetadata(MusicMetadata music, Bitmap coverBitmap, string musicName, string musicAuthor, string musicExtension);
             public delegate void OnPaused();
             public delegate void OnPlayed();
             public delegate void OnStopped();
@@ -53,9 +57,10 @@ namespace Motoplay.Scripts
         private event ClassDelegates.OnStopped onStopped = null;
         private event ClassDelegates.OnUpdateTime onUpdateTime = null;
         private event ClassDelegates.OnFinished onFinished = null;
-        private event ClassDelegates.OnReceiveMetadata onReceiveMetadata = null;
-        private event ClassDelegates.OnReceiveCover onReceiveCover = null;
+        private event ClassDelegates.OnStartLoadingNewMusic onStartLoadingNewMusic = null;
+        private event ClassDelegates.OnLoadMusicMetadata onLoadMusicMetadata = null;
         private int volumePercent = 0;
+        private Equalizer activeEqualizer = null;
 
         //Core methods
 
@@ -103,107 +108,106 @@ namespace Motoplay.Scripts
             this.onFinished = onFinished;
         }
 
-        public void RegisterOnReceiveMetadataCallback(ClassDelegates.OnReceiveMetadata onReceiveMetadata)
+        public void RegisterOnStartLoadingNewMusicCallback(ClassDelegates.OnStartLoadingNewMusic onStartLoadingNewMusic)
         {
             //Register the callback
-            this.onReceiveMetadata = onReceiveMetadata;
+            this.onStartLoadingNewMusic = onStartLoadingNewMusic;
         }
 
-        public void RegisterOnReceiveCoverCallback(ClassDelegates.OnReceiveCover onReceiveAlertDialog)
+        public void RegisterOnLoadMusicMetadataCallback(ClassDelegates.OnLoadMusicMetadata onLoadMusicMetadata)
         {
             //Register the callback
-            this.onReceiveCover = onReceiveAlertDialog;
+            this.onLoadMusicMetadata = onLoadMusicMetadata;
         }
 
         //Control methods
 
-        public void ChangeMusicTo(int index, ref List<string> musicFiles, bool andPlay)
+        public void ChangeMusicTo(string[] currentMusicAndNext4musicsFilePaths, bool andPlay)
         {
-            //If already exists a current playing media, despose it
-            if (currentPlayingMedia != null)
-                Stop();
-
-            //Create a new media to play
-            currentPlayingMedia = new MediaPlayer(new Media(libVlc, musicFiles[index]));
-
-            //Recover the covers of current music and from the next 4 musics
-            int x = index;
-            int loaded = 0;
-            while (loaded < 5)
+            //Start a new thread to change music
+            new Thread(() =>
             {
-                //If the current index is greather than the itens count in list, reset it
-                if (x == musicFiles.Count)
-                    x = 0;
+                //If already exists a current playing media, despose it
+                if (currentPlayingMedia != null)
+                    Stop();
 
-                //Load the cover of this index
-                LoadCover(loaded, x, ref musicFiles);
+                //Create a new media to play
+                currentPlayingMedia = new MediaPlayer(new Media(libVlc, currentMusicAndNext4musicsFilePaths[0]));
 
-                //Increase the index
-                x += 1;
-                loaded += 1;
-            }
+                //Load metadata of current music and next 4 musics
+                LoadMusicMetadata(currentMusicAndNext4musicsFilePaths);
 
-            //Load the music metadata
-            LoadMetadata(musicFiles[index]);
-
-            //Reset the timer of time changed
-            lastMediaTimeUpdate = DateTime.Now;
-
-            //Prepare the callback of time
-            currentPlayingMedia.TimeChanged += (s, e) => 
-            {
-                //If not passed more than 200ms since last update, cancel
-                if (new TimeSpan(DateTime.Now.Ticks - lastMediaTimeUpdate.Ticks).TotalMilliseconds < 200)
-                    return;
-
-                //Run on Main Thread
-                Dispatcher.UIThread.Invoke(() =>
-                {
-                    //Get times
-                    TimeSpan currentTime = TimeSpan.FromMilliseconds(e.Time);
-                    TimeSpan totalTime = TimeSpan.FromMilliseconds(currentPlayingMedia.Length);
-
-                    //Do the callback
-                    if (onUpdateTime != null)
-                        onUpdateTime(currentTime.ToString(@"mm\:ss"), totalTime.ToString(@"mm\:ss"), (((float)currentTime.Ticks / (float)totalTime.Ticks) * 100.0f));
-
-                }, DispatcherPriority.MaxValue);
-
-                //Inform the new time of last time update
+                //Reset the timer of time changed callback
                 lastMediaTimeUpdate = DateTime.Now;
-            };
 
-            //Prepare the callback of finish
-            currentPlayingMedia.EndReached += (s, e) =>
-            {
-                //Create a new thread to run the code. This will allow the current thread that is playing, finish, and the new thread will run the callback code
-                new Thread(() => 
+                //Prepare the callback of time
+                currentPlayingMedia.TimeChanged += (s, e) =>
                 {
+                    //If not passed more than 200ms since last time update, cancel
+                    if (new TimeSpan(DateTime.Now.Ticks - lastMediaTimeUpdate.Ticks).TotalMilliseconds < 200)
+                        return;
+
                     //Run on Main Thread
                     Dispatcher.UIThread.Invoke(() =>
                     {
+                        //Get times
+                        TimeSpan currentTime = TimeSpan.FromMilliseconds(e.Time);
+                        TimeSpan totalTime = TimeSpan.FromMilliseconds(currentPlayingMedia.Length);
+
                         //Do the callback
-                        if (onFinished != null)
-                            onFinished();
+                        if (onUpdateTime != null)
+                            onUpdateTime(currentTime.ToString(@"mm\:ss"), totalTime.ToString(@"mm\:ss"), (((float)currentTime.Ticks / (float)totalTime.Ticks) * 100.0f));
 
                     }, DispatcherPriority.MaxValue);
-                }).Start();
-            };
 
-            //Set the current volume
-            currentPlayingMedia.Volume = volumePercent;
+                    //Inform the new time of last time update
+                    lastMediaTimeUpdate = DateTime.Now;
+                };
 
-            //Set the audio delay
-            currentPlayingMedia.SetAudioDelay((long)(new TimeSpan(TimeSpan.FromMilliseconds(250).Ticks).TotalMicroseconds));
+                //Prepare the callback of finish
+                currentPlayingMedia.EndReached += (s, e) =>
+                {
+                    //Create a new thread to run the code. This will allow the current thread that is playing, finish, and the new thread will run the callback code
+                    new Thread(() =>
+                    {
+                        //Run on Main Thread
+                        Dispatcher.UIThread.Invoke(() =>
+                        {
+                            //Do the callback
+                            if (onFinished != null)
+                                onFinished();
 
-            //If is desired to auto play, play it
-            if (andPlay == true)
-                Play();
+                        }, DispatcherPriority.MaxValue);
 
-            //If is not desired auto play, send pause callback to simulate it
-            if (andPlay == false)
-                if (onPaused != null)
-                    onPaused();
+                        //...
+                    }).Start();
+                };
+
+                //Set the current volume
+                currentPlayingMedia.Volume = volumePercent;
+
+                //Setup the equalizer, if have one
+                if (activeEqualizer != null)
+                    currentPlayingMedia.SetEqualizer(activeEqualizer);
+
+                //Set the audio delay
+                currentPlayingMedia.SetAudioDelay((long)(new TimeSpan(TimeSpan.FromMilliseconds(250).Ticks).TotalMicroseconds));
+
+                //If is desired to auto play, play it
+                if (andPlay == true)
+                    Play();
+
+                //If is not desired auto play, send pause callback to simulate it
+                if (andPlay == false)
+                    if (onPaused != null)
+                        Dispatcher.UIThread.Invoke(() => { onPaused(); }, DispatcherPriority.MaxValue);
+
+                //...
+            }).Start();
+
+            //Send callback of start loading new music
+            if (onStartLoadingNewMusic != null)
+                onStartLoadingNewMusic();
         }
 
         public bool isPlaying()
@@ -221,9 +225,9 @@ namespace Motoplay.Scripts
             //Play the music
             currentPlayingMedia.Play();
 
-            //Do the callback
+            //Do the callback on main thread
             if (onPlayed != null)
-                onPlayed();
+                Dispatcher.UIThread.Invoke(() => { onPlayed(); }, DispatcherPriority.MaxValue);
         }
 
         public void Pause()
@@ -235,22 +239,23 @@ namespace Motoplay.Scripts
             //Pause the music
             currentPlayingMedia.Pause();
 
-            //Do the callback
+            //Do the callback on main thread
             if (onPaused != null)
-                onPaused();
+                Dispatcher.UIThread.Invoke(() => { onPaused(); }, DispatcherPriority.MaxValue);
         }
 
         public void Stop()
         {
             //Dispose from the media player
-            currentPlayingMedia.Dispose();
+            if (currentPlayingMedia != null)
+                currentPlayingMedia.Dispose();
 
             //Release the variable
             currentPlayingMedia = null;
 
-            //Do the callback
+            //Do the callback on main thread
             if (onStopped != null)
-                onStopped();
+                Dispatcher.UIThread.Invoke(() => { onStopped(); }, DispatcherPriority.MaxValue);
         }
 
         public void SetVolume(int newVolume)
@@ -263,75 +268,115 @@ namespace Motoplay.Scripts
                 currentPlayingMedia.Volume = volumePercent;
         }
 
-        //Auxiliar methods
-
-        private void LoadMetadata(string musicFilePath)
+        public void SetEqualizationDisabled()
         {
-            //Prepare the data to return
-            string name = "Unknown";
-            string author = "Unknown";
-            string extension = "UKN";
-
-            //Try to load the metadata
-            try
-            {
-                //Load the music file
-                TagLib.File file = TagLib.File.Create(musicFilePath);
-                name = file.Tag.Title;
-                author = file.Tag.FirstPerformer;
-                extension = Path.GetExtension(musicFilePath).ToUpper().Replace(".", "");
-            }
-            catch (Exception e) { }
-
-            //Do the callback
-            if (onReceiveMetadata != null)
-                onReceiveMetadata(name, author, extension);
+            //If already have a equalizer, dispose it
+            if (activeEqualizer != null)
+                activeEqualizer.Dispose();
+            activeEqualizer = null;
         }
 
-        private void LoadCover(int alreadyLoadedCount, int index, ref List<string> musicFiles)
+        public void SetEqualization(int amp, int hz31, int hz62, int hz125, int hz250, int hz500, int khz1, int khz2, int khz4, int khz8, int khz16)
         {
-            //Prepare the data to return
-            CoverType type = CoverType.Current;
-            if (alreadyLoadedCount == 0)
-                type = CoverType.Current;
-            if (alreadyLoadedCount == 1)
-                type = CoverType.Next2;
-            if (alreadyLoadedCount == 2)
-                type = CoverType.Next3;
-            if (alreadyLoadedCount == 3)
-                type = CoverType.Next4;
-            if (alreadyLoadedCount == 4)
-                type = CoverType.Next5;
-            Bitmap coverBitmap = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
+            //If already have a equalizer, dispose it
+            if (activeEqualizer != null)
+                activeEqualizer.Dispose();
+            activeEqualizer = null;
 
-            //If is not a MP3 file, return a generic cover and stop here
-            if (Path.GetExtension(musicFiles[index]).ToLower() != ".mp3")
+            //Set the equalizer
+            activeEqualizer = new Equalizer();
+            activeEqualizer.SetPreamp(amp);
+            activeEqualizer.SetAmp(hz31, 0);
+            activeEqualizer.SetAmp(hz62, 1);
+            activeEqualizer.SetAmp(hz125, 2);
+            activeEqualizer.SetAmp(hz250, 3);
+            activeEqualizer.SetAmp(hz500, 4);
+            activeEqualizer.SetAmp(khz1, 5);
+            activeEqualizer.SetAmp(khz2, 6);
+            activeEqualizer.SetAmp(khz4, 7);
+            activeEqualizer.SetAmp(khz8, 8);
+            activeEqualizer.SetAmp(khz16, 9);
+        }
+
+        //Auxiliar methods
+
+        private void LoadMusicMetadata(string[] currentMusicAndNext4MusicsFilePath)
+        {
+            //Start a new thread to load metadata of all musics of array
+            new Thread(() =>
             {
-                //Do the callback
-                if (onReceiveCover != null)
-                    onReceiveCover(type, coverBitmap);
+                //Get the array of musics
+                string[] musicsArray = currentMusicAndNext4MusicsFilePath;
 
-                //Stop here
-                return;
-            }
-
-            //Try to load the cover from music file
-            TagLib.File file = new TagLib.Mpeg.AudioFile(musicFiles[index]);
-            if (file.Tag.Pictures.Length > 0)
-            {
-                TagLib.IPicture picture = file.Tag.Pictures[0];
-                MemoryStream memoryStream = new MemoryStream(picture.Data.Data);
-                if (memoryStream != null && memoryStream.Length > 4096)
+                //Create a loop to load data of all musics
+                for (int i = 0; i < musicsArray.Length; i++)
                 {
-                    coverBitmap = new Bitmap(memoryStream);
-                    memoryStream.Flush();
-                    memoryStream.Close();
-                }
-            }
+                    //Wait time
+                    Thread.Sleep(50);
 
-            //Do the callback
-            if (onReceiveCover != null)
-                onReceiveCover(type, coverBitmap);
+                    //Prepare the data to return
+                    MusicMetadata musicMetadata = MusicMetadata.Current;
+                    Bitmap coverBitmap = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
+                    string name = "Unknown";
+                    string author = "Unknown";
+                    string extension = "UKN";
+
+                    //Detect the music order
+                    if (i == 0)
+                        musicMetadata = MusicMetadata.Current;
+                    if (i == 1)
+                        musicMetadata = MusicMetadata.Next2;
+                    if (i == 2)
+                        musicMetadata = MusicMetadata.Next3;
+                    if (i == 3)
+                        musicMetadata = MusicMetadata.Next4;
+                    if (i == 4)
+                        musicMetadata = MusicMetadata.Next5;
+
+                    //Try to load the text metadata
+                    try
+                    {
+                        //Load the music file
+                        TagLib.File file = TagLib.File.Create(musicsArray[i]);
+                        name = file.Tag.Title;
+                        author = file.Tag.FirstPerformer;
+                        extension = Path.GetExtension(musicsArray[i]).ToUpper().Replace(".", "");
+                    }
+                    catch (Exception e) { }
+
+                    //Fix the name and author, if necessary
+                    if (string.IsNullOrEmpty(name) == true)
+                        name = "Unknown";
+                    if (string.IsNullOrEmpty(author) == true)
+                        author = "Unknown";
+
+                    //If is a MP3 file, continue to extract the cover...
+                    if (Path.GetExtension(musicsArray[i]).ToLower() == ".mp3")
+                    {
+                        //Try to load the music file
+                        TagLib.File file = new TagLib.Mpeg.AudioFile(musicsArray[i]);
+                        //If have cover image, continues...
+                        if (file.Tag.Pictures.Length > 0)
+                        {
+                            //Load the bitmap cover of music file, if have
+                            TagLib.IPicture picture = file.Tag.Pictures[0];
+                            MemoryStream memoryStream = new MemoryStream(picture.Data.Data);
+                            if (memoryStream != null && memoryStream.Length > 4096)
+                            {
+                                coverBitmap = new Bitmap(memoryStream);
+                                memoryStream.Flush();
+                                memoryStream.Close();
+                            }
+                        }
+                    }
+
+                    //Send callback on UI thread
+                    if (onLoadMusicMetadata != null)
+                        Dispatcher.UIThread.Invoke(() => { onLoadMusicMetadata(musicMetadata, coverBitmap, name, author, extension); }, DispatcherPriority.MaxValue);
+                }
+
+                //...
+            }).Start();
         }
     }
 }

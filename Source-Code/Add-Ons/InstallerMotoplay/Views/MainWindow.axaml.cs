@@ -8,6 +8,7 @@ using MarcosTomaz.ATS;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -765,6 +766,231 @@ public partial class MainWindow : Window
         //If Windows, just continue...
         if (OperatingSystem.IsWindows() == true)
             AvaloniaDebug.WriteLine("The package \"wvkbd-mobintl\" is not necessary on Windows.");
+
+        //Continue to next step...
+        CoroutineHandler.Start(SetupTheSed());
+    }
+
+    private IEnumerator<Wait> SetupTheSed()
+    {
+         //If is Linux...
+        if (OperatingSystem.IsLinux() == true)
+        {
+            //Inform that is checking
+            doingTaskStatus.Text = "Checking Installation of \"sed\" Package";
+
+            //Wait time
+            yield return new Wait(1.0f);
+
+            //Send a command to check if the "sed" is installed
+            SendCommandToTerminalAndClearCurrentOutputLines("sudo dpkg -s sed");
+            //Wait the end of command execution
+            while (isLastCommandFinishedExecution() == false)
+                yield return new Wait(0.1f);
+
+            //If not installed, start installation
+            if (isThermFoundInTerminalOutputLines("is not installed") == true)
+            {
+                //Inform that is installing
+                doingTaskStatus.Text = "Installing \"sed\" Package";
+
+                //Wait time
+                yield return new Wait(5.0f);
+
+                //Send a command to install the "sed"
+                SendCommandToTerminalAndClearCurrentOutputLines("sudo apt-get install sed -y");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Inform that is confirming
+                doingTaskStatus.Text = "Confirming Installation of \"sed\" Package";
+
+                //Wait time
+                yield return new Wait(5.0f);
+
+                //Send a command to check if the "sed" is installed
+                SendCommandToTerminalAndClearCurrentOutputLines("sudo dpkg -s sed");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //If not installed, stop the program
+                if (isThermFoundInTerminalOutputLines("is not installed") == true)
+                {
+                    var diag = MessageBoxManager.GetMessageBoxStandard("Error", "There was an error installing the Package. Please check your connection and try again!", ButtonEnum.Ok).ShowAsync();
+                    while (diag.IsCompleted == false)
+                        yield return new Wait(0.1f);
+                    this.Close();
+                }
+            }
+        }
+
+        //If Windows, just continue...
+        if (OperatingSystem.IsWindows() == true)
+            AvaloniaDebug.WriteLine("The package \"sed\" is not necessary on Windows.");
+
+        //Continue to next step...
+        CoroutineHandler.Start(SetupTheMeson());
+    }
+
+    private IEnumerator<Wait> SetupTheMeson()
+    {
+        //If is Linux...
+        if (OperatingSystem.IsLinux() == true)
+        {
+            //Inform that is checking
+            doingTaskStatus.Text = "Checking Installation of \"meson\" Package";
+
+            //Wait time
+            yield return new Wait(1.0f);
+
+            //Send a command to check if the "meson" is installed
+            SendCommandToTerminalAndClearCurrentOutputLines("sudo dpkg -s meson");
+            //Wait the end of command execution
+            while (isLastCommandFinishedExecution() == false)
+                yield return new Wait(0.1f);
+
+            //If not installed, start installation
+            if (isThermFoundInTerminalOutputLines("is not installed") == true)
+            {
+                //Inform that is installing
+                doingTaskStatus.Text = "Installing \"meson\" Package";
+
+                //Wait time
+                yield return new Wait(5.0f);
+
+                //Send a command to install the "meson"
+                SendCommandToTerminalAndClearCurrentOutputLines("sudo apt-get install meson -y");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Inform that is confirming
+                doingTaskStatus.Text = "Confirming Installation of \"meson\" Package";
+
+                //Wait time
+                yield return new Wait(5.0f);
+
+                //Send a command to check if the "meson" is installed
+                SendCommandToTerminalAndClearCurrentOutputLines("sudo dpkg -s meson");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //If not installed, stop the program
+                if (isThermFoundInTerminalOutputLines("is not installed") == true)
+                {
+                    var diag = MessageBoxManager.GetMessageBoxStandard("Error", "There was an error installing the Package. Please check your connection and try again!", ButtonEnum.Ok).ShowAsync();
+                    while (diag.IsCompleted == false)
+                        yield return new Wait(0.1f);
+                    this.Close();
+                }
+            }
+        }
+
+        //If Windows, just continue...
+        if (OperatingSystem.IsWindows() == true)
+            AvaloniaDebug.WriteLine("The package \"meson\" is not necessary on Windows.");
+
+        //Continue to next step...
+        CoroutineHandler.Start(SetupTheWlrctl());
+    }
+
+    private IEnumerator<Wait> SetupTheWlrctl()
+    {
+        //If is Linux...
+        if (OperatingSystem.IsLinux() == true)
+        {
+            //Inform that is checking
+            doingTaskStatus.Text = "Checking Installation of \"wlrctl\" Package";
+
+            //Wait time
+            yield return new Wait(1.0f);
+
+            //Check if package "wlrctl" is installed
+            bool isWlrctlInstalled = File.Exists("/usr/local/bin/wlrctl");
+
+            //If not installed, start installation
+            if (isWlrctlInstalled == false)
+            {
+                //Inform that is downloading
+                doingTaskStatus.Text = "Downloading \"wlrctl\" Package";
+
+                //Wait time
+                yield return new Wait(5.0f);
+
+                //Send a command to create "Wlrctl" folder
+                SendCommandToTerminalAndClearCurrentOutputLines(("mkdir \"" + motoplayRootPath + "/Wlrctl" + "\""));
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Send a command to create "DownloadedFiles" folder
+                SendCommandToTerminalAndClearCurrentOutputLines(("mkdir \"" + motoplayRootPath + "/DownloadedFiles" + "\""));
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Send a command to delete "wlrctl" previously downloaded ZIP
+                SendCommandToTerminalAndClearCurrentOutputLines(("rm \"" + motoplayRootPath + "/DownloadedFiles/wlrctl-enhanced-for-motoplay.zip" + "\""));
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Send a command to download the "wlrctl"
+                SendCommandToTerminalAndClearCurrentOutputLines("curl -o \"" + motoplayRootPath + "/DownloadedFiles/wlrctl-enhanced-for-motoplay.zip" + "\" \"https://marcos4503.github.io/motoplay/Repository-Pages/wlrctl-enhanced-for-motoplay.zip\"");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Inform that is downloading
+                doingTaskStatus.Text = "Expanding Files of \"wlrctl\" Package";
+
+                //Wait time
+                yield return new Wait(5.0f);
+
+                //Send a command to extract files of "wlrctl"
+                SendCommandToTerminalAndClearCurrentOutputLines("unzip \"" + motoplayRootPath + "/DownloadedFiles/wlrctl-enhanced-for-motoplay.zip" + "\" -d \"" + motoplayRootPath + "/Wlrctl" + "\"");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Inform that is compiling
+                doingTaskStatus.Text = "Installing \"wlrctl\" Package";
+
+                //Wait time
+                yield return new Wait(5.0f);
+
+                //Send a command to change directory to "wlrctl" files
+                SendCommandToTerminalAndClearCurrentOutputLines("cd \"" + motoplayRootPath + "/Wlrctl/wlrctl" + "\"");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Send a command to apply arguments on project
+                SendCommandToTerminalAndClearCurrentOutputLines("sed -i \"/add_project_arguments('-Wno-missing-braces', language: 'c')/a add_project_arguments('-Wno-type-limits', language: 'c')\" meson.build");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Send a command to setup the project
+                SendCommandToTerminalAndClearCurrentOutputLines("meson setup --prefix=/usr/local build");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+
+                //Send a command to compile and install the project
+                SendCommandToTerminalAndClearCurrentOutputLines("sudo ninja -C build install");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution() == false)
+                    yield return new Wait(0.1f);
+            }
+        }
+
+        //If Windows, just continue...
+        if (OperatingSystem.IsWindows() == true)
+            AvaloniaDebug.WriteLine("The package \"wlrctl\" is not necessary on Windows.");
 
         //Continue to next step...
         ContinueToInstaller();

@@ -75,10 +75,22 @@ Attempt #%n</x:String>
 	<x:String x:Key="generalMetrics_metricsUpdate">The metric will be updated in %d seconds!</x:String>
 
 	<!-- Music Player -->
-	<x:String x:Key="generalMetrics_dependenciesMessage">Motoplay needs to install some dependencies on your device for this functionality to be possible. To continue, click the button below.</x:String>
-	<x:String x:Key="generalMetrics_dependenciesButton">Install</x:String>
-	<x:String x:Key="generalMetrics_noMusicsName">No Tracks Found</x:String>
-	<x:String x:Key="generalMetrics_noMusicsArtist">None</x:String>
+	<x:String x:Key="musicPlayer_dependenciesMessage">Motoplay needs to install some dependencies on your device for this functionality to be possible. To continue, click the button below.</x:String>
+	<x:String x:Key="musicPlayer_dependenciesButton">Install</x:String>
+	<x:String x:Key="musicPlayer_noMusicsName">No Tracks Found</x:String>
+	<x:String x:Key="musicPlayer_noMusicsArtist">None</x:String>
+	<x:String x:Key="musicPlayer_musicLibrary">Library</x:String>
+	<x:String x:Key="musicPlayer_otherDrives">Drives</x:String>
+	<x:String x:Key="musicPlayer_emptyLibraryMessage">There are no songs in your library. To transfer songs, go to the "Drives" tab.</x:String>
+	<x:String x:Key="musicPlayer_emptyDrivesMessage">No Music was found in your Drives. Connect a USB Drive that contains a folder called "Musics", which contains music in MP3, M4A, OGG, WMV or WAV format. Once done, just reopen this drawer to refresh it.</x:String>
+	<x:String x:Key="musicPlayer_deleteMusicButton">Delete</x:String>
+	<x:String x:Key="musicPlayer_transferMusicButton">Transfer</x:String>
+	<x:String x:Key="musicPlayer_bluetoothDevices">Bluetooth</x:String>
+	<x:String x:Key="musicPlayer_bluetoothDevicesTip">Here you will find all Bluetooth devices paired with your device. You can use this interface to connect to a Bluetooth speaker that is already paired with it if it does not connect automatically when you turn it on. For best compatibility, Pairing and Unpairing Bluetooth Sound Devices should be done through the Raspberry Pi interface!</x:String>
+	<x:String x:Key="musicPlayer_bluetoothConnect">Try Connect</x:String>
+	<x:String x:Key="musicPlayer_bluetoothConnectTryResult">Bluetooth Sound Device Connection Attempt Result...%r</x:String>
+	<x:String x:Key="musicPlayer_bluetoothConnectTryAlready">Bluetooth Sound Device is now connected!</x:String>
+	<x:String x:Key="musicPlayer_openSoundOutput">Open Sound Output Selector</x:String>
 
 
 
@@ -124,5 +136,26 @@ Attempt #%n</x:String>
 	<x:String x:Key="appPreferences_panelTab_letterToUseForVehicleStopped">Gears: Letter to Display for Stopped Vehicle (or Neutral)</x:String>
 	<x:String x:Key="appPreferences_panelTab_letterToUseForClutchPressed">Gears: Letter to Display for Clutch Pressed</x:String>
 	<x:String x:Key="appPreferences_panelTab_panelColorScheme">Panel Color Scheme</x:String>
+	<x:String x:Key="appPreferences_playerTab_title">Player</x:String>
+	<x:String x:Key="appPreferences_playerTab_resetSystemVolumeOnPlay">Reset System Volume On Start Playing a Music</x:String>
+	<x:String x:Key="appPreferences_playerTab_randomizeMusicList">Randomize Music List</x:String>
+	<x:String x:Key="appPreferences_playerTab_equalizerProfile">Equalizer Profile</x:String>
+	<x:String x:Key="appPreferences_playerTab_equalizerAmplifier">Equalizer Amplifier</x:String>
+	<x:String x:Key="appPreferences_playerTab_equalizer31hz">Equalizer 31Hz Band</x:String>
+	<x:String x:Key="appPreferences_playerTab_equalizer62hz">Equalizer 62Hz Band</x:String>
+	<x:String x:Key="appPreferences_playerTab_equalizer125hz">Equalizer 125Hz Band</x:String>
+	<x:String x:Key="appPreferences_playerTab_equalizer250hz">Equalizer 250Hz Band</x:String>
+	<x:String x:Key="appPreferences_playerTab_equalizer500hz">Equalizer 500Hz Band</x:String>
+	<x:String x:Key="appPreferences_playerTab_equalizer1khz">Equalizer 1KHz Band</x:String>
+	<x:String x:Key="appPreferences_playerTab_equalizer2khz">Equalizer 2KHz Band</x:String>
+	<x:String x:Key="appPreferences_playerTab_equalizer4khz">Equalizer 4KHz Band</x:String>
+	<x:String x:Key="appPreferences_playerTab_equalizer8khz">Equalizer 8KHz Band</x:String>
+	<x:String x:Key="appPreferences_playerTab_equalizer16khz">Equalizer 16KHz Band</x:String>
+	<x:String x:Key="appPreferences_playerTab_autoPauseOnStop">Automatically Pause When Vehicle Stops</x:String>
+	<x:String x:Key="appPreferences_playerTab_autoPlayOnMove">Automatically Play When Vehicle Starts Moving</x:String>
+	<x:String x:Key="appPreferences_playerTab_speakerRightClickEmulationStep1x">Emulation of Right Click on Taskbar Speaker - Step 1 X Offset</x:String>
+	<x:String x:Key="appPreferences_playerTab_speakerRightClickEmulationStep1y">Emulation of Right Click on Taskbar Speaker - Step 1 Y Offset</x:String>
+	<x:String x:Key="appPreferences_playerTab_speakerRightClickEmulationStep2x">Emulation of Right Click on Taskbar Speaker - Step 2 X Offset</x:String>
+	<x:String x:Key="appPreferences_playerTab_speakerRightClickEmulationStep2y">Emulation of Right Click on Taskbar Speaker - Step 2 Y Offset</x:String>
 
 </ResourceDictionary>

@@ -1,32 +1,27 @@
 ﻿using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using Coroutine;
-using HarfBuzzSharp;
-using LibVLCSharp.Shared;
 using MarcosTomaz.ATS;
 using Motoplay.Scripts;
 using MsBox.Avalonia;
-using MsBox.Avalonia.Base;
 using MsBox.Avalonia.Enums;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.Tracing;
+using System.Diagnostics.Metrics;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using static Motoplay.Scripts.MusicPlayer;
 
 namespace Motoplay.Views;
 
@@ -147,6 +142,14 @@ public partial class MainWindow : Window
     private MusicPlayer musicPlayerHandler = null;
     private List<string> musicPlayerFileList = new List<string>();
     private int musicPlayerCurrentPlayingIndex = 0;
+    private ActiveCoroutine musicPlayerSetSystemVolumeRoutine = null;
+    private ActiveCoroutine musicPlayerShowVolumeRoutine = null;
+    private bool isMusicPlayerDrawerOpen = false;
+    private ActiveCoroutine openCloseMusicPlayerDrawerRoutine = null;
+    private List<LibraryMusicItem> instantiatedLibraryMusicsInUi = new List<LibraryMusicItem>();
+    private List<DriveMusicItem> instantiatedDriveMusicsInUi = new List<DriveMusicItem>();
+    private ActiveCoroutine musicPlayerUpdatePairedBluetoothSoundList = null;
+    private List<BluetoothSoundItem> instantiatedSoundDevicesInUi = new List<BluetoothSoundItem>();
 
     //Private variables
     private string[] receivedCliArgs = null;
@@ -3146,6 +3149,9 @@ public partial class MainWindow : Window
         musicPlayer_skipNextButton.Click += (s, e) => { MusicPlayerSkipToNext(); };
         musicPlayer_volumeUpButton.Click += (s, e) => { MusicPlayerVolumeUp(); };
         musicPlayer_volumeDownButton.Click += (s, e) => { MusicPlayerVolumeDown(); };
+        musicPlayer_drawerHandler.PointerPressed += (s, e) => { ToggleMusicPlayerDrawer(); };
+        musicPlayer_drawerBackground.PointerPressed += (s, e) => { ToggleMusicPlayerDrawer(); };
+        musicPlayer_openOutputSelectorButton.Click += (s, e) => { CoroutineHandler.Start(EmulateMouseMoveToSpeakerIconAndRightClick()); };
 
         //Change to background of loading
         musicPlayer_background_loading.IsVisible = true;
@@ -3324,49 +3330,76 @@ public partial class MainWindow : Window
         musicPlayer_dependenciesScreen.IsVisible = false;
         musicPlayer_playerScreen.IsVisible = true;
 
-        //Initialize the music player instance
+        //Initialize the music player instance, only one time
         if (musicPlayerHandler == null)
         {
             //Create a new instance
             musicPlayerHandler = new MusicPlayer(appPrefs.loadedData.playerVolume);
 
-            //Register the callback of metadata receive
-            musicPlayerHandler.RegisterOnReceiveMetadataCallback((name, author, extension) => 
+            //Register the callback of start loading new music
+            musicPlayerHandler.RegisterOnStartLoadingNewMusicCallback(() =>
             {
-                //Render the metadata
-                musicPlayer_musicName.Text = name;
-                musicPlayer_musicAuthor.Text = author;
+                //Reset the track name
+                musicPlayer_musicName.Text = "-";
+                musicPlayer_musicAuthor.Text = "-";
 
                 //Show the time
                 musicPlayer_musicCurrentTime.Text = "00:00";
                 musicPlayer_musicProgress.Value = 0.0f;
                 musicPlayer_musicTotalTime.Text = "00:00";
+
+                //Change covers to default
+                musicPlayer_cover1.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
+                musicPlayer_cover2.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
+                musicPlayer_cover3.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
+                musicPlayer_cover4.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
+                musicPlayer_cover5.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
+                musicPlayer_musicsCount.Text = "-/-";
+
+                //Disable skip buttons
+                musicPlayer_skipPreviousButton.IsVisible = false;
+                musicPlayer_skipNextButton.IsVisible = false;
             });
 
-            //Register the callback of cover receive
-            musicPlayerHandler.RegisterOnReceiveCoverCallback((type, cover) => 
+            //Register the callback of metadata loaded
+            musicPlayerHandler.RegisterOnLoadMusicMetadataCallback((MusicMetadata music, Bitmap coverBitmap, string musicName, string musicAuthor, string musicExtension) =>
             {
-                //If is current cover
-                if (type == MusicPlayer.CoverType.Current)
+                //If is current music
+                if (music == MusicMetadata.Current)
                 {
-                    musicPlayer_cover1.Source = cover;
-                    musicPlayer_background_album.Source = cover;
+                    //Render the text metadata
+                    musicPlayer_musicName.Text = musicName;
+                    musicPlayer_musicAuthor.Text = musicAuthor;
+
+                    //Render the cover
+                    musicPlayer_cover1.Source = coverBitmap;
+                    musicPlayer_background_album.Source = coverBitmap;
                 }
+
                 //If is for nexts
-                if (type == MusicPlayer.CoverType.Next2)
-                    musicPlayer_cover2.Source = cover;
-                if (type == MusicPlayer.CoverType.Next3)
-                    musicPlayer_cover3.Source = cover;
-                if (type == MusicPlayer.CoverType.Next4)
-                    musicPlayer_cover4.Source = cover;
-                if (type == MusicPlayer.CoverType.Next5)
-                    musicPlayer_cover5.Source = cover;
+                if (music == MusicMetadata.Next2)
+                    musicPlayer_cover2.Source = coverBitmap;
+                if (music == MusicMetadata.Next3)
+                    musicPlayer_cover3.Source = coverBitmap;
+                if (music == MusicMetadata.Next4)
+                    musicPlayer_cover4.Source = coverBitmap;
+
+                //If is the last cover loaded
+                if (music == MusicMetadata.Next5)
+                {
+                    musicPlayer_cover5.Source = coverBitmap;
+
+                    //Renable the skip buttons
+                    musicPlayer_skipPreviousButton.IsVisible = true;
+                    musicPlayer_skipNextButton.IsVisible = true;
+                }
             });
 
             //Register the callback of pause
             musicPlayerHandler.RegisterOnPausedCallback(() => 
             {
                 //Change the UI
+                musicPlayer_musicsCount.Text = ((musicPlayerCurrentPlayingIndex + 1) + "/" + musicPlayerFileList.Count);
                 musicPlayer_skipPreviousButton.IsEnabled = true;
                 musicPlayer_playPauseButton.IsEnabled = true;
                 musicPlayer_playPauseImage.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/play-icon.png")));
@@ -3377,10 +3410,16 @@ public partial class MainWindow : Window
             musicPlayerHandler.RegisterOnPlayedCallback(() =>
             {
                 //Change the UI
+                musicPlayer_musicsCount.Text = ((musicPlayerCurrentPlayingIndex + 1) + "/" + musicPlayerFileList.Count);
                 musicPlayer_skipPreviousButton.IsEnabled = true;
                 musicPlayer_playPauseButton.IsEnabled = true;
                 musicPlayer_playPauseImage.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/pause-icon.png")));
                 musicPlayer_skipNextButton.IsEnabled = true;
+
+                //Reset the volume of system, if is enabled
+                if (appPrefs.loadedData.resetSystemVolumeOnPlaySong == true)
+                    if (musicPlayerSetSystemVolumeRoutine == null)
+                        musicPlayerSetSystemVolumeRoutine = CoroutineHandler.Start(SetSystemVolumeRoutine(100));
             });
 
             //Register the callback of stop
@@ -3408,6 +3447,33 @@ public partial class MainWindow : Window
                 //Go to next music
                 MusicPlayerSkipToNext();
             });
+
+            //Setup the equalization
+            if (appPrefs.loadedData.equalizerProfile == 2)
+            {
+                musicPlayerHandler.SetEqualization(appPrefs.loadedData.equalizerAmplifierValue,
+                                                   appPrefs.loadedData.equalizerBand31hz,
+                                                   appPrefs.loadedData.equalizerBand62hz,
+                                                   appPrefs.loadedData.equalizerBand125hz,
+                                                   appPrefs.loadedData.equalizerBand250hz,
+                                                   appPrefs.loadedData.equalizerBand500hz,
+                                                   appPrefs.loadedData.equalizerBand1khz,
+                                                   appPrefs.loadedData.equalizerBand2khz,
+                                                   appPrefs.loadedData.equalizerBand4khz,
+                                                   appPrefs.loadedData.equalizerBand8khz,
+                                                   appPrefs.loadedData.equalizerBand16khz);
+            }
+            if (appPrefs.loadedData.equalizerProfile == 1)
+                musicPlayerHandler.SetEqualization(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            if (appPrefs.loadedData.equalizerProfile == 0)
+                musicPlayerHandler.SetEqualizationDisabled();
+
+            //If is enabled the auto play or auto resume
+            if (appPrefs.loadedData.autoPauseOnStopVehicle == true || appPrefs.loadedData.autoPlayOnVehicleMove == true)
+                CoroutineHandler.Start(MusicPlayerVehicleMoveMonitor());
+
+            //Render all musics of library
+            RenderAllMusicsOfLibrary();
         }
 
         //Reset the file list
@@ -3449,10 +3515,15 @@ public partial class MainWindow : Window
             musicPlayer_cover2.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
             musicPlayer_cover1.IsVisible = true;
             musicPlayer_cover1.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
+            musicPlayer_musicsCount.Text = "0/0";
+            musicPlayer_coverSeparator1.IsVisible = false;
+            musicPlayer_coverSeparator2.IsVisible = false;
+            musicPlayer_coverSeparator3.IsVisible = false;
+            musicPlayer_coverSeparator4.IsVisible = false;
 
             //Show empty name
-            musicPlayer_musicName.Text = GetStringApplicationResource("generalMetrics_noMusicsName");
-            musicPlayer_musicAuthor.Text = GetStringApplicationResource("generalMetrics_noMusicsArtist");
+            musicPlayer_musicName.Text = GetStringApplicationResource("musicPlayer_noMusicsName");
+            musicPlayer_musicAuthor.Text = GetStringApplicationResource("musicPlayer_noMusicsArtist");
 
             //Show the time
             musicPlayer_musicCurrentTime.Text = "--:--";
@@ -3464,6 +3535,9 @@ public partial class MainWindow : Window
             musicPlayer_playPauseButton.IsEnabled = false;
             musicPlayer_playPauseImage.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/play-icon.png")));
             musicPlayer_skipNextButton.IsEnabled = false;
+
+            //Disable the volume text
+            musicPlayer_volumeText.IsVisible = false;
         }
 
         //If have musics
@@ -3483,6 +3557,11 @@ public partial class MainWindow : Window
             musicPlayer_cover2.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
             musicPlayer_cover1.IsVisible = true;
             musicPlayer_cover1.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
+            musicPlayer_musicsCount.Text = "-/-";
+            musicPlayer_coverSeparator1.IsVisible = true;
+            musicPlayer_coverSeparator2.IsVisible = true;
+            musicPlayer_coverSeparator3.IsVisible = true;
+            musicPlayer_coverSeparator4.IsVisible = true;
 
             //Show temp name
             musicPlayer_musicName.Text = "-";
@@ -3499,21 +3578,64 @@ public partial class MainWindow : Window
             musicPlayer_playPauseImage.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/play-icon.png")));
             musicPlayer_skipNextButton.IsEnabled = true;
 
+            //Disable the volume text
+            musicPlayer_volumeText.IsVisible = false;
+
+            //If is desired to shuffle, do it
+            if (appPrefs.loadedData.randomizeMusicList == true)
+                musicPlayerFileList.Shuffle();
+
             //Automatically change the Player to first music of list
-            musicPlayerHandler.ChangeMusicTo(musicPlayerCurrentPlayingIndex, ref musicPlayerFileList, false);
+            string[] currentAndNext4Musics = new string[5];
+            int index = musicPlayerCurrentPlayingIndex;
+            int inListCount = 0;
+            while (inListCount < 5)
+            {
+                //If the index is greather than the musics in list, reset the index
+                if (index == musicPlayerFileList.Count)
+                    index = 0;
+
+                //Add to array of musics
+                currentAndNext4Musics[inListCount] = musicPlayerFileList[index];
+
+                //Increase the index
+                index += 1;
+                inListCount += 1;
+            }
+            musicPlayerHandler.ChangeMusicTo(currentAndNext4Musics, false);
         }
 
         //Sync the volume to UI
-        musicPlayer_volumeProgress.Value = (((float)appPrefs.loadedData.playerVolume / 125.0f) * 100.0f);
+        UpdateVolumeBar();
     }
 
     private void MusicPlayerSkipToPrevious()
     {
-        //Go to previous music
+        //Change the music index to previous
         musicPlayerCurrentPlayingIndex -= 1;
         if (musicPlayerCurrentPlayingIndex < 0)
             musicPlayerCurrentPlayingIndex = (musicPlayerFileList.Count - 1);
-        musicPlayerHandler.ChangeMusicTo(musicPlayerCurrentPlayingIndex, ref musicPlayerFileList, true);
+
+        //Generate the array of current music and next 4 musics
+        string[] currentAndNext4Musics = new string[5];
+        int index = musicPlayerCurrentPlayingIndex;
+        int inListCount = 0;
+        while (inListCount < 5)
+        {
+            //If the index is greather than the musics in list, reset the index
+            if (index == musicPlayerFileList.Count)
+                index = 0;
+
+            //Add to array of musics
+            currentAndNext4Musics[inListCount] = musicPlayerFileList[index];
+
+            //Increase the index
+            index += 1;
+            inListCount += 1;
+        }
+        
+        //Change the music player to the current new music
+        musicPlayerHandler.ChangeMusicTo(currentAndNext4Musics, true);
     }
 
     private void MusicPlayerPlayPause()
@@ -3535,16 +3657,37 @@ public partial class MainWindow : Window
 
     private void MusicPlayerStop()
     {
-
+        //Stop the music player
+        musicPlayerHandler.Stop();
     }
 
     private void MusicPlayerSkipToNext()
     {
-        //Go to next music
+        //Change the music index to next
         musicPlayerCurrentPlayingIndex += 1;
         if (musicPlayerCurrentPlayingIndex == musicPlayerFileList.Count)
             musicPlayerCurrentPlayingIndex = 0;
-        musicPlayerHandler.ChangeMusicTo(musicPlayerCurrentPlayingIndex, ref musicPlayerFileList, true);
+
+        //Generate the array of current music and next 4 musics
+        string[] currentAndNext4Musics = new string[5];
+        int index = musicPlayerCurrentPlayingIndex;
+        int inListCount = 0;
+        while (inListCount < 5)
+        {
+            //If the index is greather than the musics in list, reset the index
+            if (index == musicPlayerFileList.Count)
+                index = 0;
+
+            //Add to array of musics
+            currentAndNext4Musics[inListCount] = musicPlayerFileList[index];
+
+            //Increase the index
+            index += 1;
+            inListCount += 1;
+        }
+
+        //Change the music player to the current new music
+        musicPlayerHandler.ChangeMusicTo(currentAndNext4Musics, true);
     }
 
     private void MusicPlayerVolumeUp()
@@ -3553,8 +3696,8 @@ public partial class MainWindow : Window
         appPrefs.loadedData.playerVolume += 15;
 
         //Fix bound
-        if (appPrefs.loadedData.playerVolume > 125)
-            appPrefs.loadedData.playerVolume = 125;
+        if (appPrefs.loadedData.playerVolume > 150)
+            appPrefs.loadedData.playerVolume = 150;
 
         //Save
         SaveAllPreferences();
@@ -3563,8 +3706,16 @@ public partial class MainWindow : Window
         if (musicPlayerHandler != null)
             musicPlayerHandler.SetVolume(appPrefs.loadedData.playerVolume);
 
+        //Show the volume
+        if (musicPlayerShowVolumeRoutine != null)
+        {
+            musicPlayerShowVolumeRoutine.Cancel();
+            musicPlayerShowVolumeRoutine = null;
+        }
+        musicPlayerShowVolumeRoutine = CoroutineHandler.Start(ShowVolumeRoutine());
+
         //Sync the volume to UI
-        musicPlayer_volumeProgress.Value = (((float)appPrefs.loadedData.playerVolume / 125.0f) * 100.0f);
+        UpdateVolumeBar();
     }
 
     private void MusicPlayerVolumeDown()
@@ -3583,8 +3734,663 @@ public partial class MainWindow : Window
         if (musicPlayerHandler != null)
             musicPlayerHandler.SetVolume(appPrefs.loadedData.playerVolume);
 
+        //Show the volume
+        if (musicPlayerShowVolumeRoutine != null)
+        {
+            musicPlayerShowVolumeRoutine.Cancel();
+            musicPlayerShowVolumeRoutine = null;
+        }
+        musicPlayerShowVolumeRoutine = CoroutineHandler.Start(ShowVolumeRoutine());
+
         //Sync the volume to UI
-        musicPlayer_volumeProgress.Value = (((float)appPrefs.loadedData.playerVolume / 125.0f) * 100.0f);
+        UpdateVolumeBar();
+    }
+
+    private void UpdateVolumeBar()
+    {
+        //Show the limits
+        if (appPrefs.loadedData.playerVolume >= 100)
+            musicPlayer_orangeLimit.IsVisible = true;
+        if (appPrefs.loadedData.playerVolume < 100)
+            musicPlayer_orangeLimit.IsVisible = false;
+        if (appPrefs.loadedData.playerVolume >= 125)
+            musicPlayer_redLimit.IsVisible = true;
+        if (appPrefs.loadedData.playerVolume < 125)
+            musicPlayer_redLimit.IsVisible = false;
+
+        //Sync the save volume to UI
+        musicPlayer_volumeProgress.Value = (((float)appPrefs.loadedData.playerVolume / 150.0f) * 100.0f);
+    }
+
+    private IEnumerator<Wait> SetSystemVolumeRoutine(int targetVolume)
+    {
+        //Add this task running
+        AddTask("systemVolumeSet", "Sets the system volume.");
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+        //Send command to set all volumes to the target volume
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, ("amixer -q -M sset Master "+targetVolume+"% ; amixer -q -M sset Headphone "+targetVolume+"% ; amixer -q -M sset PCM "+targetVolume+"%"));
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+        //Inform that was finished
+        musicPlayerSetSystemVolumeRoutine = null;
+
+
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //Remove the task running
+        RemoveTask("systemVolumeSet");
+    }
+
+    private IEnumerator<Wait> ShowVolumeRoutine()
+    {
+        //Show the volume
+        musicPlayer_volumeText.Text = (appPrefs.loadedData.playerVolume + "%");
+        musicPlayer_volumeText.IsVisible = true;
+
+        //Wait
+        yield return new Wait(5.0f);
+
+        //Hide the volume
+        musicPlayer_volumeText.IsVisible = false;
+    }
+
+    private void ToggleMusicPlayerDrawer()
+    {
+        //If the Drawer is opened
+        if (isMusicPlayerDrawerOpen == true)
+        {
+            //If the routine is not running, start it
+            if (openCloseMusicPlayerDrawerRoutine == null)
+                openCloseMusicPlayerDrawerRoutine = CoroutineHandler.Start(CloseMusicPlayerDrawerRoutine());
+
+            //Inform that is closed
+            isMusicPlayerDrawerOpen = false;
+
+            //Restart the Music Player, if is initialized at least one time
+            if (musicPlayerHandler != null)
+                InitializeTheMusicPlayer();
+
+            //Cancel
+            return;
+        }
+
+        //If the Drawer is closed
+        if (isMusicPlayerDrawerOpen == false)
+        {
+            //If the routine is not running, start it
+            if (openCloseMusicPlayerDrawerRoutine == null)
+                openCloseMusicPlayerDrawerRoutine = CoroutineHandler.Start(OpenMusicPlayerDrawerRoutine());
+
+            //Inform that is opened
+            isMusicPlayerDrawerOpen = true;
+
+            //Stop the Music Player, if is initialized at least one time
+            if (musicPlayerHandler != null)
+                MusicPlayerStop();
+
+            //Render all musics found in external drives
+            RenderAllMusicsOfDrives();
+
+            //Update the connected bluetooth sound devices
+            if (musicPlayerUpdatePairedBluetoothSoundList == null)
+                musicPlayerUpdatePairedBluetoothSoundList = CoroutineHandler.Start(UpdatePairedSoundBluetoothDevices());
+
+            //Cancel
+            return;
+        }
+    }
+
+    private IEnumerator<Wait> OpenMusicPlayerDrawerRoutine()
+    {
+        //Enable the background
+        musicPlayer_drawerBackground.IsVisible = true;
+        musicPlayer_drawerBackground.Opacity = 0.7;
+
+        //Wait time
+        yield return new Wait(0.2f);
+
+        //Open the drawer
+        musicPlayer_drawer.Margin = new Thickness(0.0f, -2.0f, 0.0f, 0.0f);
+
+        //Wait until animation finishes
+        yield return new Wait(0.3f);
+
+        //Change the drawer handler icon
+        musicPlayer_drawerHandlerIcon.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/drawer-handler-foreground-close.png")));
+
+        //Inform that is finished
+        openCloseMusicPlayerDrawerRoutine = null;
+    }
+
+    private IEnumerator<Wait> CloseMusicPlayerDrawerRoutine()
+    {
+        //Close the drawer
+        musicPlayer_drawer.Margin = new Thickness(0.0f, -2.0f, -566.0f, 0.0f);
+
+        //Wait until animation finishes
+        yield return new Wait(0.3f);
+
+        //Disable the background
+        musicPlayer_drawerBackground.Opacity = 0.0;
+
+        //Wait until animation finishes
+        yield return new Wait(0.3f);
+
+        //Disable the background completely
+        musicPlayer_drawerBackground.IsVisible = false;
+
+        //Change the drawer handler icon
+        musicPlayer_drawerHandlerIcon.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/drawer-handler-foreground-open.png")));
+
+        //Inform that is finished
+        openCloseMusicPlayerDrawerRoutine = null;
+    }
+    
+    private void RenderAllMusicsOfLibrary()
+    {
+        //Clear the current rendered musics in UI
+        foreach (LibraryMusicItem item in instantiatedLibraryMusicsInUi)
+            musicPlayer_libraryList.Children.Remove(item);
+        instantiatedLibraryMusicsInUi.Clear();
+
+        //Prepare the list of musics found
+        List<string> foundMusicsPath = new List<string>();
+
+        //Get the list of musics
+        foreach (FileInfo file in (new DirectoryInfo((motoplayRootPath + "/Musics")).GetFiles()))
+            if (Path.GetExtension(file.FullName).ToLower() == ".mp3")
+                foundMusicsPath.Add(file.FullName);
+        foreach (FileInfo file in (new DirectoryInfo((motoplayRootPath + "/Musics")).GetFiles()))
+            if (Path.GetExtension(file.FullName).ToLower() == ".m4a")
+                foundMusicsPath.Add(file.FullName);
+        foreach (FileInfo file in (new DirectoryInfo((motoplayRootPath + "/Musics")).GetFiles()))
+            if (Path.GetExtension(file.FullName).ToLower() == ".ogg")
+                foundMusicsPath.Add(file.FullName);
+        foreach (FileInfo file in (new DirectoryInfo((motoplayRootPath + "/Musics")).GetFiles()))
+            if (Path.GetExtension(file.FullName).ToLower() == ".wmv")
+                foundMusicsPath.Add(file.FullName);
+        foreach (FileInfo file in (new DirectoryInfo((motoplayRootPath + "/Musics")).GetFiles()))
+            if (Path.GetExtension(file.FullName).ToLower() == ".wav")
+                foundMusicsPath.Add(file.FullName);
+
+        //Render each music found
+        foreach (string musicPath in foundMusicsPath)
+        {
+            //Instantiate and store reference for it
+            LibraryMusicItem item = new LibraryMusicItem(this);
+            instantiatedLibraryMusicsInUi.Add(item);
+            musicPlayer_libraryList.Children.Add(item);
+            //Set it up
+            item.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
+            item.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top;
+            item.Width = double.NaN;
+            item.Height = double.NaN;
+            //Fill this item
+            item.SetMusicFileName(Path.GetFileName(musicPath));
+            item.RegisterOnDeleteCallback((musicPath) => { DeleteMusicFromLibrary(musicPath); });
+            item.Setup();
+        }
+
+        //Show or hide the empty musics warn
+        if (instantiatedLibraryMusicsInUi.Count == 0)
+            musicPlayer_libraryEmpty.IsVisible = true;
+        if (instantiatedLibraryMusicsInUi.Count > 0)
+            musicPlayer_libraryEmpty.IsVisible = false;
+    }
+
+    private void DeleteMusicFromLibrary(string musicFileName)
+    {
+        //Delete the music file
+        File.Delete((motoplayRootPath + "/Musics/" + musicFileName));
+
+        //Search the target music to remove from UI
+        int targetItemIndex = -1;
+        for (int i = 0; i < instantiatedLibraryMusicsInUi.Count; i++)
+            if (instantiatedLibraryMusicsInUi[i].musicNameText.Text == musicFileName)
+            {
+                targetItemIndex = i;
+                break;
+            }
+
+        //If not found the target, stop here
+        if (targetItemIndex == -1)
+            return;
+
+        //Remove from UI
+        musicPlayer_libraryList.Children.Remove(instantiatedLibraryMusicsInUi[targetItemIndex]);
+        instantiatedLibraryMusicsInUi.RemoveAt(targetItemIndex);
+
+        //If found music with the same name in list of drive musics, enable it
+        foreach (DriveMusicItem item in instantiatedDriveMusicsInUi)
+            if (item.musicNameText.Text == musicFileName)
+                item.SetEnabled(true);
+
+        //Show or hide the empty musics warn
+        if (instantiatedLibraryMusicsInUi.Count == 0)
+            musicPlayer_libraryEmpty.IsVisible = true;
+        if (instantiatedLibraryMusicsInUi.Count > 0)
+            musicPlayer_libraryEmpty.IsVisible = false;
+    }
+
+    private void AddMusicToLibrary(string sourceMusicFilePath)
+    {
+        //Try to copy the music
+        try
+        {
+            //Copy the music file
+            File.Copy(sourceMusicFilePath, (motoplayRootPath + "/Musics/" + Path.GetFileName(sourceMusicFilePath)));
+
+            //Instantiate and store reference for it
+            LibraryMusicItem item = new LibraryMusicItem(this);
+            instantiatedLibraryMusicsInUi.Add(item);
+            musicPlayer_libraryList.Children.Add(item);
+            //Set it up
+            item.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
+            item.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top;
+            item.Width = double.NaN;
+            item.Height = double.NaN;
+            //Fill this item
+            item.SetMusicFileName(Path.GetFileName(sourceMusicFilePath));
+            item.RegisterOnDeleteCallback((musicPath) => { DeleteMusicFromLibrary(musicPath); });
+            item.Setup();
+
+            //If found music with the same name in list of drive musics, disable it
+            foreach (DriveMusicItem ditem in instantiatedDriveMusicsInUi)
+                if (ditem.musicNameText.Text == Path.GetFileName(sourceMusicFilePath))
+                    ditem.SetEnabled(false);
+
+            //Show or hide the empty musics warn
+            if (instantiatedLibraryMusicsInUi.Count == 0)
+                musicPlayer_libraryEmpty.IsVisible = true;
+            if (instantiatedLibraryMusicsInUi.Count > 0)
+                musicPlayer_libraryEmpty.IsVisible = false;
+        }
+        catch (Exception ex) { }
+    }
+
+    private void RenderAllMusicsOfDrives()
+    {
+        //Clear the current rendered musics in UI
+        foreach (DriveMusicItem item in instantiatedDriveMusicsInUi)
+            musicPlayer_drivesList.Children.Remove(item);
+        instantiatedDriveMusicsInUi.Clear();
+
+        //Prepare the list of musics found
+        List<string> foundMusicsPath = new List<string>();
+        List<string> foundMusicsDrive = new List<string>();
+
+        //If is Windows...
+        if (OperatingSystem.IsWindows() == true)
+        {
+            //Prepare the string of letters
+            string[] letters = new string[] { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
+
+            //Check each connected drive
+            foreach (string letter in letters)
+                if (Directory.Exists((letter + @":\Musics")) == true)
+                {
+                    //Get the musics list
+                    foreach (FileInfo file in (new DirectoryInfo((letter + @":\Musics")).GetFiles()))
+                        if (Path.GetExtension(file.FullName).ToLower() == ".mp3")
+                        {
+                            foundMusicsPath.Add(file.FullName);
+                            foundMusicsDrive.Add(letter);
+                        }
+                    foreach (FileInfo file in (new DirectoryInfo((letter + @":\Musics")).GetFiles()))
+                        if (Path.GetExtension(file.FullName).ToLower() == ".m4a")
+                        {
+                            foundMusicsPath.Add(file.FullName);
+                            foundMusicsDrive.Add(letter);
+                        }
+                    foreach (FileInfo file in (new DirectoryInfo((letter + @":\Musics")).GetFiles()))
+                        if (Path.GetExtension(file.FullName).ToLower() == ".ogg")
+                        {
+                            foundMusicsPath.Add(file.FullName);
+                            foundMusicsDrive.Add(letter);
+                        }
+                    foreach (FileInfo file in (new DirectoryInfo((letter + @":\Musics")).GetFiles()))
+                        if (Path.GetExtension(file.FullName).ToLower() == ".wmv")
+                        {
+                            foundMusicsPath.Add(file.FullName);
+                            foundMusicsDrive.Add(letter);
+                        }
+                    foreach (FileInfo file in (new DirectoryInfo((letter + @":\Musics")).GetFiles()))
+                        if (Path.GetExtension(file.FullName).ToLower() == ".wav")
+                        {
+                            foundMusicsPath.Add(file.FullName);
+                            foundMusicsDrive.Add(letter);
+                        }
+                }
+        }
+
+        //If is Linux...
+        if (OperatingSystem.IsLinux() == true)
+        {
+            //Check each connected drive
+            foreach (DirectoryInfo dir in (new DirectoryInfo(("/media/" + systemCurrentUsername)).GetDirectories()))
+                if (Directory.Exists((dir.FullName + "/Musics")) == true)
+                {
+                    //Get the musics list
+                    foreach (FileInfo file in (new DirectoryInfo((dir.FullName + "/Musics")).GetFiles()))
+                        if (Path.GetExtension(file.FullName).ToLower() == ".mp3")
+                        {
+                            foundMusicsPath.Add(file.FullName);
+                            foundMusicsDrive.Add(dir.Name);
+                        }
+                    foreach (FileInfo file in (new DirectoryInfo((dir.FullName + "/Musics")).GetFiles()))
+                        if (Path.GetExtension(file.FullName).ToLower() == ".m4a")
+                        {
+                            foundMusicsPath.Add(file.FullName);
+                            foundMusicsDrive.Add(dir.Name);
+                        }
+                    foreach (FileInfo file in (new DirectoryInfo((dir.FullName + "/Musics")).GetFiles()))
+                        if (Path.GetExtension(file.FullName).ToLower() == ".ogg")
+                        {
+                            foundMusicsPath.Add(file.FullName);
+                            foundMusicsDrive.Add(dir.Name);
+                        }
+                    foreach (FileInfo file in (new DirectoryInfo((dir.FullName + "/Musics")).GetFiles()))
+                        if (Path.GetExtension(file.FullName).ToLower() == ".wmv")
+                        {
+                            foundMusicsPath.Add(file.FullName);
+                            foundMusicsDrive.Add(dir.Name);
+                        }
+                    foreach (FileInfo file in (new DirectoryInfo((dir.FullName + "/Musics")).GetFiles()))
+                        if (Path.GetExtension(file.FullName).ToLower() == ".wav")
+                        {
+                            foundMusicsPath.Add(file.FullName);
+                            foundMusicsDrive.Add(dir.Name);
+                        }
+                }
+        }
+
+        //Render each music found
+        for (int i = 0; i < foundMusicsPath.Count; i++)
+        {
+            //Instantiate and store reference for it
+            DriveMusicItem item = new DriveMusicItem(this);
+            instantiatedDriveMusicsInUi.Add(item);
+            musicPlayer_drivesList.Children.Add(item);
+            //Set it up
+            item.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
+            item.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top;
+            item.Width = double.NaN;
+            item.Height = double.NaN;
+            //Fill this item
+            item.SetMusicPath(foundMusicsPath[i]);
+            item.SetDriveName(foundMusicsDrive[i]);
+            if (File.Exists((motoplayRootPath + "/Musics/" + Path.GetFileName(foundMusicsPath[i]))) == true)
+                item.SetEnabled(false);
+            if (File.Exists((motoplayRootPath + "/Musics/" + Path.GetFileName(foundMusicsPath[i]))) == false)
+                item.SetEnabled(true);
+            item.RegisterOnTransferCallback((musicFullPath) => { AddMusicToLibrary(musicFullPath); });
+            item.Setup();
+        }
+
+        //Show or hide the empty musics warn
+        if (instantiatedDriveMusicsInUi.Count == 0)
+            musicPlayer_drivesEmpty.IsVisible = true;
+        if (instantiatedDriveMusicsInUi.Count > 0)
+            musicPlayer_drivesEmpty.IsVisible = false;
+    }
+
+    private IEnumerator<Wait> MusicPlayerVehicleMoveMonitor()
+    {
+        //Prepare the interval time
+        Wait intervalTime = new Wait(1.5f);
+
+        //Data variables
+        bool wasPausedByMonitor = false;
+
+        //Start the monitor loop
+        while (true)
+        {
+            //If the auto pause is enabled
+            if (appPrefs.loadedData.autoPauseOnStopVehicle == true && activeObdConnection != null)
+            {
+                if (activeObdConnection.transmissionGear == 0 && musicPlayerHandler.isPlaying() == true)
+                {
+                    musicPlayerHandler.Pause();
+                    wasPausedByMonitor = true;
+                }
+            }
+
+            //If the auto pause is enabled
+            if (appPrefs.loadedData.autoPlayOnVehicleMove == true && activeObdConnection != null)
+            {
+                if (activeObdConnection.transmissionGear > 0 && musicPlayerHandler.isPlaying() == false && wasPausedByMonitor == true)
+                {
+                    musicPlayerHandler.Play();
+                    wasPausedByMonitor = false;
+                }
+            }
+
+            //Wait time
+            yield return intervalTime;
+        }
+    }
+
+    private IEnumerator<Wait> UpdatePairedSoundBluetoothDevices()
+    {
+        //Show the loading bar
+        musicPlayer_devicesSearching.IsVisible = true;
+
+        //Clear the current rendered devices in UI
+        foreach (BluetoothSoundItem item in instantiatedSoundDevicesInUi)
+            musicPlayer_devicesList.Children.Remove(item);
+        instantiatedSoundDevicesInUi.Clear();
+
+        //Add this task running
+        AddTask("searchingPairedSounds", "Search by Paired Bluetooth Sound Devices.");
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+        //Send command to search by paired bluetooth devices
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, "bluetoothctl devices");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+        //Store the received lines form terminal
+        string[] storedResponseLines = terminalReceivedOutputLines.ToArray();
+
+        //Check each listed device
+        foreach (string line in storedResponseLines)
+        {
+            //If is not a line of device, continues
+            if (line.Contains("Device") == false)
+                continue;
+
+            //Wait time
+            yield return new Wait(1.0f);
+
+            //Get the device name and MAC
+            string[] macAndName = line.Replace("Device ", "").Split(new[] { ' ' }, 2);
+            string deviceMac = macAndName[0];
+            string deviceName = macAndName[1];
+
+            //Send a command to get information about device
+            SendCommandToTerminalAndClearCurrentOutputLines(rKey, ("bluetoothctl info " + deviceMac));
+            //Wait the end of command execution
+            while (isLastCommandFinishedExecution(rKey) == false)
+                yield return new Wait(0.1f);
+
+            //Merge all lines in a unique string
+            string resultString = "";
+            foreach (string respLine in terminalReceivedOutputLines)
+                resultString += (" " + respLine);
+
+            //If is not a sound device, continues
+            if (resultString.Contains("audio-headphones") == false && resultString.Contains("Headset") == false && resultString.Contains("Audio Sink") == false)
+                continue;
+
+            //Render this device on screen
+            BluetoothSoundItem item = new BluetoothSoundItem(this);
+            instantiatedSoundDevicesInUi.Add(item);
+            musicPlayer_devicesList.Children.Add(item);
+            //Set it up
+            item.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
+            item.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top;
+            item.Width = double.NaN;
+            item.Height = double.NaN;
+            //Fill this item
+            item.SetDeviceMac(deviceMac);
+            item.SetDeviceName(deviceName);
+            item.RegisterOnTryConnectCallback((deviceMac) => { CoroutineHandler.Start(TryToConnectToPairedSoundBluetoothDevice(deviceMac)); });
+        }
+
+        //Hide the loading bar
+        musicPlayer_devicesSearching.IsVisible = false;
+
+        //Inform that was finished
+        musicPlayerUpdatePairedBluetoothSoundList = null;
+
+
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //Remove the task running
+        RemoveTask("searchingPairedSounds");
+    }
+
+    public IEnumerator<Wait> TryToConnectToPairedSoundBluetoothDevice(string targetMac)
+    {
+        //Add this task running
+        AddTask("connectToBluetoothSound", "Connect to Bluetooth Sound Device, if is not connected.");
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+        //Send command to check connected devices
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, "bluetoothctl devices Connected");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+        //Merge all lines in a unique string
+        string resultString = "";
+        foreach (string respLine in terminalReceivedOutputLines)
+            resultString += (" " + respLine);
+
+        //If in the connected devices not contains the target mac, continues...
+        if (resultString.Contains(targetMac) == false)
+        {
+            //Wait time
+            yield return new Wait(1.0f);
+
+            //Send command to connect to device
+            SendCommandToTerminalAndClearCurrentOutputLines(rKey, ("bluetoothctl connect " + targetMac));
+            //Wait the end of command execution
+            while (isLastCommandFinishedExecution(rKey) == false)
+                yield return new Wait(0.1f);
+
+            //Show the connection try result
+            StringBuilder resultTxt = new StringBuilder();
+            foreach (string respLine in terminalReceivedOutputLines)
+            {
+                if (respLine.Contains("> Done Command") == true)
+                    continue;
+                if (respLine.Contains("[") == true && respLine.Contains("]") == true)
+                    continue;
+
+                resultTxt.AppendLine(respLine);
+            }
+            ShowToast(GetStringApplicationResource("musicPlayer_bluetoothConnectTryResult").Replace("%r", ("\n\n" + resultTxt.ToString())), ToastDuration.Short, ToastType.Normal);
+        }
+
+        //If in the connected devices contains the target mac, warn
+        if (resultString.Contains(targetMac) == true)
+            ShowToast(GetStringApplicationResource("musicPlayer_bluetoothConnectTryAlready"), ToastDuration.Short, ToastType.Normal);
+
+
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //Remove the task running
+        RemoveTask("connectToBluetoothSound");
+    }
+
+    public IEnumerator<Wait> EmulateMouseMoveToSpeakerIconAndRightClick()
+    {
+        //Disable the button
+        musicPlayer_openOutputSelectorButton.IsEnabled = false;
+
+        //Add this task running
+        AddTask("emualatintSpeakerRightClick", "Emulates the movement of Right Clicking on the Speaker icon.");
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+
+
+        //Wait time
+        yield return new Wait(0.05f);
+
+        //Send command of step 1
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, ("wlrctl pointer move " + appPrefs.loadedData.outputSelectorEmulateMoveStep1x + " " + appPrefs.loadedData.outputSelectorEmulateMoveStep1y));
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+        //Send command of step 2
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, ("wlrctl pointer move " + appPrefs.loadedData.outputSelectorEmulateMoveStep2x + " " + appPrefs.loadedData.outputSelectorEmulateMoveStep2y));
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+        //Send command of step 3
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, ("wlrctl pointer click right"));
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+        //Enable the button
+        musicPlayer_openOutputSelectorButton.IsEnabled = true;
+
+
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //Remove the task running
+        RemoveTask("emualatintSpeakerRightClick");
     }
 
     //Pages Manager
@@ -3721,6 +4527,10 @@ public partial class MainWindow : Window
         };
         if (appPrefs.loadedData.maxTransmissionGears < 6)
             pref_panel_maxSpeedForGear6_root.IsVisible = false;
+
+        //Prepare the auto hide of equalizer options
+        pref_player_equalizerProfile.SelectionChanged += (s, e) =>  { UpdateEqualizerBandOptionsVisibility(); };
+        UpdateEqualizerBandOptionsVisibility();
     }
 
     private void UpdatePreferencesOnUI()
@@ -3881,6 +4691,48 @@ public partial class MainWindow : Window
         pref_panel_letterForClutchPressed.textBox.Text = appPrefs.loadedData.letterToUseAsClutchPressed;
         //*** pref_panel_panelColorScheme
         pref_panel_panelColorScheme.SelectedIndex = appPrefs.loadedData.panelColorScheme;
+
+        //Player Tab
+        //*** pref_player_resetSystemVolumeOnPlay
+        pref_player_resetSystemVolumeOnPlay.IsChecked = appPrefs.loadedData.resetSystemVolumeOnPlaySong;
+        //*** pref_player_randomizeMusicList
+        pref_player_randomizeMusicList.IsChecked = appPrefs.loadedData.randomizeMusicList;
+        //*** pref_player_autoPauseOnStop
+        pref_player_autoPauseOnStop.IsChecked = appPrefs.loadedData.autoPauseOnStopVehicle;
+        //*** pref_player_autoPlayOnMove
+        pref_player_autoPlayOnMove.IsChecked = appPrefs.loadedData.autoPlayOnVehicleMove;
+        //*** pref_player_equalizerProfile
+        pref_player_equalizerProfile.SelectedIndex = appPrefs.loadedData.equalizerProfile;
+        //*** pref_player_equalizerAmplifier
+        pref_player_equalizerAmplifier.Value = appPrefs.loadedData.equalizerAmplifierValue;
+        //*** pref_player_equalizerBand31
+        pref_player_equalizerBand31.Value = appPrefs.loadedData.equalizerBand31hz;
+        //*** pref_player_equalizerBand62
+        pref_player_equalizerBand62.Value = appPrefs.loadedData.equalizerBand62hz;
+        //*** pref_player_equalizerBand125
+        pref_player_equalizerBand125.Value = appPrefs.loadedData.equalizerBand125hz;
+        //*** pref_player_equalizerBand250
+        pref_player_equalizerBand250.Value = appPrefs.loadedData.equalizerBand250hz;
+        //*** pref_player_equalizerBand500
+        pref_player_equalizerBand500.Value = appPrefs.loadedData.equalizerBand500hz;
+        //*** pref_player_equalizerBand1k
+        pref_player_equalizerBand1k.Value = appPrefs.loadedData.equalizerBand1khz;
+        //*** pref_player_equalizerBand2k
+        pref_player_equalizerBand2k.Value = appPrefs.loadedData.equalizerBand2khz;
+        //*** pref_player_equalizerBand4k
+        pref_player_equalizerBand4k.Value = appPrefs.loadedData.equalizerBand4khz;
+        //*** pref_player_equalizerBand8k
+        pref_player_equalizerBand8k.Value = appPrefs.loadedData.equalizerBand8khz;
+        //*** pref_player_equalizerBand16k
+        pref_player_equalizerBand16k.Value = appPrefs.loadedData.equalizerBand16khz;
+        //*** pref_player_speakerRightClickEmulationStep1x
+        pref_player_speakerRightClickEmulationStep1x.Value = appPrefs.loadedData.outputSelectorEmulateMoveStep1x;
+        //*** pref_player_speakerRightClickEmulationStep1y
+        pref_player_speakerRightClickEmulationStep1y.Value = appPrefs.loadedData.outputSelectorEmulateMoveStep1y;
+        //*** pref_player_speakerRightClickEmulationStep2x
+        pref_player_speakerRightClickEmulationStep2x.Value = appPrefs.loadedData.outputSelectorEmulateMoveStep2x;
+        //*** pref_player_speakerRightClickEmulationStep2y
+        pref_player_speakerRightClickEmulationStep2y.Value = appPrefs.loadedData.outputSelectorEmulateMoveStep2y;
     }
 
     private void SaveAllPreferences()
@@ -4053,6 +4905,48 @@ public partial class MainWindow : Window
         //*** pref_panel_panelColorScheme
         appPrefs.loadedData.panelColorScheme = pref_panel_panelColorScheme.SelectedIndex;
 
+        //Player Tab
+        //*** pref_player_resetSystemVolumeOnPlay
+        appPrefs.loadedData.resetSystemVolumeOnPlaySong = (bool)pref_player_resetSystemVolumeOnPlay.IsChecked;
+        //*** pref_player_randomizeMusicList
+        appPrefs.loadedData.randomizeMusicList = (bool)pref_player_randomizeMusicList.IsChecked;
+        //*** pref_player_autoPauseOnStop
+        appPrefs.loadedData.autoPauseOnStopVehicle = (bool)pref_player_autoPauseOnStop.IsChecked;
+        //*** pref_player_autoPlayOnMove
+        appPrefs.loadedData.autoPlayOnVehicleMove = (bool)pref_player_autoPlayOnMove.IsChecked;
+        //*** pref_player_equalizerProfile
+        appPrefs.loadedData.equalizerProfile = pref_player_equalizerProfile.SelectedIndex;
+        //*** pref_player_equalizerAmplifier
+        appPrefs.loadedData.equalizerAmplifierValue = (int)pref_player_equalizerAmplifier.Value;
+        //*** pref_player_equalizerBand31
+        appPrefs.loadedData.equalizerBand31hz = (int)pref_player_equalizerBand31.Value;
+        //*** pref_player_equalizerBand62
+        appPrefs.loadedData.equalizerBand62hz = (int)pref_player_equalizerBand62.Value;
+        //*** pref_player_equalizerBand125
+        appPrefs.loadedData.equalizerBand125hz = (int)pref_player_equalizerBand125.Value;
+        //*** pref_player_equalizerBand250
+        appPrefs.loadedData.equalizerBand250hz = (int)pref_player_equalizerBand250.Value;
+        //*** pref_player_equalizerBand500
+        appPrefs.loadedData.equalizerBand500hz = (int)pref_player_equalizerBand500.Value;
+        //*** pref_player_equalizerBand1k
+        appPrefs.loadedData.equalizerBand1khz = (int)pref_player_equalizerBand1k.Value;
+        //*** pref_player_equalizerBand2k
+        appPrefs.loadedData.equalizerBand2khz = (int)pref_player_equalizerBand2k.Value;
+        //*** pref_player_equalizerBand4k
+        appPrefs.loadedData.equalizerBand4khz = (int)pref_player_equalizerBand4k.Value;
+        //*** pref_player_equalizerBand8k
+        appPrefs.loadedData.equalizerBand8khz = (int)pref_player_equalizerBand8k.Value;
+        //*** pref_player_equalizerBand16k
+        appPrefs.loadedData.equalizerBand16khz = (int)pref_player_equalizerBand16k.Value;
+        //*** pref_player_speakerRightClickEmulationStep1x
+        appPrefs.loadedData.outputSelectorEmulateMoveStep1x = (int)pref_player_speakerRightClickEmulationStep1x.Value;
+        //*** pref_player_speakerRightClickEmulationStep1y
+        appPrefs.loadedData.outputSelectorEmulateMoveStep1y = (int)pref_player_speakerRightClickEmulationStep1y.Value;
+        //*** pref_player_speakerRightClickEmulationStep2x
+        appPrefs.loadedData.outputSelectorEmulateMoveStep2x = (int)pref_player_speakerRightClickEmulationStep2x.Value;
+        //*** pref_player_speakerRightClickEmulationStep2y
+        appPrefs.loadedData.outputSelectorEmulateMoveStep2y = (int)pref_player_speakerRightClickEmulationStep2y.Value;
+
         //Save the preferences to file
         appPrefs.Save();
 
@@ -4084,6 +4978,22 @@ public partial class MainWindow : Window
 
         //Remove the task running
         RemoveTask("postSavePreferences");
+    }
+
+    private void UpdateEqualizerBandOptionsVisibility()
+    {
+        //Hide the equalizer band options if the equalizer profile is different from "Custom"
+        pref_player_equalizerAmplifier_root.IsVisible = ((pref_player_equalizerProfile.SelectedIndex == 2) ? true : false);
+        pref_player_equalizerBand31_root.IsVisible = ((pref_player_equalizerProfile.SelectedIndex == 2) ? true : false);
+        pref_player_equalizerBand62_root.IsVisible = ((pref_player_equalizerProfile.SelectedIndex == 2) ? true : false);
+        pref_player_equalizerBand125_root.IsVisible = ((pref_player_equalizerProfile.SelectedIndex == 2) ? true : false);
+        pref_player_equalizerBand250_root.IsVisible = ((pref_player_equalizerProfile.SelectedIndex == 2) ? true : false);
+        pref_player_equalizerBand500_root.IsVisible = ((pref_player_equalizerProfile.SelectedIndex == 2) ? true : false);
+        pref_player_equalizerBand1k_root.IsVisible = ((pref_player_equalizerProfile.SelectedIndex == 2) ? true : false);
+        pref_player_equalizerBand2k_root.IsVisible = ((pref_player_equalizerProfile.SelectedIndex == 2) ? true : false);
+        pref_player_equalizerBand4k_root.IsVisible = ((pref_player_equalizerProfile.SelectedIndex == 2) ? true : false);
+        pref_player_equalizerBand8k_root.IsVisible = ((pref_player_equalizerProfile.SelectedIndex == 2) ? true : false);
+        pref_player_equalizerBand16k_root.IsVisible = ((pref_player_equalizerProfile.SelectedIndex == 2) ? true : false);
     }
 
     //Interaction Blocker Manager

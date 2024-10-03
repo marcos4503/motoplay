@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Motoplay.BluetoothSoundItem">
+	
+	<!-- Root Element -->
+	<Grid Name="rootElement" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+		<Border Background="White" HorizontalAlignment="Stretch" VerticalAlignment="Top" BorderThickness="2" BorderBrush="#e3e3e3" Padding="8, 8, 8, 8" CornerRadius="8">
+			<Grid Background="White" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+				<StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Left" VerticalAlignment="Center">
+					<Image Source="/Assets/sound-bluetooth-device-icon.png" HorizontalAlignment="Left" VerticalAlignment="Center" Height="32" Opacity="0.7"></Image>
+					<TextBlock Name="deviceNameText" Text="Device Name" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" MaxWidth="324"></TextBlock>
+				</StackPanel>
+				<Button Name="connectButton" Content="{DynamicResource ResourceKey=musicPlayer_bluetoothConnect}" HorizontalAlignment="Right" VerticalAlignment="Center" Width="128" Height="32" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="#2d75bd" Foreground="#ffffff"></Button>
+			</Grid>
+		</Border>
+	</Grid>
+	
+</UserControl>

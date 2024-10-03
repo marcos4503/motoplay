@@ -203,11 +203,11 @@
 						<Image Source="/Assets/background-charts.png" HorizontalAlignment="Right" VerticalAlignment="Center" Width="432" RenderOptions.BitmapInterpolationMode="HighQuality" Margin="0, 0, -16, -272" Opacity="0.05"></Image>
 					</Grid>
 					<!-- Music Player Background -->
-					<Grid Name="pageBgForPlayer" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+					<Grid Name="pageBgForPlayer" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 						<!-- Load Screen Background -->
 						<Grid Name="musicPlayer_background_loading" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="White"></Grid>
 						<!-- Player Background -->
-						<Grid Name="musicPlayer_background_player" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<Grid Name="musicPlayer_background_player" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 							<Image Name="musicPlayer_background_album" Source="/Assets/music-player-background.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality" Margin="-64, -64, -64, -64">
 								<Image.Styles>
 									<Style Selector="Image">
@@ -221,7 +221,7 @@
 						</Grid>
 					</Grid>
 					<!-- Web Browser Background -->
-					<Grid Name="pageBgForBrowser" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+					<Grid Name="pageBgForBrowser" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 						<Grid Background="Orange"></Grid>
 					</Grid>
 					<!-- USB Camera Background -->
@@ -596,7 +596,7 @@
 						</ScrollViewer>
 					</Grid>
 					<!-- Music Player Page Content -->
-					<Grid Name="pageContentForPlayer" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+					<Grid Name="pageContentForPlayer" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 						<!-- Load Screen -->
 						<Grid Name="musicPlayer_loadScreen" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 							<Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Height="150">
@@ -608,12 +608,12 @@
 						<Grid Name="musicPlayer_dependenciesScreen" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 							<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
 								<Image Source="/Assets/music-dependencies.png" HorizontalAlignment="Center" VerticalAlignment="Top" Opacity="1.0" Height="128"></Image>
-								<TextBlock Text="{DynamicResource ResourceKey=generalMetrics_dependenciesMessage}" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Top" MaxWidth="400" TextAlignment="Center" Margin="0, 16, 0, 32"></TextBlock>
-								<Button Name="musicPlayer_dependenciesScreen_installButton" Content="{DynamicResource ResourceKey=generalMetrics_dependenciesButton}" HorizontalAlignment="Center" VerticalAlignment="Top" Width="128" HorizontalContentAlignment="Center"></Button>
+								<TextBlock Text="{DynamicResource ResourceKey=musicPlayer_dependenciesMessage}" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Top" MaxWidth="400" TextAlignment="Center" Margin="0, 16, 0, 32"></TextBlock>
+								<Button Name="musicPlayer_dependenciesScreen_installButton" Content="{DynamicResource ResourceKey=musicPlayer_dependenciesButton}" HorizontalAlignment="Center" VerticalAlignment="Top" Width="128" HorizontalContentAlignment="Center"></Button>
 							</StackPanel>
 						</Grid>
 						<!-- Player Screen -->
-						<Grid Name="musicPlayer_playerScreen" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<Grid Name="musicPlayer_playerScreen" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 							<Grid ColumnDefinitions="*,100,80" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="12, 0, 0, 0">
 								<Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 									<StackPanel Orientation="Vertical" Spacing="0" HorizontalAlignment="Left" VerticalAlignment="Top">
@@ -623,30 +623,31 @@
 													<Image Name="musicPlayer_cover5" Source="/Assets/no-album-cover.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"></Image>
 												</Grid>
 											</Border>
-											<Rectangle HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="2" Height="104" Fill="#000000" Margin="436, 0, 0, 0"></Rectangle>
+											<Rectangle Name="musicPlayer_coverSeparator4" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="2" Height="104" Fill="#000000" Margin="436, 0, 0, 0"></Rectangle>
 											<Border HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="128" Height="128" CornerRadius="8, 8, 0, 8" ClipToBounds="True" Margin="308, 0, 0, 0">
 												<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 													<Image Name="musicPlayer_cover4" Source="/Assets/no-album-cover.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"></Image>
 												</Grid>
 											</Border>
-											<Rectangle HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="2" Height="128" Fill="#000000" Margin="382, 0, 0, 0"></Rectangle>
+											<Rectangle Name="musicPlayer_coverSeparator3" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="2" Height="128" Fill="#000000" Margin="382, 0, 0, 0"></Rectangle>
 											<Border HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="152" Height="152" CornerRadius="8, 8, 0, 8" ClipToBounds="True" Margin="230, 0, 0, 0">
 												<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 													<Image Name="musicPlayer_cover3" Source="/Assets/no-album-cover.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"></Image>
 												</Grid>
 											</Border>
-											<Rectangle HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="2" Height="152" Fill="#000000" Margin="300, 0, 0, 0"></Rectangle>
+											<Rectangle Name="musicPlayer_coverSeparator2" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="2" Height="152" Fill="#000000" Margin="300, 0, 0, 0"></Rectangle>
 											<Border HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="176" Height="176" CornerRadius="8, 8, 0, 8" ClipToBounds="True" Margin="124, 0, 0, 0">
 												<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 													<Image Name="musicPlayer_cover2" Source="/Assets/no-album-cover.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"></Image>
 												</Grid>
 											</Border>
-											<Rectangle HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="2" Height="176" Fill="#000000" Margin="200, 0, 0, 0"></Rectangle>
+											<Rectangle Name="musicPlayer_coverSeparator1" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="2" Height="176" Fill="#000000" Margin="200, 0, 0, 0"></Rectangle>
 											<Border HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Height="200" CornerRadius="8, 8, 0, 8" ClipToBounds="True">
 												<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 													<Image Name="musicPlayer_cover1" Source="/Assets/no-album-cover.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"></Image>
 												</Grid>
 											</Border>
+											<TextBlock Name="musicPlayer_musicsCount" Text="0/0" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#ebebeb" Margin="4, 4, 0, 0"></TextBlock>
 										</Grid>
 										<StackPanel Orientation="Horizontal" Spacing="0" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0, 8, 0, 0">
 											<TextBlock Name="musicPlayer_musicName" Text="Track Name" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="#f5f5f5" FontSize="18"></TextBlock>
@@ -704,6 +705,20 @@
 													</TransformGroup>
 												</ProgressBar.RenderTransform>
 											</ProgressBar>
+											<Border HorizontalAlignment="Center" VerticalAlignment="Center" Width="164" Height="24">
+												<Border.RenderTransform>
+													<TransformGroup>
+														<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
+														<TranslateTransform X="0" Y="0"></TranslateTransform>
+														<RotateTransform CenterX="0" CenterY="0" Angle="-90"></RotateTransform>
+													</TransformGroup>
+												</Border.RenderTransform>
+												<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+													<Border Name="musicPlayer_redLimit" HorizontalAlignment="Right" VerticalAlignment="Center" Width="27" Height="24" CornerRadius="0, 8, 8, 0" Opacity="0.5" Background="#ff0000"></Border>
+													<Border Name="musicPlayer_orangeLimit" HorizontalAlignment="Right" VerticalAlignment="Center" Width="27" Height="24" CornerRadius="0, 0, 0, 0" Opacity="0.5" Background="#ff6a00" Margin="0, 0, 27, 0"></Border>
+												</Grid>
+											</Border>
+											<TextBlock Name="musicPlayer_volumeText" Text="0%" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="30" FontWeight="Bold" Foreground="#ffffff" TextAlignment="Right" Width="100" Margin="0, 0, 64, 0"></TextBlock>
 										</Grid>
 										<Grid Grid.Row="2" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 											<Button Name="musicPlayer_volumeDownButton" HorizontalAlignment="Center" VerticalAlignment="Center" Width="80" Height="80" CornerRadius="40" Background="#ededed" Padding="24, 24, 24, 24" BorderThickness="2" BorderBrush="#cfcfcf">
@@ -714,9 +729,63 @@
 								</Grid>
 							</Grid>
 						</Grid>
+						<!-- Right Drawer -->
+						<Grid Name="musicPlayer_drawerBackground" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Black" Opacity="0.0">
+							<Grid.Transitions>
+								<Transitions>
+									<DoubleTransition Property="Opacity" Duration="0:0:0.3"></DoubleTransition>
+								</Transitions>
+							</Grid.Transitions>
+						</Grid>
+						<Grid Name="musicPlayer_drawer" HorizontalAlignment="Right" VerticalAlignment="Stretch" Width="564" Background="White" Margin="0, -2, -566, 0"> <!-- Closed Margin: 0, -2, -566, 0 -->
+							<Grid.Transitions>
+								<Transitions>
+									<ThicknessTransition Property="Margin" Duration="0:0:0.3"></ThicknessTransition>
+								</Transitions>
+							</Grid.Transitions>
+							<!-- Drawer Divider -->
+							<Rectangle HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="1" Fill="#dedede" Margin="0, 48, 0, 0"></Rectangle>
+							<Rectangle HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="2" Fill="#dedede" Margin="0, 0, 0, 0"></Rectangle>
+							<!-- Drawer Content -->
+							<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 48, 0, 0">
+								<TabControl SelectedIndex="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 0, 0, 0" Padding="0, 0, 0, 0">
+									<TabItem Header="{DynamicResource ResourceKey=musicPlayer_musicLibrary}" FontSize="16" Margin="16, 0, 0, 0" Padding="0, 0, 0, 0">
+										<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Offset="0, 100" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 0, 0, 0">
+											<StackPanel Name="musicPlayer_libraryList" Orientation="Vertical" Spacing="8" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="16, 8, 16, 8">
+												<TextBlock Name="musicPlayer_libraryEmpty" Text="{DynamicResource ResourceKey=musicPlayer_emptyLibraryMessage}" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0, 16, 0, 0"></TextBlock>
+											</StackPanel>
+										</ScrollViewer>
+									</TabItem>
+									<TabItem Header="{DynamicResource ResourceKey=musicPlayer_otherDrives}" FontSize="16" Margin="16, 0, 0, 0" Padding="0, 0, 0, 0">
+										<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Offset="0, 0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 0, 0, 0">
+											<StackPanel Name="musicPlayer_drivesList" Orientation="Vertical" Spacing="8" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="16, 8, 16, 8">
+												<TextBlock Name="musicPlayer_drivesEmpty" Text="{DynamicResource ResourceKey=musicPlayer_emptyDrivesMessage}" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0, 16, 0, 0"></TextBlock>
+											</StackPanel>
+										</ScrollViewer>
+									</TabItem>
+									<TabItem Header="{DynamicResource ResourceKey=musicPlayer_bluetoothDevices}" FontSize="16" Margin="16, 0, 0, 0" Padding="0, 0, 0, 0">
+										<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+											<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Offset="0, 0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 0, 0, 132">
+												<StackPanel Name="musicPlayer_devicesList" Orientation="Vertical" Spacing="8" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="16, 8, 16, 8">
+													<ProgressBar Name="musicPlayer_devicesSearching" IsIndeterminate="True" HorizontalAlignment="Stretch" VerticalAlignment="Top"></ProgressBar>
+												</StackPanel>
+											</ScrollViewer>
+											<Button Name="musicPlayer_openOutputSelectorButton" Content="{DynamicResource ResourceKey=musicPlayer_openSoundOutput}" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="256" HorizontalContentAlignment="Center" Margin="0, 0, 0, 96"></Button>
+											<TextBlock Text="{DynamicResource ResourceKey=musicPlayer_bluetoothDevicesTip}" TextWrapping="Wrap" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" TextAlignment="Center" Margin="16, 0, 16, 8" Opacity="0.7"></TextBlock>
+										</Grid>
+									</TabItem>
+								</TabControl>
+							</Grid>
+							<!-- Drawer Handler -->
+							<Rectangle HorizontalAlignment="Left" VerticalAlignment="Stretch" Width="2" Fill="#dedede" Margin="-2, 0, 0, 0"></Rectangle>
+							<Grid Name="musicPlayer_drawerHandler" HorizontalAlignment="Left" VerticalAlignment="Center" Width="32" Height="40" Margin="-32, 0, 0, 0">
+								<Image Source="/Assets/drawer-handler-background.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderOptions.BitmapInterpolationMode="HighQuality" Stretch="Fill"></Image>
+								<Image Name="musicPlayer_drawerHandlerIcon" Source="/Assets/drawer-handler-foreground-open.png" HorizontalAlignment="Center" VerticalAlignment="Center" RenderOptions.BitmapInterpolationMode="HighQuality" Width="12" Height="12" Opacity="0.5" Margin="12, 0, 0, 0"></Image>
+							</Grid>
+						</Grid>
 					</Grid>
 					<!-- Web Browser Page Content -->
-					<Grid Name="pageContentForBrowser" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+					<Grid Name="pageContentForBrowser" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 						<TextBlock Text="Browser"></TextBlock>
 					</Grid>
 					<!-- USB Camera Page Content -->
@@ -948,6 +1017,117 @@
 												<ComboBoxItem>Dark</ComboBoxItem>
 												<ComboBoxItem>Light</ComboBoxItem>
 											</ComboBox>
+										</DockPanel>
+									</StackPanel>
+								</ScrollViewer>
+							</TabItem>
+							<!-- Player Tab -->
+							<TabItem Header="{DynamicResource ResourceKey=appPreferences_playerTab_title}" FontSize="16" Margin="16, 0, 0, 0" Padding="0, 0, 0, 0">
+								<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Offset="0, 0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 0, 0, 0">
+									<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="16, 16, 16, 16">
+										<!-- pref_player_resetSystemVolumeOnPlay -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_resetSystemVolumeOnPlay}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<CheckBox DockPanel.Dock="Right" Name="pref_player_resetSystemVolumeOnPlay" IsChecked="False" HorizontalAlignment="Right" VerticalAlignment="Center"></CheckBox>
+										</DockPanel>
+										<!-- pref_player_randomizeMusicList -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_randomizeMusicList}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<CheckBox DockPanel.Dock="Right" Name="pref_player_randomizeMusicList" IsChecked="False" HorizontalAlignment="Right" VerticalAlignment="Center"></CheckBox>
+										</DockPanel>
+										<!-- pref_player_autoPauseOnStop -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_autoPauseOnStop}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<CheckBox DockPanel.Dock="Right" Name="pref_player_autoPauseOnStop" IsChecked="False" HorizontalAlignment="Right" VerticalAlignment="Center"></CheckBox>
+										</DockPanel>
+										<!-- pref_player_autoPlayOnMove -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_autoPlayOnMove}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<CheckBox DockPanel.Dock="Right" Name="pref_player_autoPlayOnMove" IsChecked="False" HorizontalAlignment="Right" VerticalAlignment="Center"></CheckBox>
+										</DockPanel>
+										<!-- pref_player_equalizerProfile -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizerProfile}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_player_equalizerProfile" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+												<ComboBoxItem>Disabled</ComboBoxItem>
+												<ComboBoxItem>Flat</ComboBoxItem>
+												<ComboBoxItem>Custom</ComboBoxItem>
+											</ComboBox>
+										</DockPanel>
+										<!-- pref_player_equalizerAmplifier -->
+										<DockPanel Name="pref_player_equalizerAmplifier_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizerAmplifier}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerAmplifier" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+										</DockPanel>
+										<!-- pref_player_equalizerBand31 -->
+										<DockPanel Name="pref_player_equalizerBand31_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizer31hz}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand31" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+										</DockPanel>
+										<!-- pref_player_equalizerBand62 -->
+										<DockPanel Name="pref_player_equalizerBand62_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizer62hz}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand62" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+										</DockPanel>
+										<!-- pref_player_equalizerBand125 -->
+										<DockPanel Name="pref_player_equalizerBand125_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizer125hz}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand125" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+										</DockPanel>
+										<!-- pref_player_equalizerBand250 -->
+										<DockPanel Name="pref_player_equalizerBand250_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizer250hz}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand250" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+										</DockPanel>
+										<!-- pref_player_equalizerBand500 -->
+										<DockPanel Name="pref_player_equalizerBand500_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizer500hz}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand500" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+										</DockPanel>
+										<!-- pref_player_equalizerBand1k -->
+										<DockPanel Name="pref_player_equalizerBand1k_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizer1khz}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand1k" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+										</DockPanel>
+										<!-- pref_player_equalizerBand2k -->
+										<DockPanel Name="pref_player_equalizerBand2k_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizer2khz}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand2k" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+										</DockPanel>
+										<!-- pref_player_equalizerBand4k -->
+										<DockPanel Name="pref_player_equalizerBand4k_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizer4khz}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand4k" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+										</DockPanel>
+										<!-- pref_player_equalizerBand8k -->
+										<DockPanel Name="pref_player_equalizerBand8k_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizer8khz}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand8k" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+										</DockPanel>
+										<!-- pref_player_equalizerBand16k -->
+										<DockPanel Name="pref_player_equalizerBand16k_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizer16khz}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand16k" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+										</DockPanel>
+										<!-- pref_player_speakerRightClickEmulationStep1x -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_speakerRightClickEmulationStep1x}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_speakerRightClickEmulationStep1x" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+										</DockPanel>
+										<!-- pref_player_speakerRightClickEmulationStep1y -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_speakerRightClickEmulationStep1y}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_speakerRightClickEmulationStep1y" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+										</DockPanel>
+										<!-- pref_player_speakerRightClickEmulationStep2x -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_speakerRightClickEmulationStep2x}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_speakerRightClickEmulationStep2x" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+										</DockPanel>
+										<!-- pref_player_speakerRightClickEmulationStep2y -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_speakerRightClickEmulationStep2y}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_speakerRightClickEmulationStep2y" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
 										</DockPanel>
 									</StackPanel>
 								</ScrollViewer>

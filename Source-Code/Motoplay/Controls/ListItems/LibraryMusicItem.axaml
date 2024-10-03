@@ -1,0 +1,30 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Motoplay.LibraryMusicItem">
+
+	<!-- Root Element -->
+	<Grid Name="rootElement" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+		<Border Background="White" HorizontalAlignment="Stretch" VerticalAlignment="Top" BorderThickness="2" BorderBrush="#e3e3e3" Padding="8, 8, 8, 8" CornerRadius="8">
+			<Grid Background="White" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+				<StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Left" VerticalAlignment="Center">
+					<Image Source="/Assets/music-file-icon.png" HorizontalAlignment="Left" VerticalAlignment="Center" Height="32" Opacity="0.7"></Image>
+					<TextBlock Name="musicNameText" Text="file.mp3" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center" MaxWidth="324"></TextBlock>
+				</StackPanel>
+				<Grid HorizontalAlignment="Right" VerticalAlignment="Stretch" Width="164">
+					<Grid.Background>
+						<LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+							<GradientStop Color="#00ffffff" Offset="0.0" />
+							<GradientStop Color="#ffffffff" Offset="0.2" />
+							<GradientStop Color="#ffffffff" Offset="1.0" />
+						</LinearGradientBrush>
+					</Grid.Background>
+				</Grid>
+				<Button Name="musicDeleteButton" Content="{DynamicResource ResourceKey=musicPlayer_deleteMusicButton}" HorizontalAlignment="Right" VerticalAlignment="Center" Width="128" Height="32" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="#c22323" Foreground="#ffffff"></Button>
+			</Grid>
+		</Border>
+	</Grid>
+	
+</UserControl>

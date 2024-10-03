@@ -51,7 +51,27 @@ namespace Motoplay.Scripts
             public string letterToUseAsClutchPressed = "C";
             public int panelColorScheme = 0;   //0 = Automatic, 1 = Dark, 2 = Light
 
-            public int playerVolume = 100;
+            public int playerVolume = 75;
+            public bool resetSystemVolumeOnPlaySong = true;
+            public bool randomizeMusicList = false;
+            public int equalizerProfile = 0;   //0 = Disabled, 1 = Flat, 2 = Custom
+            public int equalizerAmplifierValue = 0;
+            public int equalizerBand31hz = 0;
+            public int equalizerBand62hz = 0;
+            public int equalizerBand125hz = 0;
+            public int equalizerBand250hz = 0;
+            public int equalizerBand500hz = 0;
+            public int equalizerBand1khz = 0;
+            public int equalizerBand2khz = 0;
+            public int equalizerBand4khz = 0;
+            public int equalizerBand8khz = 0;
+            public int equalizerBand16khz = 0;
+            public bool autoPauseOnStopVehicle = false;
+            public bool autoPlayOnVehicleMove = false;
+            public int outputSelectorEmulateMoveStep1x = 1920;
+            public int outputSelectorEmulateMoveStep1y = -1080;
+            public int outputSelectorEmulateMoveStep2x = -110;
+            public int outputSelectorEmulateMoveStep2y = 0;
         }
 
         //Private variables
