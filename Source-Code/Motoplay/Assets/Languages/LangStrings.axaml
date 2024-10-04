@@ -153,9 +153,16 @@ Attempt #%n</x:String>
 	<x:String x:Key="appPreferences_playerTab_equalizer16khz">Equalizer 16KHz Band</x:String>
 	<x:String x:Key="appPreferences_playerTab_autoPauseOnStop">Automatically Pause When Vehicle Stops</x:String>
 	<x:String x:Key="appPreferences_playerTab_autoPlayOnMove">Automatically Play When Vehicle Starts Moving</x:String>
-	<x:String x:Key="appPreferences_playerTab_speakerRightClickEmulationStep1x">Emulation of Right Click on Taskbar Speaker - Step 1 X Offset</x:String>
-	<x:String x:Key="appPreferences_playerTab_speakerRightClickEmulationStep1y">Emulation of Right Click on Taskbar Speaker - Step 1 Y Offset</x:String>
-	<x:String x:Key="appPreferences_playerTab_speakerRightClickEmulationStep2x">Emulation of Right Click on Taskbar Speaker - Step 2 X Offset</x:String>
-	<x:String x:Key="appPreferences_playerTab_speakerRightClickEmulationStep2y">Emulation of Right Click on Taskbar Speaker - Step 2 Y Offset</x:String>
+	<x:String x:Key="appPreferences_playerTab_speakerRightClickEmulationStep1">Emulation of Right Click on Taskbar Speaker - Step 1 Offset (X, Y)</x:String>
+	<x:String x:Key="appPreferences_playerTab_speakerRightClickEmulationStep2">Emulation of Right Click on Taskbar Speaker - Step 2 Offset (X, Y)</x:String>
+	<x:String x:Key="appPreferences_playerTab_automaticVolume">Automatically Adjust Volume Based on Speed and RPM</x:String>
+	<x:String x:Key="appPreferences_playerTab_volumeMark1">Automatic Volume Mark 1 (Km/h, Vol%)</x:String>
+	<x:String x:Key="appPreferences_playerTab_volumeMark2">Automatic Volume Mark 2 (Km/h, Vol%)</x:String>
+	<x:String x:Key="appPreferences_playerTab_volumeMark3">Automatic Volume Mark 3 (Km/h, Vol%)</x:String>
+	<x:String x:Key="appPreferences_playerTab_volumeMark4">Automatic Volume Mark 4 (Km/h, Vol%)</x:String>
+	<x:String x:Key="appPreferences_playerTab_volumeMark5">Automatic Volume Mark 5 (Km/h, Vol%)</x:String>
+	<x:String x:Key="appPreferences_playerTab_volumeMark6">Automatic Volume Mark 6 (Km/h, Vol%)</x:String>
+	<x:String x:Key="appPreferences_playerTab_volumeMark7">Automatic Volume Mark 7 (Km/h, Vol%)</x:String>
+	<x:String x:Key="appPreferences_playerTab_volumeBoost">Max Relative Volume Boost at Max RPM (%)</x:String>
 
 </ResourceDictionary>

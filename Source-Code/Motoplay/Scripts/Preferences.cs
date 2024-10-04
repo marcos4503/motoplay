@@ -72,6 +72,22 @@ namespace Motoplay.Scripts
             public int outputSelectorEmulateMoveStep1y = -1080;
             public int outputSelectorEmulateMoveStep2x = -110;
             public int outputSelectorEmulateMoveStep2y = 0;
+            public bool automaticVolume = false;
+            public int mark1volumeSpeed = 0;
+            public int mark1volumeTarget = 32;
+            public int mark2volumeSpeed = 25;
+            public int mark2volumeTarget = 45;
+            public int mark3volumeSpeed = 34;
+            public int mark3volumeTarget = 53;
+            public int mark4volumeSpeed = 48;
+            public int mark4volumeTarget = 63;
+            public int mark5volumeSpeed = 65;
+            public int mark5volumeTarget = 70;
+            public int mark6volumeSpeed = 74;
+            public int mark6volumeTarget = 86;
+            public int mark7volumeSpeed = 85;
+            public int mark7volumeTarget = 105;
+            public int volumeBoostOnMaxRpm = 30;
         }
 
         //Private variables

@@ -786,7 +786,7 @@
 					</Grid>
 					<!-- Web Browser Page Content -->
 					<Grid Name="pageContentForBrowser" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-						<TextBlock Text="Browser"></TextBlock>
+						
 					</Grid>
 					<!-- USB Camera Page Content -->
 					<Grid Name="pageContentForCamera" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -808,7 +808,7 @@
 										<!-- pref_keyboard_heightScreenPercent -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_keyboardTab_heightScreenPercent}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<ComboBox DockPanel.Dock="Right" Name="pref_keyboard_heightScreenPercent" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+											<ComboBox DockPanel.Dock="Right" Name="pref_keyboard_heightScreenPercent" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
 												<ComboBoxItem>20%</ComboBoxItem>
 												<ComboBoxItem>25%</ComboBoxItem>
 												<ComboBoxItem>35%</ComboBoxItem>
@@ -825,7 +825,7 @@
 										<!-- pref_panel_serialPortToUse -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_serialPortToUseTitle}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<ComboBox DockPanel.Dock="Right" Name="pref_panel_serialPortToUse" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+											<ComboBox DockPanel.Dock="Right" Name="pref_panel_serialPortToUse" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
 												<ComboBoxItem>/dev/rfcomm0</ComboBoxItem>
 												<ComboBoxItem>/dev/rfcomm5</ComboBoxItem>
 												<ComboBoxItem>/dev/rfcomm10</ComboBoxItem>
@@ -841,7 +841,7 @@
 										<!-- pref_panel_serialPortChannelToUse -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_serialPortChannelToUseTitle}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<ComboBox DockPanel.Dock="Right" Name="pref_panel_serialPortChannelToUse" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+											<ComboBox DockPanel.Dock="Right" Name="pref_panel_serialPortChannelToUse" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
 												<ComboBoxItem>1</ComboBoxItem>
 												<ComboBoxItem>2</ComboBoxItem>
 												<ComboBoxItem>3</ComboBoxItem>
@@ -852,7 +852,7 @@
 										<!-- pref_panel_intervalObdConnectTries -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_intervalObdConnectTries}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<ComboBox DockPanel.Dock="Right" Name="pref_panel_intervalObdConnectTries" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+											<ComboBox DockPanel.Dock="Right" Name="pref_panel_intervalObdConnectTries" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
 												<ComboBoxItem>30 Seconds</ComboBoxItem>
 												<ComboBoxItem>1 Minute</ComboBoxItem>
 												<ComboBoxItem>5 Minutes</ComboBoxItem>
@@ -861,7 +861,7 @@
 										<!-- pref_panel_maxObdConnectTries -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_maxObdConnectTries}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<ComboBox DockPanel.Dock="Right" Name="pref_panel_maxObdConnectTries" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+											<ComboBox DockPanel.Dock="Right" Name="pref_panel_maxObdConnectTries" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
 												<ComboBoxItem>2 Attempts</ComboBoxItem>
 												<ComboBoxItem>3 Attempts</ComboBoxItem>
 												<ComboBoxItem>5 Attempts</ComboBoxItem>
@@ -872,7 +872,7 @@
 										<!-- pref_panel_obdAdapterBaudRate -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_obdAdapterBaudRate}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<ComboBox DockPanel.Dock="Right" Name="pref_panel_obdAdapterBaudRate" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+											<ComboBox DockPanel.Dock="Right" Name="pref_panel_obdAdapterBaudRate" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
 												<ComboBoxItem>4096 bps</ComboBoxItem>
 												<ComboBoxItem>4800 bps</ComboBoxItem>
 												<ComboBoxItem>9600 bps</ComboBoxItem>
@@ -886,12 +886,12 @@
 										<!-- pref_panel_vehicleMaxRpm -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_vehicleMaxRpm}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_vehicleMaxRpm" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_vehicleMaxRpm" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></local:ValidableTextBox>
 										</DockPanel>
 										<!-- pref_panel_rpmDisplayType -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_rpmDisplayType}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<ComboBox DockPanel.Dock="Right" Name="pref_panel_rpmDisplayType" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+											<ComboBox DockPanel.Dock="Right" Name="pref_panel_rpmDisplayType" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
 												<ComboBoxItem>Raw</ComboBoxItem>
 												<ComboBoxItem>Interpolated (Delay Compensation)</ComboBoxItem>
 												<ComboBoxItem>Interpolated and Raw</ComboBoxItem>
@@ -900,7 +900,7 @@
 										<!-- pref_panel_rpmInterpolationSampleInterval -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_rpmInterpolationInterval}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<ComboBox DockPanel.Dock="Right" Name="pref_panel_rpmInterpolationSampleInterval" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+											<ComboBox DockPanel.Dock="Right" Name="pref_panel_rpmInterpolationSampleInterval" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
 												<ComboBoxItem>0.1 Seconds</ComboBoxItem>
 												<ComboBoxItem>0.25 Seconds</ComboBoxItem>
 												<ComboBoxItem>0.35 Seconds</ComboBoxItem>
@@ -915,7 +915,7 @@
 										<!-- pref_panel_rpmInterpolationAggressiveness -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_rpmInterpolationAggressiveness}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<ComboBox DockPanel.Dock="Right" Name="pref_panel_rpmInterpolationAggressiveness" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+											<ComboBox DockPanel.Dock="Right" Name="pref_panel_rpmInterpolationAggressiveness" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
 												<ComboBoxItem>50%</ComboBoxItem>
 												<ComboBoxItem>80%</ComboBoxItem>
 												<ComboBoxItem>100%</ComboBoxItem>
@@ -930,7 +930,7 @@
 										<!-- pref_panel_rpmMiniGaugeDisplayUnit -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_rpmMinigaugeDisplayType}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<ComboBox DockPanel.Dock="Right" Name="pref_panel_rpmMiniGaugeDisplayUnit" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+											<ComboBox DockPanel.Dock="Right" Name="pref_panel_rpmMiniGaugeDisplayUnit" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
 												<ComboBoxItem>Raw</ComboBoxItem>
 												<ComboBoxItem>Interpolated (Delay Compensation)</ComboBoxItem>
 											</ComboBox>
@@ -938,7 +938,7 @@
 										<!-- pref_panel_speedDisplayUnit -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_speedDisplayUnit}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<ComboBox DockPanel.Dock="Right" Name="pref_panel_speedDisplayUnit" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+											<ComboBox DockPanel.Dock="Right" Name="pref_panel_speedDisplayUnit" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
 												<ComboBoxItem>MP/h</ComboBoxItem>
 												<ComboBoxItem>KM/h</ComboBoxItem>
 											</ComboBox>
@@ -946,7 +946,7 @@
 										<!-- pref_panel_temperatureUnit -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_temperatureUnit}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<ComboBox DockPanel.Dock="Right" Name="pref_panel_temperatureUnit" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+											<ComboBox DockPanel.Dock="Right" Name="pref_panel_temperatureUnit" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
 												<ComboBoxItem>°C</ComboBoxItem>
 												<ComboBoxItem>°F</ComboBoxItem>
 											</ComboBox>
@@ -954,7 +954,7 @@
 										<!-- pref_panel_maxTransmissionGears -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_maxTransmissionGears}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<ComboBox DockPanel.Dock="Right" Name="pref_panel_maxTransmissionGears" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+											<ComboBox DockPanel.Dock="Right" Name="pref_panel_maxTransmissionGears" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
 												<ComboBoxItem>5 Gears</ComboBoxItem>
 												<ComboBoxItem>6 Gears</ComboBoxItem>
 											</ComboBox>
@@ -962,57 +962,57 @@
 										<!-- pref_panel_minGear1RpmToChangeToGear2 -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_minGear1RpmToChangeToGear2}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_minGear1RpmToChangeToGear2" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_minGear1RpmToChangeToGear2" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></local:ValidableTextBox>
 										</DockPanel>
 										<!-- pref_panel_minGear1SpeedToChangeToGear2 -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_minGear1SpeedToChangeToGear2}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_minGear1SpeedToChangeToGear2" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_minGear1SpeedToChangeToGear2" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></local:ValidableTextBox>
 										</DockPanel>
 										<!-- pref_panel_maxSpeedForGear1 -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_maxSpeedForGear1}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_maxSpeedForGear1" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_maxSpeedForGear1" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></local:ValidableTextBox>
 										</DockPanel>
 										<!-- pref_panel_maxSpeedForGear2 -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_maxSpeedForGear2}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_maxSpeedForGear2" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_maxSpeedForGear2" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></local:ValidableTextBox>
 										</DockPanel>
 										<!-- pref_panel_maxSpeedForGear3 -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_maxSpeedForGear3}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_maxSpeedForGear3" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_maxSpeedForGear3" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></local:ValidableTextBox>
 										</DockPanel>
 										<!-- pref_panel_maxSpeedForGear4 -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_maxSpeedForGear4}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_maxSpeedForGear4" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_maxSpeedForGear4" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></local:ValidableTextBox>
 										</DockPanel>
 										<!-- pref_panel_maxSpeedForGear5 -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_maxSpeedForGear5}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_maxSpeedForGear5" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_maxSpeedForGear5" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></local:ValidableTextBox>
 										</DockPanel>
 										<!-- pref_panel_maxSpeedForGear6 -->
 										<DockPanel Name="pref_panel_maxSpeedForGear6_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_maxSpeedForGear6}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_maxSpeedForGear6" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_maxSpeedForGear6" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></local:ValidableTextBox>
 										</DockPanel>
 										<!-- pref_panel_letterForVehicleStopped -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_letterToUseForVehicleStopped}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_letterForVehicleStopped" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_letterForVehicleStopped" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></local:ValidableTextBox>
 										</DockPanel>
 										<!-- pref_panel_letterForClutchPressed -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_letterToUseForClutchPressed}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_letterForClutchPressed" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></local:ValidableTextBox>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_letterForClutchPressed" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></local:ValidableTextBox>
 										</DockPanel>
 										<!-- pref_panel_panelColorScheme -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_panelColorScheme}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<ComboBox DockPanel.Dock="Right" Name="pref_panel_panelColorScheme" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+											<ComboBox DockPanel.Dock="Right" Name="pref_panel_panelColorScheme" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
 												<ComboBoxItem>Automatic</ComboBoxItem>
 												<ComboBoxItem>Dark</ComboBoxItem>
 												<ComboBoxItem>Light</ComboBoxItem>
@@ -1045,10 +1045,76 @@
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_autoPlayOnMove}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
 											<CheckBox DockPanel.Dock="Right" Name="pref_player_autoPlayOnMove" IsChecked="False" HorizontalAlignment="Right" VerticalAlignment="Center"></CheckBox>
 										</DockPanel>
+										<!-- pref_player_automaticVolume -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_automaticVolume}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<CheckBox DockPanel.Dock="Right" Name="pref_player_automaticVolume" IsChecked="False" HorizontalAlignment="Right" VerticalAlignment="Center"></CheckBox>
+										</DockPanel>
+										<!-- pref_player_volumeMark1speed and pref_player_volumeMark1target -->
+										<DockPanel Name="pref_player_volumeMark1_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_volumeMark1}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<Grid DockPanel.Dock="Right" ColumnDefinitions="*,*" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
+												<NumericUpDown Grid.Row="0" Grid.Column="0" Name="pref_player_volumeMark1speed" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsEnabled="False"></NumericUpDown>
+												<NumericUpDown Grid.Row="0" Grid.Column="1" Name="pref_player_volumeMark1target" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></NumericUpDown>
+											</Grid>
+										</DockPanel>
+										<!-- pref_player_volumeMark2speed and pref_player_volumeMark2target -->
+										<DockPanel Name="pref_player_volumeMark2_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_volumeMark2}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<Grid DockPanel.Dock="Right" ColumnDefinitions="*,*" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
+												<NumericUpDown Grid.Row="0" Grid.Column="0" Name="pref_player_volumeMark2speed" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></NumericUpDown>
+												<NumericUpDown Grid.Row="0" Grid.Column="1" Name="pref_player_volumeMark2target" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></NumericUpDown>
+											</Grid>
+										</DockPanel>
+										<!-- pref_player_volumeMark3speed and pref_player_volumeMark3target -->
+										<DockPanel Name="pref_player_volumeMark3_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_volumeMark3}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<Grid DockPanel.Dock="Right" ColumnDefinitions="*,*" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
+												<NumericUpDown Grid.Row="0" Grid.Column="0" Name="pref_player_volumeMark3speed" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></NumericUpDown>
+												<NumericUpDown Grid.Row="0" Grid.Column="1" Name="pref_player_volumeMark3target" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></NumericUpDown>
+											</Grid>
+										</DockPanel>
+										<!-- pref_player_volumeMark4speed and pref_player_volumeMark4target -->
+										<DockPanel Name="pref_player_volumeMark4_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_volumeMark4}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<Grid DockPanel.Dock="Right" ColumnDefinitions="*,*" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
+												<NumericUpDown Grid.Row="0" Grid.Column="0" Name="pref_player_volumeMark4speed" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></NumericUpDown>
+												<NumericUpDown Grid.Row="0" Grid.Column="1" Name="pref_player_volumeMark4target" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></NumericUpDown>
+											</Grid>
+										</DockPanel>
+										<!-- pref_player_volumeMark5speed and pref_player_volumeMark5target -->
+										<DockPanel Name="pref_player_volumeMark5_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_volumeMark5}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<Grid DockPanel.Dock="Right" ColumnDefinitions="*,*" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
+												<NumericUpDown Grid.Row="0" Grid.Column="0" Name="pref_player_volumeMark5speed" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></NumericUpDown>
+												<NumericUpDown Grid.Row="0" Grid.Column="1" Name="pref_player_volumeMark5target" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></NumericUpDown>
+											</Grid>
+										</DockPanel>
+										<!-- pref_player_volumeMark6speed and pref_player_volumeMark6target -->
+										<DockPanel Name="pref_player_volumeMark6_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_volumeMark6}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<Grid DockPanel.Dock="Right" ColumnDefinitions="*,*" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
+												<NumericUpDown Grid.Row="0" Grid.Column="0" Name="pref_player_volumeMark6speed" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></NumericUpDown>
+												<NumericUpDown Grid.Row="0" Grid.Column="1" Name="pref_player_volumeMark6target" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></NumericUpDown>
+											</Grid>
+										</DockPanel>
+										<!-- pref_player_volumeMark7speed and pref_player_volumeMark7target -->
+										<DockPanel Name="pref_player_volumeMark7_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_volumeMark7}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<Grid DockPanel.Dock="Right" ColumnDefinitions="*,*" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
+												<NumericUpDown Grid.Row="0" Grid.Column="0" Name="pref_player_volumeMark7speed" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></NumericUpDown>
+												<NumericUpDown Grid.Row="0" Grid.Column="1" Name="pref_player_volumeMark7target" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></NumericUpDown>
+											</Grid>
+										</DockPanel>
+										<!-- pref_player_volumeBoostAtMaxRpm -->
+										<DockPanel Name="pref_player_volumeBoostAtMaxRpm_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_volumeBoost}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_volumeBoostAtMaxRpm" Minimum="0" Value="0" Maximum="100" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></NumericUpDown>
+										</DockPanel>
 										<!-- pref_player_equalizerProfile -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizerProfile}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<ComboBox DockPanel.Dock="Right" Name="pref_player_equalizerProfile" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200">
+											<ComboBox DockPanel.Dock="Right" Name="pref_player_equalizerProfile" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
 												<ComboBoxItem>Disabled</ComboBoxItem>
 												<ComboBoxItem>Flat</ComboBoxItem>
 												<ComboBoxItem>Custom</ComboBoxItem>
@@ -1057,77 +1123,73 @@
 										<!-- pref_player_equalizerAmplifier -->
 										<DockPanel Name="pref_player_equalizerAmplifier_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizerAmplifier}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerAmplifier" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerAmplifier" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></NumericUpDown>
 										</DockPanel>
 										<!-- pref_player_equalizerBand31 -->
 										<DockPanel Name="pref_player_equalizerBand31_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizer31hz}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand31" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand31" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></NumericUpDown>
 										</DockPanel>
 										<!-- pref_player_equalizerBand62 -->
 										<DockPanel Name="pref_player_equalizerBand62_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizer62hz}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand62" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand62" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></NumericUpDown>
 										</DockPanel>
 										<!-- pref_player_equalizerBand125 -->
 										<DockPanel Name="pref_player_equalizerBand125_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizer125hz}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand125" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand125" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></NumericUpDown>
 										</DockPanel>
 										<!-- pref_player_equalizerBand250 -->
 										<DockPanel Name="pref_player_equalizerBand250_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizer250hz}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand250" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand250" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></NumericUpDown>
 										</DockPanel>
 										<!-- pref_player_equalizerBand500 -->
 										<DockPanel Name="pref_player_equalizerBand500_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizer500hz}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand500" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand500" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></NumericUpDown>
 										</DockPanel>
 										<!-- pref_player_equalizerBand1k -->
 										<DockPanel Name="pref_player_equalizerBand1k_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizer1khz}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand1k" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand1k" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></NumericUpDown>
 										</DockPanel>
 										<!-- pref_player_equalizerBand2k -->
 										<DockPanel Name="pref_player_equalizerBand2k_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizer2khz}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand2k" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand2k" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></NumericUpDown>
 										</DockPanel>
 										<!-- pref_player_equalizerBand4k -->
 										<DockPanel Name="pref_player_equalizerBand4k_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizer4khz}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand4k" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand4k" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></NumericUpDown>
 										</DockPanel>
 										<!-- pref_player_equalizerBand8k -->
 										<DockPanel Name="pref_player_equalizerBand8k_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizer8khz}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand8k" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand8k" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></NumericUpDown>
 										</DockPanel>
 										<!-- pref_player_equalizerBand16k -->
 										<DockPanel Name="pref_player_equalizerBand16k_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizer16khz}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand16k" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_equalizerBand16k" Minimum="-20" Value="0" Maximum="20" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></NumericUpDown>
 										</DockPanel>
-										<!-- pref_player_speakerRightClickEmulationStep1x -->
+										<!-- pref_player_speakerRightClickEmulationStep1x and pref_player_speakerRightClickEmulationStep1y -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
-											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_speakerRightClickEmulationStep1x}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_speakerRightClickEmulationStep1x" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_speakerRightClickEmulationStep1}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<Grid DockPanel.Dock="Right" ColumnDefinitions="*,*" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
+												<NumericUpDown Grid.Row="0" Grid.Column="0" Name="pref_player_speakerRightClickEmulationStep1x" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></NumericUpDown>
+												<NumericUpDown Grid.Row="0" Grid.Column="1" Name="pref_player_speakerRightClickEmulationStep1y" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></NumericUpDown>
+											</Grid>
 										</DockPanel>
-										<!-- pref_player_speakerRightClickEmulationStep1y -->
+										<!-- pref_player_speakerRightClickEmulationStep2x and pref_player_speakerRightClickEmulationStep2y -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
-											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_speakerRightClickEmulationStep1y}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_speakerRightClickEmulationStep1y" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
-										</DockPanel>
-										<!-- pref_player_speakerRightClickEmulationStep2x -->
-										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
-											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_speakerRightClickEmulationStep2x}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_speakerRightClickEmulationStep2x" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
-										</DockPanel>
-										<!-- pref_player_speakerRightClickEmulationStep2y -->
-										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
-											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_speakerRightClickEmulationStep2y}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
-											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_speakerRightClickEmulationStep2y" HorizontalAlignment="Right" VerticalAlignment="Center" Width="200"></NumericUpDown>
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_speakerRightClickEmulationStep2}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<Grid DockPanel.Dock="Right" ColumnDefinitions="*,*" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
+												<NumericUpDown Grid.Row="0" Grid.Column="0" Name="pref_player_speakerRightClickEmulationStep2x" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></NumericUpDown>
+												<NumericUpDown Grid.Row="0" Grid.Column="1" Name="pref_player_speakerRightClickEmulationStep2y" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></NumericUpDown>
+											</Grid>
 										</DockPanel>
 									</StackPanel>
 								</ScrollViewer>

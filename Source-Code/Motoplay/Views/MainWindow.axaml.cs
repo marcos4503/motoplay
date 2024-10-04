@@ -432,6 +432,9 @@ public partial class MainWindow : Window
         //Prepare the UI for Music Player
         PrepareTheMusicPlayer();
 
+        //Prepare the UI for Web Browser
+        PrepareTheWebBrowser();
+
         //Prepare the UI for Preferences
         PrepareThePreferences();
     }
@@ -2375,6 +2378,9 @@ public partial class MainWindow : Window
         //Wait time
         yield return new Wait(0.1f);
 
+        //Run on pre-quit event code
+        OnAboutToQuitApplication();
+
         //Send command to kill Motoplay and shutdown the device
         SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo pkill -f App/Motoplay.Desktop;shutdown now");
         //Wait the end of command execution
@@ -3469,7 +3475,7 @@ public partial class MainWindow : Window
                 musicPlayerHandler.SetEqualizationDisabled();
 
             //If is enabled the auto play or auto resume
-            if (appPrefs.loadedData.autoPauseOnStopVehicle == true || appPrefs.loadedData.autoPlayOnVehicleMove == true)
+            if (appPrefs.loadedData.autoPauseOnStopVehicle == true || appPrefs.loadedData.autoPlayOnVehicleMove == true || appPrefs.loadedData.automaticVolume == true)
                 CoroutineHandler.Start(MusicPlayerVehicleMoveMonitor());
 
             //Render all musics of library
@@ -3497,6 +3503,18 @@ public partial class MainWindow : Window
         foreach (FileInfo file in (new DirectoryInfo((motoplayRootPath + "/Musics")).GetFiles()))
             if (Path.GetExtension(file.FullName).ToLower() == ".wav")
                 musicPlayerFileList.Add(file.FullName);
+
+        //Show or hide the volume buttons control
+        if (appPrefs.loadedData.automaticVolume == true)
+        {
+            musicPlayer_volumeUpButton.IsEnabled = false;
+            musicPlayer_volumeDownButton.IsEnabled = false;
+        }
+        if (appPrefs.loadedData.automaticVolume == false)
+        {
+            musicPlayer_volumeUpButton.IsEnabled = true;
+            musicPlayer_volumeDownButton.IsEnabled = true;
+        }
 
         //If don't have musics
         if (musicPlayerFileList.Count == 0)
@@ -3807,6 +3825,9 @@ public partial class MainWindow : Window
 
         //Hide the volume
         musicPlayer_volumeText.IsVisible = false;
+
+        //Inform that was finished
+        musicPlayerShowVolumeRoutine = null;
     }
 
     private void ToggleMusicPlayerDrawer()
@@ -4156,6 +4177,7 @@ public partial class MainWindow : Window
 
         //Data variables
         bool wasPausedByMonitor = false;
+        int currentAutoVolumeDefined = -1;
 
         //Start the monitor loop
         while (true)
@@ -4177,6 +4199,70 @@ public partial class MainWindow : Window
                 {
                     musicPlayerHandler.Play();
                     wasPausedByMonitor = false;
+                }
+            }
+
+            //If the automatic volume is enabled
+            if (appPrefs.loadedData.automaticVolume == true && activeObdConnection != null)
+            {
+                //Prepare the target volume
+                int targetVolume = 0;
+
+                //Detect the target volume, using speed marks
+                if (activeObdConnection.vehicleSpeedKmh >= appPrefs.loadedData.mark1volumeSpeed)
+                    targetVolume = appPrefs.loadedData.mark1volumeTarget;
+                if (activeObdConnection.vehicleSpeedKmh >= appPrefs.loadedData.mark2volumeSpeed)
+                    targetVolume = appPrefs.loadedData.mark2volumeTarget;
+                if (activeObdConnection.vehicleSpeedKmh >= appPrefs.loadedData.mark3volumeSpeed)
+                    targetVolume = appPrefs.loadedData.mark3volumeTarget;
+                if (activeObdConnection.vehicleSpeedKmh >= appPrefs.loadedData.mark4volumeSpeed)
+                    targetVolume = appPrefs.loadedData.mark4volumeTarget;
+                if (activeObdConnection.vehicleSpeedKmh >= appPrefs.loadedData.mark5volumeSpeed)
+                    targetVolume = appPrefs.loadedData.mark5volumeTarget;
+                if (activeObdConnection.vehicleSpeedKmh >= appPrefs.loadedData.mark6volumeSpeed)
+                    targetVolume = appPrefs.loadedData.mark6volumeTarget;
+                if (activeObdConnection.vehicleSpeedKmh >= appPrefs.loadedData.mark7volumeSpeed)
+                    targetVolume = appPrefs.loadedData.mark7volumeTarget;
+
+                //Detect the additional volume boots, using RPM
+                float maxRpmToConsider = (((float)appPrefs.loadedData.vehicleMaxRpm * 0.85f) - 1200.0f);   //<- 1200 RPM is the RPM of vehicle stopped
+                float currentFixedRpm = ((float)activeObdConnection.engineRpm - 1200.0f);   //<- 1200 RPM is the RPM of vehicle stopped
+                if (currentFixedRpm < 0)
+                    currentFixedRpm = 0;
+                float additionalVolumeBoostInPercent = (((float)appPrefs.loadedData.volumeBoostOnMaxRpm / 100.0f) * (currentFixedRpm / maxRpmToConsider));
+                if (additionalVolumeBoostInPercent < 0.0f)
+                    additionalVolumeBoostInPercent = 0.0f;
+                if (additionalVolumeBoostInPercent > ((float)appPrefs.loadedData.volumeBoostOnMaxRpm / 100.0f))
+                    additionalVolumeBoostInPercent = ((float)appPrefs.loadedData.volumeBoostOnMaxRpm / 100.0f);
+                targetVolume += (int)((float)targetVolume * additionalVolumeBoostInPercent);
+
+                //If the target volume found, is different from current...
+                if (targetVolume != currentAutoVolumeDefined)
+                {
+                    //Fix the volume bound
+                    if (targetVolume > 150)
+                        targetVolume = 150;
+                    if (targetVolume < 0)
+                        targetVolume = 0;
+                    if (targetVolume > appPrefs.loadedData.mark7volumeTarget)
+                        targetVolume = appPrefs.loadedData.mark7volumeTarget;
+
+                    //Set the new volume
+                    appPrefs.loadedData.playerVolume = targetVolume;
+                    if (musicPlayerHandler != null)
+                        musicPlayerHandler.SetVolume(appPrefs.loadedData.playerVolume);
+                    //Show the volume
+                    if (musicPlayerShowVolumeRoutine != null)
+                    {
+                        musicPlayerShowVolumeRoutine.Cancel();
+                        musicPlayerShowVolumeRoutine = null;
+                    }
+                    musicPlayerShowVolumeRoutine = CoroutineHandler.Start(ShowVolumeRoutine());
+                    //Sync the volume to UI
+                    UpdateVolumeBar();
+
+                    //Inform the new current volume
+                    currentAutoVolumeDefined = targetVolume;
                 }
             }
 
@@ -4393,6 +4479,13 @@ public partial class MainWindow : Window
         RemoveTask("emualatintSpeakerRightClick");
     }
 
+    //Web Browser
+
+    private void PrepareTheWebBrowser()
+    {
+        //...
+    }
+
     //Pages Manager
 
     private void SwitchAppPage(AppPage targetPage)
@@ -4531,6 +4624,10 @@ public partial class MainWindow : Window
         //Prepare the auto hide of equalizer options
         pref_player_equalizerProfile.SelectionChanged += (s, e) =>  { UpdateEqualizerBandOptionsVisibility(); };
         UpdateEqualizerBandOptionsVisibility();
+
+        //Prepare the auto hide of automatic volume mark options
+        pref_player_automaticVolume.IsCheckedChanged += (s, e) => { UpdateVolumeMarksOptionsVisibility(); };
+        UpdateVolumeMarksOptionsVisibility();
     }
 
     private void UpdatePreferencesOnUI()
@@ -4733,6 +4830,38 @@ public partial class MainWindow : Window
         pref_player_speakerRightClickEmulationStep2x.Value = appPrefs.loadedData.outputSelectorEmulateMoveStep2x;
         //*** pref_player_speakerRightClickEmulationStep2y
         pref_player_speakerRightClickEmulationStep2y.Value = appPrefs.loadedData.outputSelectorEmulateMoveStep2y;
+        //*** pref_player_automaticVolume
+        pref_player_automaticVolume.IsChecked = appPrefs.loadedData.automaticVolume;
+        //*** pref_player_volumeMark1speed
+        pref_player_volumeMark1speed.Value = appPrefs.loadedData.mark1volumeSpeed;
+        //*** pref_player_volumeMark1target
+        pref_player_volumeMark1target.Value = appPrefs.loadedData.mark1volumeTarget;
+        //*** pref_player_volumeMark2speed
+        pref_player_volumeMark2speed.Value = appPrefs.loadedData.mark2volumeSpeed;
+        //*** pref_player_volumeMark2target
+        pref_player_volumeMark2target.Value = appPrefs.loadedData.mark2volumeTarget;
+        //*** pref_player_volumeMark3speed
+        pref_player_volumeMark3speed.Value = appPrefs.loadedData.mark3volumeSpeed;
+        //*** pref_player_volumeMark3target
+        pref_player_volumeMark3target.Value = appPrefs.loadedData.mark3volumeTarget;
+        //*** pref_player_volumeMark4speed
+        pref_player_volumeMark4speed.Value = appPrefs.loadedData.mark4volumeSpeed;
+        //*** pref_player_volumeMark4target
+        pref_player_volumeMark4target.Value = appPrefs.loadedData.mark4volumeTarget;
+        //*** pref_player_volumeMark5speed
+        pref_player_volumeMark5speed.Value = appPrefs.loadedData.mark5volumeSpeed;
+        //*** pref_player_volumeMark5target
+        pref_player_volumeMark5target.Value = appPrefs.loadedData.mark5volumeTarget;
+        //*** pref_player_volumeMark6speed
+        pref_player_volumeMark6speed.Value = appPrefs.loadedData.mark6volumeSpeed;
+        //*** pref_player_volumeMark6target
+        pref_player_volumeMark6target.Value = appPrefs.loadedData.mark6volumeTarget;
+        //*** pref_player_volumeMark7speed
+        pref_player_volumeMark7speed.Value = appPrefs.loadedData.mark7volumeSpeed;
+        //*** pref_player_volumeMark7target
+        pref_player_volumeMark7target.Value = appPrefs.loadedData.mark7volumeTarget;
+        //*** pref_player_volumeBoostAtMaxRpm
+        pref_player_volumeBoostAtMaxRpm.Value = appPrefs.loadedData.volumeBoostOnMaxRpm;
     }
 
     private void SaveAllPreferences()
@@ -4946,6 +5075,38 @@ public partial class MainWindow : Window
         appPrefs.loadedData.outputSelectorEmulateMoveStep2x = (int)pref_player_speakerRightClickEmulationStep2x.Value;
         //*** pref_player_speakerRightClickEmulationStep2y
         appPrefs.loadedData.outputSelectorEmulateMoveStep2y = (int)pref_player_speakerRightClickEmulationStep2y.Value;
+        //*** pref_player_automaticVolume
+        appPrefs.loadedData.automaticVolume = (bool)pref_player_automaticVolume.IsChecked;
+        //*** pref_player_volumeMark1speed
+        appPrefs.loadedData.mark1volumeSpeed = (int)pref_player_volumeMark1speed.Value;
+        //*** pref_player_volumeMark1target
+        appPrefs.loadedData.mark1volumeTarget = (int)pref_player_volumeMark1target.Value;
+        //*** pref_player_volumeMark2speed
+        appPrefs.loadedData.mark2volumeSpeed = (int)pref_player_volumeMark2speed.Value;
+        //*** pref_player_volumeMark2target
+        appPrefs.loadedData.mark2volumeTarget = (int)pref_player_volumeMark2target.Value;
+        //*** pref_player_volumeMark3speed
+        appPrefs.loadedData.mark3volumeSpeed = (int)pref_player_volumeMark3speed.Value;
+        //*** pref_player_volumeMark3target
+        appPrefs.loadedData.mark3volumeTarget = (int)pref_player_volumeMark3target.Value;
+        //*** pref_player_volumeMark4speed
+        appPrefs.loadedData.mark4volumeSpeed = (int)pref_player_volumeMark4speed.Value;
+        //*** pref_player_volumeMark4target
+        appPrefs.loadedData.mark4volumeTarget = (int)pref_player_volumeMark4target.Value;
+        //*** pref_player_volumeMark5speed
+        appPrefs.loadedData.mark5volumeSpeed = (int)pref_player_volumeMark5speed.Value;
+        //*** pref_player_volumeMark5target
+        appPrefs.loadedData.mark5volumeTarget = (int)pref_player_volumeMark5target.Value;
+        //*** pref_player_volumeMark6speed
+        appPrefs.loadedData.mark6volumeSpeed = (int)pref_player_volumeMark6speed.Value;
+        //*** pref_player_volumeMark6target
+        appPrefs.loadedData.mark6volumeTarget = (int)pref_player_volumeMark6target.Value;
+        //*** pref_player_volumeMark7speed
+        appPrefs.loadedData.mark7volumeSpeed = (int)pref_player_volumeMark7speed.Value;
+        //*** pref_player_volumeMark7target
+        appPrefs.loadedData.mark7volumeTarget = (int)pref_player_volumeMark7target.Value;
+        //*** pref_player_volumeBoostAtMaxRpm
+        appPrefs.loadedData.volumeBoostOnMaxRpm = (int)pref_player_volumeBoostAtMaxRpm.Value;
 
         //Save the preferences to file
         appPrefs.Save();
@@ -4994,6 +5155,19 @@ public partial class MainWindow : Window
         pref_player_equalizerBand4k_root.IsVisible = ((pref_player_equalizerProfile.SelectedIndex == 2) ? true : false);
         pref_player_equalizerBand8k_root.IsVisible = ((pref_player_equalizerProfile.SelectedIndex == 2) ? true : false);
         pref_player_equalizerBand16k_root.IsVisible = ((pref_player_equalizerProfile.SelectedIndex == 2) ? true : false);
+    }
+
+    private void UpdateVolumeMarksOptionsVisibility()
+    {
+        //Hide the automatic volume marks options, if the automatic volume option is disabled
+        pref_player_volumeMark1_root.IsVisible = (bool)pref_player_automaticVolume.IsChecked;
+        pref_player_volumeMark2_root.IsVisible = (bool)pref_player_automaticVolume.IsChecked;
+        pref_player_volumeMark3_root.IsVisible = (bool)pref_player_automaticVolume.IsChecked;
+        pref_player_volumeMark4_root.IsVisible = (bool)pref_player_automaticVolume.IsChecked;
+        pref_player_volumeMark5_root.IsVisible = (bool)pref_player_automaticVolume.IsChecked;
+        pref_player_volumeMark6_root.IsVisible = (bool)pref_player_automaticVolume.IsChecked;
+        pref_player_volumeMark7_root.IsVisible = (bool)pref_player_automaticVolume.IsChecked;
+        pref_player_volumeBoostAtMaxRpm_root.IsVisible = (bool)pref_player_automaticVolume.IsChecked;
     }
 
     //Interaction Blocker Manager
