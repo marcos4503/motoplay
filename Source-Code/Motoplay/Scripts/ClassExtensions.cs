@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Motoplay.Scripts
 {
@@ -17,6 +14,8 @@ namespace Motoplay.Scripts
 
         public static void Shuffle<T>(this IList<T> list)
         {
+            //Shuffles a List variable
+
             RandomNumberGenerator rngProvider = RandomNumberGenerator.Create();
             int n = list.Count;
             while (n > 1)

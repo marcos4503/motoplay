@@ -5,9 +5,9 @@ using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
-using Avalonia.Styling;
 using Avalonia.Threading;
 using Coroutine;
+using FlashCap;
 using MarcosTomaz.ATS;
 using Motoplay.Scripts;
 using MsBox.Avalonia;
@@ -15,13 +15,14 @@ using MsBox.Avalonia.Enums;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Diagnostics.Metrics;
 using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using static Motoplay.Scripts.MusicPlayer;
+using static Motoplay.UvcCameraHandler;
 
 namespace Motoplay.Views;
 
@@ -150,6 +151,9 @@ public partial class MainWindow : Window
     private List<DriveMusicItem> instantiatedDriveMusicsInUi = new List<DriveMusicItem>();
     private ActiveCoroutine musicPlayerUpdatePairedBluetoothSoundList = null;
     private List<BluetoothSoundItem> instantiatedSoundDevicesInUi = new List<BluetoothSoundItem>();
+    private ObservableCollection<string> usbCameraDevicesNameSelector = new ObservableCollection<string>();
+    private ObservableCollection<string> usbCameraDeviceFeatureSelector = new ObservableCollection<string>();
+    private UvcDevice[] usbCameraCurrentConnectedUvcDevices = null;
 
     //Private variables
     private string[] receivedCliArgs = null;
@@ -434,6 +438,12 @@ public partial class MainWindow : Window
 
         //Prepare the UI for Web Browser
         PrepareTheWebBrowser();
+
+        //Prepare the UI for USB Camera
+        PrepareTheUsbCamera();
+
+        //Prepare the UI for Mirror Phone
+        PrepareTheMirrorPhone();
 
         //Prepare the UI for Preferences
         PrepareThePreferences();
@@ -4486,6 +4496,198 @@ public partial class MainWindow : Window
         //...
     }
 
+    //USB Camera
+
+    private void PrepareTheUsbCamera()
+    {
+        //Prepare the UI
+        usbCamera_deviceDrop.ItemsSource = (IEnumerable)usbCameraDevicesNameSelector;
+        usbCamera_deviceDrop.SelectionChanged += (s, e) => { OnChangeUvcDeviceSelector(); };
+        usbCamera_featureDrop.ItemsSource = (IEnumerable)usbCameraDeviceFeatureSelector;
+        usbCamera_featureDrop.SelectionChanged += (s, e) => { OnChangeUvcDeviceFetureSelector(); };
+        usbCamera_autoSelectButton.Click += (s, e) => { AutoSelectCamera(); };
+        
+        //Define the size of miniview
+        if (appPrefs.loadedData.cameraMiniviewSize == 0)
+        {
+            usbCamera_miniCamera_root.Width = 172.0f;
+            usbCamera_miniCamera_root.Height = 108.0f;
+        }
+        if (appPrefs.loadedData.cameraMiniviewSize == 1)
+        {
+            usbCamera_miniCamera_root.Width = 256.0f;
+            usbCamera_miniCamera_root.Height = 162.0f;
+        }
+        if (appPrefs.loadedData.cameraMiniviewSize == 2)
+        {
+            usbCamera_miniCamera_root.Width = 350.0f;
+            usbCamera_miniCamera_root.Height = 220.0f;
+        }
+
+        //Setup the UVC Handler
+        usbCamera_uvcHandler.SetCameraProjectionQuality(appPrefs.loadedData.cameraProjectionQuality);
+        usbCamera_uvcHandler.SetMaxQueuingFrames(appPrefs.loadedData.cameraMaxQueuingFrames);
+        usbCamera_uvcHandler.SetEnabledMultiThread(appPrefs.loadedData.cameraMultiThread);
+        usbCamera_uvcHandler.SetShowStatistics(appPrefs.loadedData.cameraShowStatistics);
+        usbCamera_uvcHandler.RegisterOnUpdateDevicesCallback((ref List<UvcDevice> uvcDevices) => 
+        {
+            //Store the current connected UVC Devices
+            usbCameraCurrentConnectedUvcDevices = new UvcDevice[(uvcDevices.Count + 1)];
+            for (int i = 1; i < (uvcDevices.Count + 1); i++)
+                usbCameraCurrentConnectedUvcDevices[i] = uvcDevices[(i - 1)];
+
+            //Clear the devices name selector options
+            usbCameraDevicesNameSelector.Clear();
+
+            //Fill the device selector
+            foreach (UvcDevice device in usbCameraCurrentConnectedUvcDevices)
+            {
+                //If device is null
+                if (device == null)
+                    usbCameraDevicesNameSelector.Add("-");
+
+                //If device is not null
+                if (device != null)
+                    usbCameraDevicesNameSelector.Add(device.name);
+            }
+
+            //Set selection at none
+            usbCamera_deviceDrop.SelectedIndex = 0;
+        });
+        usbCamera_uvcHandler.RegisterOnReceiveErrorOnStartSeeingCallback(() =>
+        {
+            //Send the error message
+            ShowToast(GetStringApplicationResource("usbCamera_startSeeingErrorMsg"), ToastDuration.Short, ToastType.Problem);
+
+            //Enable the controls
+            usbCamera_deviceDrop.IsEnabled = true;
+            usbCamera_featureDrop.IsEnabled = true;
+            usbCamera_autoSelectButton.IsEnabled = true;
+        });
+        usbCamera_uvcHandler.RegisterOnStartedSeeingCallback(() =>
+        {
+            //Enable the controls
+            usbCamera_deviceDrop.IsEnabled = true;
+            usbCamera_featureDrop.IsEnabled = true;
+            usbCamera_autoSelectButton.IsEnabled = true;
+        });
+        usbCamera_uvcHandler.RegisterOnStoppedSeeingCallback(() =>
+        {
+            //Disable the mini view
+            usbCamera_uvcHandler.SetAlternativeSkiaImageView(null);
+            usbCamera_miniCamera_root.IsVisible = false;
+        });
+
+        //Initialize the UVC Handler
+        usbCamera_uvcHandler.Initialize();
+    }
+
+    private void OnChangeUvcDeviceSelector()
+    {
+        //Clear the devices features selector options
+        usbCameraDeviceFeatureSelector.Clear();
+
+        //Add none feature
+        usbCameraDeviceFeatureSelector.Add("-");
+
+        //Get the index of selected device
+        int selectedIndex = usbCamera_deviceDrop.SelectedIndex;
+
+        //If is the none device, cancel
+        if (selectedIndex == 0)
+        {
+            usbCamera_featureDrop.SelectedIndex = 0;
+            return;
+        }
+
+        //Fill the device feature selector
+        foreach (VideoCharacteristics feature in usbCameraCurrentConnectedUvcDevices[selectedIndex].deviceRealRef.Characteristics)
+            usbCameraDeviceFeatureSelector.Add((feature.Width + "x" + feature.Height + " - " + feature.FramesPerSecond.Numerator + " FPS - " + feature.PixelFormat));
+
+        //Set selection at none
+        usbCamera_featureDrop.SelectedIndex = 0;
+    }
+
+    private void OnChangeUvcDeviceFetureSelector()
+    {
+        //If the choosed device is none, cancel and stop seeing, if is seeing
+        if (usbCamera_deviceDrop.SelectedIndex == 0 || usbCamera_featureDrop.SelectedIndex == 0)
+        {
+            usbCamera_uvcHandler.StopSeeLiveUvcDevice();
+            return;
+        }
+
+        //Disable the controls
+        usbCamera_deviceDrop.IsEnabled = false;
+        usbCamera_featureDrop.IsEnabled = false;
+        usbCamera_autoSelectButton.IsEnabled = false;
+
+        //Change to the choosed UVC Device and choosed feature
+        usbCamera_uvcHandler.StartSeeLiveUvcDeviceWithFeature(usbCameraCurrentConnectedUvcDevices[usbCamera_deviceDrop.SelectedIndex].realIndexOnConnectedDevices, (usbCamera_featureDrop.SelectedIndex - 1));
+    }
+
+    private void AutoSelectCamera()
+    {
+        //If already have a device selected, disconnect from it and show the "Auto Connect" message again
+        if (usbCamera_deviceDrop.SelectedIndex > 0)
+        {
+            usbCamera_deviceDrop.SelectedIndex = 0;
+            usbCamera_featureDrop.SelectedIndex = 0;
+            usbCamera_autoSelectButton.Content = GetStringApplicationResource("usbCamera_autoSelectButton");
+            return;
+        }
+
+        //If never received the devices update, return
+        if (usbCameraCurrentConnectedUvcDevices == null)
+        {
+            ShowToast(GetStringApplicationResource("usbCamera_notFoundDevice"), ToastDuration.Short, ToastType.Problem);
+            return;
+        }
+
+        //If don't have connected camera, cancel
+        if (usbCameraCurrentConnectedUvcDevices.Length < 2)
+        {
+            ShowToast(GetStringApplicationResource("usbCamera_notFoundDevice"), ToastDuration.Short, ToastType.Problem);
+            return;
+        }
+
+        //Now that was found a device and feature, and show the "Reset" message
+        usbCamera_autoSelectButton.Content = GetStringApplicationResource("usbCamera_resetButton");
+
+        //Get camera to use
+        usbCamera_deviceDrop.SelectedIndex = 1;
+
+        //Get camera features
+        VideoCharacteristics[] features = usbCameraCurrentConnectedUvcDevices[usbCamera_deviceDrop.SelectedIndex].deviceRealRef.Characteristics;
+
+        //Try to detect the best feature to use
+        int bestFeatureToUse = -1;
+        for (int i = 0; i < features.Length; i++)
+            if (features[i].PixelFormat == FlashCap.PixelFormats.JPEG || features[i].PixelFormat == FlashCap.PixelFormats.ARGB32 || features[i].PixelFormat == FlashCap.PixelFormats.PNG)
+                if (features[i].Height >= 600 && features[i].Height <= 720)
+                {
+                    bestFeatureToUse = i;
+                    break;
+                }
+
+        //If could not found a best feature to use, cancel
+        if (bestFeatureToUse == -1)
+        {
+            ShowToast(GetStringApplicationResource("usbCamera_notFeatureFound"), ToastDuration.Short, ToastType.Problem);
+            return;
+        }
+
+        //Show the target detected
+        usbCamera_featureDrop.SelectedIndex = (bestFeatureToUse + 1);
+    }
+
+    //Mirror Phone
+
+    private void PrepareTheMirrorPhone()
+    {
+
+    }
+
     //Pages Manager
 
     private void SwitchAppPage(AppPage targetPage)
@@ -4552,6 +4754,29 @@ public partial class MainWindow : Window
         pageButtons[targetPageIndex].BorderBrush = new SolidColorBrush(new Color(255, 38, 197, 255));
         pageBackgrounds[targetPageIndex].IsVisible = true;
         pageContents[targetPageIndex].IsVisible = true;
+
+        //Do on post change app page callback
+        OnPostChangeAppPage();
+    }
+
+    private void OnPostChangeAppPage()
+    {
+        //If have a UVC Camera device selected with a feature selected
+        if (usbCamera_deviceDrop.SelectedIndex > 0 && usbCamera_featureDrop.SelectedIndex > 0)
+        {
+            if (pageContentForCamera.IsVisible == false)
+            {
+                usbCamera_uvcHandler.SetAlternativeSkiaImageView(usbCamera_miniCamera_skiaImageView);
+                usbCamera_miniCamera_root.IsVisible = true;
+            }
+            if (pageContentForCamera.IsVisible == true)
+            {
+                usbCamera_uvcHandler.SetAlternativeSkiaImageView(null);
+                usbCamera_miniCamera_root.IsVisible = false;
+            }
+        }
+
+        //...
     }
 
     //Preferences manager
@@ -4862,6 +5087,27 @@ public partial class MainWindow : Window
         pref_player_volumeMark7target.Value = appPrefs.loadedData.mark7volumeTarget;
         //*** pref_player_volumeBoostAtMaxRpm
         pref_player_volumeBoostAtMaxRpm.Value = appPrefs.loadedData.volumeBoostOnMaxRpm;
+
+        //Camera Tab
+        //*** pref_camera_projectionQuality
+        pref_camera_projectionQuality.SelectedIndex = appPrefs.loadedData.cameraProjectionQuality;
+        //*** pref_camera_maxQueingFrames
+        if (appPrefs.loadedData.cameraMaxQueuingFrames == 1)
+            pref_camera_maxQueingFrames.SelectedIndex = 0;
+        if (appPrefs.loadedData.cameraMaxQueuingFrames == 3)
+            pref_camera_maxQueingFrames.SelectedIndex = 1;
+        if (appPrefs.loadedData.cameraMaxQueuingFrames == 5)
+            pref_camera_maxQueingFrames.SelectedIndex = 2;
+        if (appPrefs.loadedData.cameraMaxQueuingFrames == 10)
+            pref_camera_maxQueingFrames.SelectedIndex = 3;
+        if (appPrefs.loadedData.cameraMaxQueuingFrames == 15)
+            pref_camera_maxQueingFrames.SelectedIndex = 4;
+        //*** pref_camera_enableMultiThread
+        pref_camera_enableMultiThread.IsChecked = appPrefs.loadedData.cameraMultiThread;
+        //*** pref_camera_showStatistics
+        pref_camera_showStatistics.IsChecked = appPrefs.loadedData.cameraShowStatistics;
+        //*** pref_camera_miniViewSize
+        pref_camera_miniViewSize.SelectedIndex = appPrefs.loadedData.cameraMiniviewSize;
     }
 
     private void SaveAllPreferences()
@@ -5107,6 +5353,27 @@ public partial class MainWindow : Window
         appPrefs.loadedData.mark7volumeTarget = (int)pref_player_volumeMark7target.Value;
         //*** pref_player_volumeBoostAtMaxRpm
         appPrefs.loadedData.volumeBoostOnMaxRpm = (int)pref_player_volumeBoostAtMaxRpm.Value;
+
+        //Camera Tab
+        //*** pref_camera_projectionQuality
+        appPrefs.loadedData.cameraProjectionQuality = pref_camera_projectionQuality.SelectedIndex;
+        //*** pref_camera_maxQueingFrames
+        if (pref_camera_maxQueingFrames.SelectedIndex == 0)
+            appPrefs.loadedData.cameraMaxQueuingFrames = 1;
+        if (pref_camera_maxQueingFrames.SelectedIndex == 1)
+            appPrefs.loadedData.cameraMaxQueuingFrames = 3;
+        if (pref_camera_maxQueingFrames.SelectedIndex == 2)
+            appPrefs.loadedData.cameraMaxQueuingFrames = 5;
+        if (pref_camera_maxQueingFrames.SelectedIndex == 3)
+            appPrefs.loadedData.cameraMaxQueuingFrames = 10;
+        if (pref_camera_maxQueingFrames.SelectedIndex == 4)
+            appPrefs.loadedData.cameraMaxQueuingFrames = 15;
+        //*** pref_camera_enableMultiThread
+        appPrefs.loadedData.cameraMultiThread = (bool)pref_camera_enableMultiThread.IsChecked;
+        //*** pref_camera_showStatistics
+        appPrefs.loadedData.cameraShowStatistics = (bool)pref_camera_showStatistics.IsChecked;
+        //*** pref_camera_miniViewSize
+        appPrefs.loadedData.cameraMiniviewSize = pref_camera_miniViewSize.SelectedIndex;
 
         //Save the preferences to file
         appPrefs.Save();

@@ -92,18 +92,20 @@ Attempt #%n</x:String>
 	<x:String x:Key="musicPlayer_bluetoothConnectTryAlready">Bluetooth Sound Device is now connected!</x:String>
 	<x:String x:Key="musicPlayer_openSoundOutput">Open Sound Output Selector</x:String>
 
+	<!-- Web Browser -->
+	<x:String x:Key="webBrowser_title">Web Browser</x:String>
+	<x:String x:Key="webBrowser_unvailableWarn">Unfortunately, the Web Browser is not available in Motoplay due to technical limitations. This feature will be added in a future version of Motoplay once it becomes possible.</x:String>
 
+	<!-- USB Camera -->
+	<x:String x:Key="usbCamera_title">USB Camera</x:String>
+	<x:String x:Key="usbCamera_autoSelectButton">Auto Select</x:String>
+	<x:String x:Key="usbCamera_resetButton">Reset Select</x:String>
+	<x:String x:Key="usbCamera_startSeeingErrorMsg">Unable to start viewing the selected Camera and/or Feature. Please check if the Camera is still connected.</x:String>
+	<x:String x:Key="usbCamera_notFoundDevice">No connected USB Camera found!</x:String>
+	<x:String x:Key="usbCamera_notFeatureFound">Couldn't find the best Feature for the connected Camera!</x:String>
 
-
-
-
-
-
-
-
-
-
-
+	<!-- Mirror Phone -->
+	<x:String x:Key="mirrorPhone_title">Mirror Phone</x:String>
 
 	<!-- Preferences Page -->
 	<x:String x:Key="appPreferences_title">Motoplay Preferences</x:String>
@@ -164,5 +166,11 @@ Attempt #%n</x:String>
 	<x:String x:Key="appPreferences_playerTab_volumeMark6">Automatic Volume Mark 6 (Km/h, Vol%)</x:String>
 	<x:String x:Key="appPreferences_playerTab_volumeMark7">Automatic Volume Mark 7 (Km/h, Vol%)</x:String>
 	<x:String x:Key="appPreferences_playerTab_volumeBoost">Max Relative Volume Boost at Max RPM (%)</x:String>
+	<x:String x:Key="appPreferences_cameraTab_title">Camera</x:String>
+	<x:String x:Key="appPreferences_cameraTab_projectionQuality">Projection Quality in the Interface</x:String>
+	<x:String x:Key="appPreferences_cameraTab_maxQueuingFrames">Maximum Number of Frames in Queue</x:String>
+	<x:String x:Key="appPreferences_cameraTab_enableMultiThread">Enable Multi Thread Rendering - May Cause Crash if Disconnect</x:String>
+	<x:String x:Key="appPreferences_cameraTab_showStatistics">Enable Statistics Display</x:String>
+	<x:String x:Key="appPreferences_cameraTab_miniViewSize">Connected Camera Miniview Size</x:String>
 
 </ResourceDictionary>

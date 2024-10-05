@@ -1,0 +1,18 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:skiav="clr-namespace:SkiaImageView;assembly=SkiaImageView"
+             mc:Ignorable="d" x:Class="Motoplay.UvcCameraHandler"
+			 d:DesignWidth="800" d:DesignHeight="450">
+
+	<!-- Root Element -->
+	<Grid Name="rootElement" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+		<skiav:SKImageView Name="skiaImageView" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Stretch="Fill"></skiav:SKImageView>
+		<StackPanel Name="statistics_root" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0, 8, 8, 0">
+			<TextBlock Name="statisticFps" Text="Real 0 FPS - Index 0 FPS" TextAlignment="Right" HorizontalAlignment="Right" VerticalAlignment="Top" Foreground="Lime"></TextBlock>
+			<TextBlock Name="statisticResolution" Text="0x0 - IMG" TextAlignment="Right" HorizontalAlignment="Right" VerticalAlignment="Top" Foreground="Lime"></TextBlock>
+		</StackPanel>
+	</Grid>
+	
+</UserControl>

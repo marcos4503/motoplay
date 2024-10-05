@@ -9,7 +9,9 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>motoplay-logo.ico</ApplicationIcon>
     <AssemblyVersion>0.0.2</AssemblyVersion>
+    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
   </PropertyGroup>
+
   <ItemGroup>
     <Content Include="motoplay-logo.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

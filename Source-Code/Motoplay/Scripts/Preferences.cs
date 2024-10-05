@@ -88,6 +88,12 @@ namespace Motoplay.Scripts
             public int mark7volumeSpeed = 85;
             public int mark7volumeTarget = 105;
             public int volumeBoostOnMaxRpm = 30;
+
+            public int cameraProjectionQuality = 2; //0 = Low, 1 = Middle, 2 = High, 3 = Perfect
+            public int cameraMaxQueuingFrames = 1;
+            public bool cameraMultiThread = false;
+            public bool cameraShowStatistics = false;
+            public int cameraMiniviewSize = 0; //0 = Small, 1 = Medium, 2 = Large
         }
 
         //Private variables

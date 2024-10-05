@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:gif="clr-namespace:Avalonia.Labs.Gif;assembly=Avalonia.Labs.Gif"
+		xmlns:skiav="clr-namespace:SkiaImageView;assembly=SkiaImageView"
         xmlns:views="clr-namespace:Motoplay.Views"
 		xmlns:local="clr-namespace:Motoplay"
         mc:Ignorable="d" x:Class="Motoplay.Views.MainWindow"
@@ -221,15 +222,15 @@
 						</Grid>
 					</Grid>
 					<!-- Web Browser Background -->
-					<Grid Name="pageBgForBrowser" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-						<Grid Background="Orange"></Grid>
+					<Grid Name="pageBgForBrowser" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<Image Source="/Assets/web-browser-background.png" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="432" RenderOptions.BitmapInterpolationMode="HighQuality" Margin="0, 0, -140, -140" Opacity="0.05"></Image>
 					</Grid>
 					<!-- USB Camera Background -->
 					<Grid Name="pageBgForCamera" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-						<Grid Background="Red"></Grid>
+						<Image Source="/Assets/camera-background-alt.png" HorizontalAlignment="Center" VerticalAlignment="Center" RenderOptions.BitmapInterpolationMode="HighQuality" Stretch="Fill" Width="706" Height="380" Margin="110, 0, 0, 0" Opacity="0.05"></Image>
 					</Grid>
 					<!-- Mirror Phone Background -->
-					<Grid Name="pageBgForPhone" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+					<Grid Name="pageBgForPhone" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 						<Grid Background="Green"></Grid>
 					</Grid>
 					<!-- App Preferences Background -->
@@ -785,15 +786,30 @@
 						</Grid>
 					</Grid>
 					<!-- Web Browser Page Content -->
-					<Grid Name="pageContentForBrowser" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-						
+					<Grid Name="pageContentForBrowser" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<TextBlock Text="{DynamicResource ResourceKey=webBrowser_title}" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Medium" FontSize="16" LineHeight="32" Margin="16, 8, 0, 0"></TextBlock>
+						<Rectangle Fill="#ababab" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="1" Margin="0, 48, 0, 0" Opacity="0.5"></Rectangle>
+						<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 48, 0, 0">
+							<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+								<Image Source="/Assets/web-sad-face.png" HorizontalAlignment="Center" VerticalAlignment="Top" Height="128"></Image>
+								<TextBlock Text="{DynamicResource ResourceKey=webBrowser_unvailableWarn}" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Top" TextAlignment="Center" MaxWidth="512"></TextBlock>
+							</StackPanel>
+						</Grid>
 					</Grid>
 					<!-- USB Camera Page Content -->
 					<Grid Name="pageContentForCamera" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-						<TextBlock Text="Camera"></TextBlock>
+						<TextBlock Text="{DynamicResource ResourceKey=usbCamera_title}" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Medium" FontSize="16" LineHeight="32" Margin="16, 8, 0, 0"></TextBlock>
+						<Rectangle Fill="#ababab" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="1" Margin="0, 48, 0, 0" Opacity="0.5"></Rectangle>
+						<local:UvcCameraHandler Name="usbCamera_uvcHandler" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 49, 0, 49"></local:UvcCameraHandler>
+						<Rectangle Fill="#ababab" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="1" Margin="0, 0, 0, 48" Opacity="0.5"></Rectangle>
+						<Grid ColumnDefinitions="*,8,*,8,128" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="32" Margin="0, 0, 0, 8">
+							<ComboBox Grid.Row="0" Grid.Column="0" Name="usbCamera_deviceDrop" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="16, 0, 0, 0"></ComboBox>
+							<ComboBox Grid.Row="0" Grid.Column="2" Name="usbCamera_featureDrop" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Stretch" VerticalAlignment="Center"></ComboBox>
+							<Button Grid.Row="0" Grid.Column="4" Name="usbCamera_autoSelectButton" Content="{DynamicResource ResourceKey=usbCamera_autoSelectButton}" HorizontalAlignment="Stretch" VerticalAlignment="Center" HorizontalContentAlignment="Center" Margin="0, 0, 8, 0"></Button>
+						</Grid>
 					</Grid>
 					<!-- Mirror Phone Page Content -->
-					<Grid Name="pageContentForPhone" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+					<Grid Name="pageContentForPhone" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 						<TextBlock Text="Phone"></TextBlock>
 					</Grid>
 					<!-- App Preferences Page Content -->
@@ -1194,6 +1210,53 @@
 									</StackPanel>
 								</ScrollViewer>
 							</TabItem>
+							<!-- Camera Tab -->
+							<TabItem Header="{DynamicResource ResourceKey=appPreferences_cameraTab_title}" FontSize="16" Margin="16, 0, 0, 0" Padding="0, 0, 0, 0">
+								<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Offset="0, 0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 0, 0, 0">
+									<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="16, 16, 16, 16">
+										<!-- pref_camera_projectionQuality -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_cameraTab_projectionQuality}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_camera_projectionQuality" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
+												<ComboBoxItem>Low</ComboBoxItem>
+												<ComboBoxItem>Middle</ComboBoxItem>
+												<ComboBoxItem>High</ComboBoxItem>
+												<ComboBoxItem>Perfect</ComboBoxItem>
+											</ComboBox>
+										</DockPanel>
+										<!-- pref_camera_enableMultiThread -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_cameraTab_enableMultiThread}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<CheckBox DockPanel.Dock="Right" Name="pref_camera_enableMultiThread" IsChecked="False" HorizontalAlignment="Right" VerticalAlignment="Center"></CheckBox>
+										</DockPanel>
+										<!-- pref_camera_showStatistics -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_cameraTab_showStatistics}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<CheckBox DockPanel.Dock="Right" Name="pref_camera_showStatistics" IsChecked="False" HorizontalAlignment="Right" VerticalAlignment="Center"></CheckBox>
+										</DockPanel>
+										<!-- pref_camera_maxQueingFrames -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_cameraTab_maxQueuingFrames}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_camera_maxQueingFrames" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
+												<ComboBoxItem>1</ComboBoxItem>
+												<ComboBoxItem>3</ComboBoxItem>
+												<ComboBoxItem>5</ComboBoxItem>
+												<ComboBoxItem>10</ComboBoxItem>
+												<ComboBoxItem>15</ComboBoxItem>
+											</ComboBox>
+										</DockPanel>
+										<!-- pref_camera_miniViewSize -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_cameraTab_miniViewSize}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_camera_miniViewSize" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
+												<ComboBoxItem>Small</ComboBoxItem>
+												<ComboBoxItem>Medium</ComboBoxItem>
+												<ComboBoxItem>Large</ComboBoxItem>
+											</ComboBox>
+										</DockPanel>
+									</StackPanel>
+								</ScrollViewer>
+							</TabItem>
 						</TabControl>
 						<Rectangle Fill="#ababab" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="1" Margin="0, 0, 0, 48" Opacity="0.5"></Rectangle>
 						<Button Name="preferences_saveButton" Content="{DynamicResource ResourceKey=appPreferences_saveButton}" HorizontalAlignment="Center" VerticalAlignment="Bottom" Height="32" Width="150" HorizontalContentAlignment="Center" Margin="0, 0, 0, 8"></Button>
@@ -1201,6 +1264,11 @@
 				</Grid>
 			</Grid>
 
+			<!-- Camera Mini View -->
+			<Grid Name="usbCamera_miniCamera_root" IsVisible="False" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="172" Height="108" Margin="0, 0, 8, 8" Background="Gray" IsHitTestVisible="False">
+				<skiav:SKImageView Name="usbCamera_miniCamera_skiaImageView" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Stretch="Fill" Margin="2, 2, 2, 2" IsHitTestVisible="False"></skiav:SKImageView>
+			</Grid>
+			
 			<!-- Motoplay Status Bar -->
 			<Grid HorizontalAlignment="Right" VerticalAlignment="Top" Height="32" Width="2" Margin="0, 8, 8, 0">
 				<StackPanel Orientation="Horizontal" Spacing="4" FlowDirection="RightToLeft">
