@@ -94,6 +94,7 @@ namespace Motoplay.Scripts
             public bool cameraMultiThread = false;
             public bool cameraShowStatistics = false;
             public int cameraMiniviewSize = 0; //0 = Small, 1 = Medium, 2 = Large
+            public int cameraMaxQualityForAutoSelect = 720;
         }
 
         //Private variables

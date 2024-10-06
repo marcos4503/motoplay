@@ -20,6 +20,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using static Motoplay.Scripts.MusicPlayer;
 using static Motoplay.UvcCameraHandler;
@@ -154,6 +155,8 @@ public partial class MainWindow : Window
     private ObservableCollection<string> usbCameraDevicesNameSelector = new ObservableCollection<string>();
     private ObservableCollection<string> usbCameraDeviceFeatureSelector = new ObservableCollection<string>();
     private UvcDevice[] usbCameraCurrentConnectedUvcDevices = null;
+    private List<string> mirrorPhoneDependenciesToInstall = new List<string>();
+    private Process currentMirrorScrcpyProcess = null;
 
     //Private variables
     private string[] receivedCliArgs = null;
@@ -3341,7 +3344,7 @@ public partial class MainWindow : Window
         musicPlayer_background_loading.IsVisible = false;
         musicPlayer_background_player.IsVisible = true;
 
-        //Change to screen of dependencies install request
+        //Change to screen of player
         musicPlayer_loadScreen.IsVisible = false;
         musicPlayer_dependenciesScreen.IsVisible = false;
         musicPlayer_playerScreen.IsVisible = true;
@@ -4505,8 +4508,13 @@ public partial class MainWindow : Window
         usbCamera_deviceDrop.SelectionChanged += (s, e) => { OnChangeUvcDeviceSelector(); };
         usbCamera_featureDrop.ItemsSource = (IEnumerable)usbCameraDeviceFeatureSelector;
         usbCamera_featureDrop.SelectionChanged += (s, e) => { OnChangeUvcDeviceFetureSelector(); };
-        usbCamera_autoSelectButton.Click += (s, e) => { AutoSelectCamera(); };
-        
+        usbCamera_autoSelectBt.Click += (s, e) => { AutoSelectCamera(); };
+        usbCamera_autoResetBt.Click += (s, e) => { AutoResetCamera(); };
+
+        //Enable the auto select button
+        usbCamera_autoSelectBt.IsVisible = true;
+        usbCamera_autoResetBt.IsVisible = false;
+
         //Define the size of miniview
         if (appPrefs.loadedData.cameraMiniviewSize == 0)
         {
@@ -4562,14 +4570,16 @@ public partial class MainWindow : Window
             //Enable the controls
             usbCamera_deviceDrop.IsEnabled = true;
             usbCamera_featureDrop.IsEnabled = true;
-            usbCamera_autoSelectButton.IsEnabled = true;
+            usbCamera_autoSelectBt.IsEnabled = true;
+            usbCamera_autoResetBt.IsEnabled = true;
         });
         usbCamera_uvcHandler.RegisterOnStartedSeeingCallback(() =>
         {
             //Enable the controls
             usbCamera_deviceDrop.IsEnabled = true;
             usbCamera_featureDrop.IsEnabled = true;
-            usbCamera_autoSelectButton.IsEnabled = true;
+            usbCamera_autoSelectBt.IsEnabled = true;
+            usbCamera_autoResetBt.IsEnabled = true;
         });
         usbCamera_uvcHandler.RegisterOnStoppedSeeingCallback(() =>
         {
@@ -4584,14 +4594,27 @@ public partial class MainWindow : Window
 
     private void OnChangeUvcDeviceSelector()
     {
+        //Get the index of selected device
+        int selectedIndex = usbCamera_deviceDrop.SelectedIndex;
+
+        //If is selected none device, show the auto select button
+        if (selectedIndex == 0)
+        {
+            usbCamera_autoSelectBt.IsVisible = true;
+            usbCamera_autoResetBt.IsVisible = false;
+        }
+        //If is selected a device, show the reset button
+        if (selectedIndex > 0)
+        {
+            usbCamera_autoSelectBt.IsVisible = false;
+            usbCamera_autoResetBt.IsVisible = true;
+        }
+
         //Clear the devices features selector options
         usbCameraDeviceFeatureSelector.Clear();
 
         //Add none feature
         usbCameraDeviceFeatureSelector.Add("-");
-
-        //Get the index of selected device
-        int selectedIndex = usbCamera_deviceDrop.SelectedIndex;
 
         //If is the none device, cancel
         if (selectedIndex == 0)
@@ -4620,7 +4643,8 @@ public partial class MainWindow : Window
         //Disable the controls
         usbCamera_deviceDrop.IsEnabled = false;
         usbCamera_featureDrop.IsEnabled = false;
-        usbCamera_autoSelectButton.IsEnabled = false;
+        usbCamera_autoSelectBt.IsEnabled = false;
+        usbCamera_autoResetBt.IsEnabled = false;
 
         //Change to the choosed UVC Device and choosed feature
         usbCamera_uvcHandler.StartSeeLiveUvcDeviceWithFeature(usbCameraCurrentConnectedUvcDevices[usbCamera_deviceDrop.SelectedIndex].realIndexOnConnectedDevices, (usbCamera_featureDrop.SelectedIndex - 1));
@@ -4628,15 +4652,6 @@ public partial class MainWindow : Window
 
     private void AutoSelectCamera()
     {
-        //If already have a device selected, disconnect from it and show the "Auto Connect" message again
-        if (usbCamera_deviceDrop.SelectedIndex > 0)
-        {
-            usbCamera_deviceDrop.SelectedIndex = 0;
-            usbCamera_featureDrop.SelectedIndex = 0;
-            usbCamera_autoSelectButton.Content = GetStringApplicationResource("usbCamera_autoSelectButton");
-            return;
-        }
-
         //If never received the devices update, return
         if (usbCameraCurrentConnectedUvcDevices == null)
         {
@@ -4651,9 +4666,6 @@ public partial class MainWindow : Window
             return;
         }
 
-        //Now that was found a device and feature, and show the "Reset" message
-        usbCamera_autoSelectButton.Content = GetStringApplicationResource("usbCamera_resetButton");
-
         //Get camera to use
         usbCamera_deviceDrop.SelectedIndex = 1;
 
@@ -4664,7 +4676,7 @@ public partial class MainWindow : Window
         int bestFeatureToUse = -1;
         for (int i = 0; i < features.Length; i++)
             if (features[i].PixelFormat == FlashCap.PixelFormats.JPEG || features[i].PixelFormat == FlashCap.PixelFormats.ARGB32 || features[i].PixelFormat == FlashCap.PixelFormats.PNG)
-                if (features[i].Height >= 600 && features[i].Height <= 720)
+                if (features[i].Height <= appPrefs.loadedData.cameraMaxQualityForAutoSelect)
                 {
                     bestFeatureToUse = i;
                     break;
@@ -4681,11 +4693,412 @@ public partial class MainWindow : Window
         usbCamera_featureDrop.SelectedIndex = (bestFeatureToUse + 1);
     }
 
+    private void AutoResetCamera()
+    {
+        //Select none device
+        usbCamera_deviceDrop.SelectedIndex = 0;
+        usbCamera_featureDrop.SelectedIndex = 0;
+    }
+
     //Mirror Phone
 
     private void PrepareTheMirrorPhone()
     {
+        //Prepare the base UI
+        mirrorPhone_dependenciesScreen_installButton.Click += (s, e) => { CoroutineHandler.Start(InstallMirrorPhoneDependencies()); };
+        mirrorPhone_mirrorScreen_connectButton.Click += (s, e) => { CoroutineHandler.Start(TryConnectToMirrorPhone()); };
+        mirrorPhone_mirrorScreen_disconnectButton.Click += (s, e) => { DisconnectFromMirrorPhone(); };
 
+        //Change to screen of loading
+        mirrorPhone_loadScreen.IsVisible = true;
+        mirrorPhone_dependenciesScreen.IsVisible = false;
+        mirrorPhone_mirrorScreen.IsVisible = false;
+
+        //Start the dependencies checking
+        CoroutineHandler.Start(CheckMirrorPhoneDependencies());
+    }
+
+    private IEnumerator<Wait> CheckMirrorPhoneDependencies()
+    {
+        //Change to screen of loading
+        mirrorPhone_loadScreen.IsVisible = true;
+        mirrorPhone_dependenciesScreen.IsVisible = false;
+        mirrorPhone_mirrorScreen.IsVisible = false;
+
+        //Add this task running
+        AddTask("mirrorPhoneDependenciesCheck", "Checks dependencies for Motoplay Mirror Phone functionality.");
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+        //If Linux, continue...
+        if (OperatingSystem.IsLinux() == true)
+        {
+            //Prepare a list of package to check
+            List<string> packagesToCheck = new List<string>();
+            packagesToCheck.Add("ffmpeg");
+            packagesToCheck.Add("libsdl2-2.0-0");
+            packagesToCheck.Add("adb");
+            packagesToCheck.Add("wget");
+            packagesToCheck.Add("gcc");
+            packagesToCheck.Add("git");
+            packagesToCheck.Add("pkg-config");
+            packagesToCheck.Add("meson");
+            packagesToCheck.Add("ninja-build");
+            packagesToCheck.Add("libsdl2-dev");
+            packagesToCheck.Add("libavcodec-dev");
+            packagesToCheck.Add("libavdevice-dev");
+            packagesToCheck.Add("libavformat-dev");
+            packagesToCheck.Add("libavutil-dev");
+            packagesToCheck.Add("libswresample-dev");
+            packagesToCheck.Add("libusb-1.0-0");
+            packagesToCheck.Add("libusb-1.0-0-dev");
+
+            //Check each package of list
+            foreach (string package in packagesToCheck)
+            {
+                //Send a command to check if the package is installed
+                SendCommandToTerminalAndClearCurrentOutputLines(rKey, ("sudo dpkg -s " + package));
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution(rKey) == false)
+                    yield return new Wait(0.1f);
+
+                //If not installed, add to list of install
+                if (isThermFoundInTerminalOutputLines(rKey, "is not installed") == true)
+                    mirrorPhoneDependenciesToInstall.Add(package);
+            }
+
+            //Check if the "scrcpy" is installed
+            if (File.Exists(("/home/" + systemCurrentUsername + "/scrcpy/README.md")) == false)
+                mirrorPhoneDependenciesToInstall.Add("custom:scrcpy");
+        }
+
+        //If Windows, just continue...
+        if (OperatingSystem.IsWindows() == true)
+            AvaloniaDebug.WriteLine("None additional dependencie is required in Windows.");
+
+        //If have dependencies to install, change to install screen
+        if (mirrorPhoneDependenciesToInstall.Count > 0)
+        {
+            //Change to screen of dependencies install request
+            mirrorPhone_loadScreen.IsVisible = false;
+            mirrorPhone_dependenciesScreen.IsVisible = true;
+            mirrorPhone_mirrorScreen.IsVisible = false;
+        }
+
+        //If not have dependencies to install, initialize the Mirror Phone
+        if (mirrorPhoneDependenciesToInstall.Count == 0)
+            InitializeTheMirrorPhone();
+
+
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //Remove the task running
+        RemoveTask("mirrorPhoneDependenciesCheck");
+    }
+
+    private IEnumerator<Wait> InstallMirrorPhoneDependencies()
+    {
+        //Disable the install dependencies button
+        mirrorPhone_dependenciesScreen_installButton.IsEnabled = false;
+
+        //Change to screen of loading
+        mirrorPhone_loadScreen.IsVisible = true;
+        mirrorPhone_dependenciesScreen.IsVisible = false;
+        mirrorPhone_mirrorScreen.IsVisible = false;
+
+        //Add this task running
+        AddTask("mirrorPhoneDependenciesInstall", "Install dependencies for Motoplay Mirror Phone functionality.");
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+        //While have dependencies to install
+        while (mirrorPhoneDependenciesToInstall.Count > 0)
+        {
+            //Wait time
+            yield return new Wait(1.0f);
+
+            //If is a APT package...
+            if (mirrorPhoneDependenciesToInstall[0].Contains("custom:scrcpy") == false)
+            {
+                //Send a command to install the first package of list
+                SendCommandToTerminalAndClearCurrentOutputLines(rKey, ("sudo apt-get install " + mirrorPhoneDependenciesToInstall[0] + " -y"));
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution(rKey) == false)
+                    yield return new Wait(0.1f);
+
+                //Wait time
+                yield return new Wait(1.0f);
+
+                //Send a command to confirm that the first package is installed
+                SendCommandToTerminalAndClearCurrentOutputLines(rKey, ("sudo dpkg -s " + mirrorPhoneDependenciesToInstall[0]));
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution(rKey) == false)
+                    yield return new Wait(0.1f);
+
+                //If not installed, stop the program
+                if (isThermFoundInTerminalOutputLines(rKey, "is not installed") == true)
+                {
+                    var diag = MessageBoxManager.GetMessageBoxStandard("Error", "There was a problem, when installing a required package. Check your Internet connection!", ButtonEnum.Ok).ShowAsync();
+                    while (diag.IsCompleted == false)
+                        yield return new Wait(0.1f);
+                    this.Close();
+                }
+            }
+
+            //If is a custom package...
+            if (mirrorPhoneDependenciesToInstall[0].Contains("custom:scrcpy") == true)
+            {
+                //Send a command to clone the repo of scrcpy
+                SendCommandToTerminalAndClearCurrentOutputLines(rKey, "git clone https://github.com/Genymobile/scrcpy");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution(rKey) == false)
+                    yield return new Wait(0.1f);
+
+                //Send a command to change to scrcpy directory
+                SendCommandToTerminalAndClearCurrentOutputLines(rKey, "cd scrcpy");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution(rKey) == false)
+                    yield return new Wait(0.1f);
+
+                //Send a command to execute the install script of scrcpy
+                SendCommandToTerminalAndClearCurrentOutputLines(rKey, "./install_release.sh");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution(rKey) == false)
+                    yield return new Wait(0.1f);
+
+                //Send a command to change back to default directory
+                SendCommandToTerminalAndClearCurrentOutputLines(rKey, "cd ~");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution(rKey) == false)
+                    yield return new Wait(0.1f);
+
+                //Send a command to check if the scrcpy is installed
+                SendCommandToTerminalAndClearCurrentOutputLines(rKey, "scrcpy --help");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution(rKey) == false)
+                    yield return new Wait(0.1f);
+
+                //If not installed, stop the program
+                if (isThermFoundInTerminalOutputLines(rKey, "command not found") == true)
+                {
+                    if (Directory.Exists(("/home/" + systemCurrentUsername + "/scrcpy")) == true)
+                        Directory.Delete(("/home/" + systemCurrentUsername + "/scrcpy"), true);
+
+                    var diag = MessageBoxManager.GetMessageBoxStandard("Error", "There was a problem, when installing a required package. Check your Internet connection!", ButtonEnum.Ok).ShowAsync();
+                    while (diag.IsCompleted == false)
+                        yield return new Wait(0.1f);
+                    this.Close();
+                }
+            }
+
+            //Remove the first installed package from the list
+            mirrorPhoneDependenciesToInstall.RemoveAt(0);
+        }
+
+        //Go back to dependencies check
+        CoroutineHandler.Start(CheckMirrorPhoneDependencies());
+
+
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //Remove the task running
+        RemoveTask("mirrorPhoneDependenciesInstall");
+    }
+
+    private void InitializeTheMirrorPhone()
+    {
+        //Change to screen of mirror
+        mirrorPhone_loadScreen.IsVisible = false;
+        mirrorPhone_dependenciesScreen.IsVisible = false;
+        mirrorPhone_mirrorScreen.IsVisible = true;
+
+        //Change to screen of connect
+        mirrorPhone_mirrorScreen_preConnect_root.IsVisible = true;
+        mirrorPhone_mirrorScreen_connected_root.IsVisible = false;
+    }
+
+    private IEnumerator<Wait> TryConnectToMirrorPhone()
+    {
+        //Disable the try connect button
+        mirrorPhone_mirrorScreen_connectButton.IsEnabled = false;
+
+        //Add this task running
+        AddTask("adbConnectTry", "Try to connect via ADB to the Phone.");
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+        //Send a command to get the default gateway of network
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, "route -n | grep 'UG[ \t]' | awk '{print $2}'");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+        //Get the gateway IP
+        string gatewayIp = "";
+        foreach (string line in terminalReceivedOutputLines)
+            if (line.Contains("Done Command") == false)
+                gatewayIp += line.Replace("\n", "").Replace(" ", "");
+        if ((new Regex(@"^([1-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])){3}$")).IsMatch(gatewayIp, 0) == false)
+            gatewayIp = "10.0.0.0";
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+        //Send a command to prepare the USB debugging
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, "adb usb");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+        //Wait time
+        yield return new Wait(3.0f);
+
+        //Send a command to prepare the USB debugging
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, "adb tcpip 5555");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+        //Wait time
+        yield return new Wait(3.0f);
+
+        //Send a command to prepare the USB debugging
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, ("adb connect " + gatewayIp));
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+        //Wait time
+        yield return new Wait(3.0f);
+
+        //Check if the device was connected
+        bool deviceWasConnected = isThermFoundInTerminalOutputLines(rKey, "connected to");
+
+        //Wait time
+        yield return new Wait(3.0f);
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //If was connected to device
+        if (deviceWasConnected == true)
+        {
+            //Change to connected screen
+            mirrorPhone_mirrorScreen_preConnect_root.IsVisible = false;
+            mirrorPhone_mirrorScreen_connected_root.IsVisible = true;
+
+            //Prepare and start a new terminal process that will wait the scrcpy window and maximize it
+            Process wlrctlProcess = new Process();
+            ProcessStartInfo wlrctlProcessProcessStartInfo = new ProcessStartInfo();
+            wlrctlProcessProcessStartInfo.FileName = "/bin/bash";
+            wlrctlProcessProcessStartInfo.Arguments = "-c \"wlrctl toplevel waitfor scrcpy ; wlrctl toplevel maximize scrcpy\"";
+            wlrctlProcess.StartInfo = wlrctlProcessProcessStartInfo;
+            wlrctlProcess.Start();
+
+            //Prepare and start the scrcpy process
+            Process scrcpyProcess = new Process();
+            ProcessStartInfo scrcpyProcessStartInfo = new ProcessStartInfo();
+            scrcpyProcessStartInfo.FileName = "/usr/local/bin/scrcpy";
+            scrcpyProcessStartInfo.Arguments = ("--tcpip=" + gatewayIp + " --window-title=Mirror --window-borderless");
+            scrcpyProcess.StartInfo = scrcpyProcessStartInfo;
+            scrcpyProcess.Start();
+
+            //Store reference for the scrcpy process
+            currentMirrorScrcpyProcess = scrcpyProcess;
+
+            //Prepare the interval
+            Wait intervalWait = new Wait(0.5f);
+            //Wait while the process is running
+            while (scrcpyProcess.HasExited == false)
+                yield return intervalWait;
+        }
+
+        //If was not connected to device
+        if (deviceWasConnected == false)
+        {
+            //Show the error message of device not connected
+            string errorString = "";
+            foreach (string line in terminalReceivedOutputLines)
+                if (line.Contains("failed to connect") == true)
+                    errorString = ("\n\nError: " + line.Split("': ")[1]);
+            ShowToast((GetStringApplicationResource("mirrorPhone_errorMessage") + errorString), ToastDuration.Short, ToastType.Problem);
+        }
+
+        //Wait time
+        yield return new Wait(3.0f);
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey2 = RentTheBindedCliTerminal();
+
+        //Send a command to shutdown the ADB server
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey2, "adb disconnect ; adb kill-server");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey2) == false)
+            yield return new Wait(0.1f);
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey2);
+
+        //...
+
+
+
+        //Enable the try connect button again
+        mirrorPhone_mirrorScreen_connectButton.IsEnabled = true;
+
+        //Enable the disconnect button again
+        mirrorPhone_mirrorScreen_disconnectButton.IsEnabled = true;
+
+        //Change back to connect screen
+        mirrorPhone_mirrorScreen_preConnect_root.IsVisible = true;
+        mirrorPhone_mirrorScreen_connected_root.IsVisible = false;
+
+        //Remove the task running
+        RemoveTask("adbConnectTry");
+    }
+
+    private void DisconnectFromMirrorPhone()
+    {
+        //If the scrcpy process is not null, kill it
+        if (currentMirrorScrcpyProcess != null)
+            currentMirrorScrcpyProcess.Kill();
+
+        //Disable the disconnect button
+        mirrorPhone_mirrorScreen_disconnectButton.IsEnabled = false;
     }
 
     //Pages Manager
@@ -5108,6 +5521,19 @@ public partial class MainWindow : Window
         pref_camera_showStatistics.IsChecked = appPrefs.loadedData.cameraShowStatistics;
         //*** pref_camera_miniViewSize
         pref_camera_miniViewSize.SelectedIndex = appPrefs.loadedData.cameraMiniviewSize;
+        //*** pref_camera_maxAutoSelectQuality
+        if (appPrefs.loadedData.cameraMaxQualityForAutoSelect == 360)
+            pref_camera_maxAutoSelectQuality.SelectedIndex = 0;
+        if (appPrefs.loadedData.cameraMaxQualityForAutoSelect == 480)
+            pref_camera_maxAutoSelectQuality.SelectedIndex = 1;
+        if (appPrefs.loadedData.cameraMaxQualityForAutoSelect == 600)
+            pref_camera_maxAutoSelectQuality.SelectedIndex = 2;
+        if (appPrefs.loadedData.cameraMaxQualityForAutoSelect == 720)
+            pref_camera_maxAutoSelectQuality.SelectedIndex = 3;
+        if (appPrefs.loadedData.cameraMaxQualityForAutoSelect == 1024)
+            pref_camera_maxAutoSelectQuality.SelectedIndex = 4;
+        if (appPrefs.loadedData.cameraMaxQualityForAutoSelect == 1080)
+            pref_camera_maxAutoSelectQuality.SelectedIndex = 5;
     }
 
     private void SaveAllPreferences()
@@ -5374,6 +5800,19 @@ public partial class MainWindow : Window
         appPrefs.loadedData.cameraShowStatistics = (bool)pref_camera_showStatistics.IsChecked;
         //*** pref_camera_miniViewSize
         appPrefs.loadedData.cameraMiniviewSize = pref_camera_miniViewSize.SelectedIndex;
+        //*** pref_camera_maxAutoSelectQuality
+        if (pref_camera_maxAutoSelectQuality.SelectedIndex == 0)
+            appPrefs.loadedData.cameraMaxQualityForAutoSelect = 360;
+        if (pref_camera_maxAutoSelectQuality.SelectedIndex == 1)
+            appPrefs.loadedData.cameraMaxQualityForAutoSelect = 480;
+        if (pref_camera_maxAutoSelectQuality.SelectedIndex == 2)
+            appPrefs.loadedData.cameraMaxQualityForAutoSelect = 600;
+        if (pref_camera_maxAutoSelectQuality.SelectedIndex == 3)
+            appPrefs.loadedData.cameraMaxQualityForAutoSelect = 720;
+        if (pref_camera_maxAutoSelectQuality.SelectedIndex == 4)
+            appPrefs.loadedData.cameraMaxQualityForAutoSelect = 1024;
+        if (pref_camera_maxAutoSelectQuality.SelectedIndex == 5)
+            appPrefs.loadedData.cameraMaxQualityForAutoSelect = 1080;
 
         //Save the preferences to file
         appPrefs.Save();

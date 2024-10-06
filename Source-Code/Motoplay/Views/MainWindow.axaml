@@ -230,8 +230,8 @@
 						<Image Source="/Assets/camera-background-alt.png" HorizontalAlignment="Center" VerticalAlignment="Center" RenderOptions.BitmapInterpolationMode="HighQuality" Stretch="Fill" Width="706" Height="380" Margin="110, 0, 0, 0" Opacity="0.05"></Image>
 					</Grid>
 					<!-- Mirror Phone Background -->
-					<Grid Name="pageBgForPhone" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-						<Grid Background="Green"></Grid>
+					<Grid Name="pageBgForPhone" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<Image Source="/Assets/phone-mirror-background.png" HorizontalAlignment="Right" VerticalAlignment="Bottom" RenderOptions.BitmapInterpolationMode="HighQuality" Stretch="Uniform" Width="400" Opacity="0.05"></Image>
 					</Grid>
 					<!-- App Preferences Background -->
 					<Grid Name="pageBgForPreferences" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -805,12 +805,143 @@
 						<Grid ColumnDefinitions="*,8,*,8,128" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="32" Margin="0, 0, 0, 8">
 							<ComboBox Grid.Row="0" Grid.Column="0" Name="usbCamera_deviceDrop" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="16, 0, 0, 0"></ComboBox>
 							<ComboBox Grid.Row="0" Grid.Column="2" Name="usbCamera_featureDrop" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Stretch" VerticalAlignment="Center"></ComboBox>
-							<Button Grid.Row="0" Grid.Column="4" Name="usbCamera_autoSelectButton" Content="{DynamicResource ResourceKey=usbCamera_autoSelectButton}" HorizontalAlignment="Stretch" VerticalAlignment="Center" HorizontalContentAlignment="Center" Margin="0, 0, 8, 0"></Button>
+							<Grid Grid.Row="0" Grid.Column="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 0, 8, 0">
+								<Button Name="usbCamera_autoSelectBt" IsVisible="True" Content="{DynamicResource ResourceKey=usbCamera_autoSelectButton}" HorizontalAlignment="Stretch" VerticalAlignment="Center" HorizontalContentAlignment="Center"></Button>
+								<Button Name="usbCamera_autoResetBt" IsVisible="False" Content="{DynamicResource ResourceKey=usbCamera_resetButton}" HorizontalAlignment="Stretch" VerticalAlignment="Center" HorizontalContentAlignment="Center"></Button>
+							</Grid>
 						</Grid>
 					</Grid>
 					<!-- Mirror Phone Page Content -->
-					<Grid Name="pageContentForPhone" IsVisible="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-						<TextBlock Text="Phone"></TextBlock>
+					<Grid Name="pageContentForPhone" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<TextBlock Text="{DynamicResource ResourceKey=mirrorPhone_title}" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Medium" FontSize="16" LineHeight="32" Margin="16, 8, 0, 0"></TextBlock>
+						<Rectangle Fill="#ababab" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="1" Margin="0, 48, 0, 0" Opacity="0.5"></Rectangle>
+						<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 48, 0, 0">
+							<!-- Load Screen -->
+							<Grid Name="mirrorPhone_loadScreen" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+								<Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Height="150">
+									<gif:GifImage HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="avares://Motoplay/Assets/bluetooth-pairing-gif.gif" Stretch="Fill" Opacity="0.8"/>
+									<Image Source="/Assets/menu-phone-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7" Margin="44, 44, 44, 44"></Image>
+								</Grid>
+							</Grid>
+							<!-- Install Dependencies Screen -->
+							<Grid Name="mirrorPhone_dependenciesScreen" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+								<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+									<Image Source="/Assets/mirror-dependencies.png" HorizontalAlignment="Center" VerticalAlignment="Top" Opacity="1.0" Height="128"></Image>
+									<TextBlock Text="{DynamicResource ResourceKey=mirrorPhone_dependenciesMessage}" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Top" MaxWidth="400" TextAlignment="Center" Margin="0, 16, 0, 32"></TextBlock>
+									<Button Name="mirrorPhone_dependenciesScreen_installButton" Content="{DynamicResource ResourceKey=mirrorPhone_dependenciesButton}" HorizontalAlignment="Center" VerticalAlignment="Top" Width="128" HorizontalContentAlignment="Center"></Button>
+								</StackPanel>
+							</Grid>
+							<!-- Mirror Screen -->
+							<Grid Name="mirrorPhone_mirrorScreen" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+								<Grid Name="mirrorPhone_mirrorScreen_preConnect_root" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+									<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Offset="0, 0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 0, 0, 0">
+										<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="16, 16, 16, 16">
+											<Border Background="Red" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="64" CornerRadius="8" ClipToBounds="True">
+												<Grid HorizontalAlignment="Stretch" VerticalAlignment="Top">
+													<Image Source="/Assets/mirror-doc-banner.png" HorizontalAlignment="Stretch" VerticalAlignment="Top" Stretch="UniformToFill"></Image>
+												</Grid>
+											</Border>
+											<TextBlock Text="{DynamicResource ResourceKey=mirrorPhone_textParagrah_1}" TextWrapping="Wrap" HorizontalAlignment="Stretch" VerticalAlignment="Top" TextAlignment="Left" Margin="0, 8, 0, 0"></TextBlock>
+											<TextBlock Text="{DynamicResource ResourceKey=mirrorPhone_textParagrah_2}" TextWrapping="Wrap" HorizontalAlignment="Stretch" VerticalAlignment="Top" TextAlignment="Left" Margin="0, 8, 0, 0"></TextBlock>
+											<Grid ColumnDefinitions="64,8,*" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="32, 0, 0, 0">
+												<Grid Grid.Row="0" Grid.Column="0">
+													<TextBlock Text="{DynamicResource ResourceKey=mirrorPhone_step1_title}" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="SemiBold"></TextBlock>
+												</Grid>
+												<Grid Grid.Row="0" Grid.Column="1"></Grid>
+												<Grid Grid.Row="0" Grid.Column="2">
+													<TextBlock Text="{DynamicResource ResourceKey=mirrorPhone_step1_msg}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top"></TextBlock>
+												</Grid>
+											</Grid>
+											<Grid ColumnDefinitions="64,8,*" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="32, 0, 0, 0">
+												<Grid Grid.Row="0" Grid.Column="0">
+													<TextBlock Text="{DynamicResource ResourceKey=mirrorPhone_step2_title}" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="SemiBold"></TextBlock>
+												</Grid>
+												<Grid Grid.Row="0" Grid.Column="1"></Grid>
+												<Grid Grid.Row="0" Grid.Column="2">
+													<TextBlock Text="{DynamicResource ResourceKey=mirrorPhone_step2_msg}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top"></TextBlock>
+												</Grid>
+											</Grid>
+											<Grid ColumnDefinitions="64,8,*" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="32, 0, 0, 0">
+												<Grid Grid.Row="0" Grid.Column="0">
+													<TextBlock Text="{DynamicResource ResourceKey=mirrorPhone_step3_title}" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="SemiBold"></TextBlock>
+												</Grid>
+												<Grid Grid.Row="0" Grid.Column="1"></Grid>
+												<Grid Grid.Row="0" Grid.Column="2">
+													<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Left" VerticalAlignment="Top">
+														<TextBlock Text="{DynamicResource ResourceKey=mirrorPhone_step3_msg}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top"></TextBlock>
+														<Border HorizontalAlignment="Left" VerticalAlignment="Top" BorderThickness="0" Background="#c2c2c2" BorderBrush="#c2c2c2" CornerRadius="8" ClipToBounds="True" Padding="2, 2, 2, 2">
+															<Image Source="/Assets/mirror-doc-img1.png" HorizontalAlignment="Left" VerticalAlignment="Top" MaxWidth="256"></Image>
+														</Border>
+													</StackPanel>
+												</Grid>
+											</Grid>
+											<Grid ColumnDefinitions="64,8,*" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="32, 0, 0, 0">
+												<Grid Grid.Row="0" Grid.Column="0">
+													<TextBlock Text="{DynamicResource ResourceKey=mirrorPhone_step4_title}" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="SemiBold"></TextBlock>
+												</Grid>
+												<Grid Grid.Row="0" Grid.Column="1"></Grid>
+												<Grid Grid.Row="0" Grid.Column="2">
+													<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Left" VerticalAlignment="Top">
+														<TextBlock Text="{DynamicResource ResourceKey=mirrorPhone_step4_msg}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top"></TextBlock>
+														<Border HorizontalAlignment="Left" VerticalAlignment="Top" BorderThickness="0" Background="#c2c2c2" BorderBrush="#c2c2c2" CornerRadius="8" ClipToBounds="True" Padding="2, 2, 2, 2">
+															<Image Source="/Assets/mirror-doc-img2.png" HorizontalAlignment="Left" VerticalAlignment="Top" MaxWidth="256"></Image>
+														</Border>
+													</StackPanel>
+												</Grid>
+											</Grid>
+											<Grid ColumnDefinitions="64,8,*" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="32, 0, 0, 0">
+												<Grid Grid.Row="0" Grid.Column="0">
+													<TextBlock Text="{DynamicResource ResourceKey=mirrorPhone_step5_title}" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="SemiBold"></TextBlock>
+												</Grid>
+												<Grid Grid.Row="0" Grid.Column="1"></Grid>
+												<Grid Grid.Row="0" Grid.Column="2">
+													<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Left" VerticalAlignment="Top">
+														<TextBlock Text="{DynamicResource ResourceKey=mirrorPhone_step5_msg}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top"></TextBlock>
+														<Border HorizontalAlignment="Left" VerticalAlignment="Top" BorderThickness="0" Background="#c2c2c2" BorderBrush="#c2c2c2" CornerRadius="8" ClipToBounds="True" Padding="2, 2, 2, 2">
+															<Image Source="/Assets/mirror-doc-img3.png" HorizontalAlignment="Left" VerticalAlignment="Top" MaxWidth="256"></Image>
+														</Border>
+													</StackPanel>
+												</Grid>
+											</Grid>
+											<Grid ColumnDefinitions="64,8,*" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="32, 0, 0, 0">
+												<Grid Grid.Row="0" Grid.Column="0">
+													<TextBlock Text="{DynamicResource ResourceKey=mirrorPhone_step6_title}" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="SemiBold"></TextBlock>
+												</Grid>
+												<Grid Grid.Row="0" Grid.Column="1"></Grid>
+												<Grid Grid.Row="0" Grid.Column="2">
+													<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Left" VerticalAlignment="Top">
+														<TextBlock Text="{DynamicResource ResourceKey=mirrorPhone_step6_msga}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top"></TextBlock>
+														<TextBlock Text="{DynamicResource ResourceKey=mirrorPhone_step6_msgb}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Top"></TextBlock>
+														<Border HorizontalAlignment="Left" VerticalAlignment="Top" BorderThickness="0" Background="#c2c2c2" BorderBrush="#c2c2c2" CornerRadius="8" ClipToBounds="True" Padding="2, 2, 2, 2">
+															<Image Source="/Assets/mirror-doc-img4.png" HorizontalAlignment="Left" VerticalAlignment="Top" MaxWidth="256"></Image>
+														</Border>
+													</StackPanel>
+												</Grid>
+											</Grid>
+											<TextBlock Text="{DynamicResource ResourceKey=mirrorPhone_textParagrah_3}" TextWrapping="Wrap" HorizontalAlignment="Stretch" VerticalAlignment="Top" TextAlignment="Left" Margin="0, 8, 0, 0"></TextBlock>
+											<Button Name="mirrorPhone_mirrorScreen_connectButton" Content="{DynamicResource ResourceKey=mirrorPhone_connectButton}" HorizontalAlignment="Center" VerticalAlignment="Top" Width="200" Height="32" HorizontalContentAlignment="Center" Margin="0, 32, 0, 0" Background="#039e22" Foreground="#ffffff"></Button>
+										</StackPanel>
+									</ScrollViewer>
+								</Grid>
+								<Grid Name="mirrorPhone_mirrorScreen_connected_root" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+									<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0, -24, 0, 0">
+										<Image Source="/Assets/connected-mirror.png" HorizontalAlignment="Center" VerticalAlignment="Top" Opacity="1.0" Height="128"></Image>
+										<TextBlock Text="{DynamicResource ResourceKey=mirrorPhone_connectedMessage}" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Top" MaxWidth="400" TextAlignment="Center" FontSize="20" FontWeight="Bold" Margin="0, -24, 0, 0"></TextBlock>
+										<Border HorizontalAlignment="Stretch" VerticalAlignment="Top" Width="608" Background="#e6e6e6" Padding="8, 8, 8, 8" CornerRadius="8" Margin="0, 16, 0, 0">
+											<Grid HorizontalAlignment="Stretch" VerticalAlignment="Top">
+												<TextBlock Text="{DynamicResource ResourceKey=mirrorPhone_tips}" TextWrapping="Wrap" HorizontalAlignment="Stretch" VerticalAlignment="Top" FontSize="12"></TextBlock>
+											</Grid>
+										</Border>
+										<Border HorizontalAlignment="Stretch" VerticalAlignment="Top" Width="608" Background="#e6e6e6" Padding="8, 8, 8, 8" CornerRadius="8" Margin="0, 8, 0, 0">
+											<Grid HorizontalAlignment="Stretch" VerticalAlignment="Top">
+												<TextBlock Text="{DynamicResource ResourceKey=mirrorPhone_additionalTips}" TextWrapping="Wrap" HorizontalAlignment="Stretch" VerticalAlignment="Top" FontSize="12"></TextBlock>
+											</Grid>
+										</Border>
+										<Button Name="mirrorPhone_mirrorScreen_disconnectButton" Content="{DynamicResource ResourceKey=mirrorPhone_disconnectButton}" HorizontalAlignment="Center" VerticalAlignment="Top" Width="128" Height="32" HorizontalContentAlignment="Center" Margin="0, 16, 0, 0" Background="#b82116" Foreground="#ffffff"></Button>
+									</StackPanel>
+								</Grid>
+							</Grid>
+						</Grid>
 					</Grid>
 					<!-- App Preferences Page Content -->
 					<Grid Name="pageContentForPreferences" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -1222,6 +1353,18 @@
 												<ComboBoxItem>Middle</ComboBoxItem>
 												<ComboBoxItem>High</ComboBoxItem>
 												<ComboBoxItem>Perfect</ComboBoxItem>
+											</ComboBox>
+										</DockPanel>
+										<!-- pref_camera_maxAutoSelectQuality -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_cameraTab_maxQualityAutoSelect}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_camera_maxAutoSelectQuality" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
+												<ComboBoxItem>360p SD 4:3</ComboBoxItem>
+												<ComboBoxItem>480p SD 4:3</ComboBoxItem>
+												<ComboBoxItem>600p SD 4:3</ComboBoxItem>
+												<ComboBoxItem>720p HD 16:9</ComboBoxItem>
+												<ComboBoxItem>1024p HD 5:4</ComboBoxItem>
+												<ComboBoxItem>1080p FHD 16:9</ComboBoxItem>
 											</ComboBox>
 										</DockPanel>
 										<!-- pref_camera_enableMultiThread -->
