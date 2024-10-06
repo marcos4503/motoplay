@@ -1,9 +1,10 @@
 {
-    "version": "0.0.2",
+    "version": "1.0.0",
     "downloadPartsLinks": [
         "https://marcos4503.github.io/motoplay/Repository-Pages/current-motoplay-compilation.zip.001",
         "https://marcos4503.github.io/motoplay/Repository-Pages/current-motoplay-compilation.zip.002",
         "https://marcos4503.github.io/motoplay/Repository-Pages/current-motoplay-compilation.zip.003",
-        "https://marcos4503.github.io/motoplay/Repository-Pages/current-motoplay-compilation.zip.004"
+        "https://marcos4503.github.io/motoplay/Repository-Pages/current-motoplay-compilation.zip.004",
+        "https://marcos4503.github.io/motoplay/Repository-Pages/current-motoplay-compilation.zip.005"
     ]
 }
