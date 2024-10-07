@@ -64,13 +64,20 @@ namespace Motoplay.Scripts
 
         //Core methods
 
-        public MusicPlayer(int volumePercent)
+        public MusicPlayer(int volumePercent, bool enableNormalization)
         {
             //Initialize the LibVLCSharp
             Core.Initialize();
 
+            //Prepare a list of initialization arguments
+            List<string> initializationArguments = new List<string>();
+            initializationArguments.Add("--file-caching=15000");
+            initializationArguments.Add("--disc-caching=15000");
+            if (enableNormalization == true)
+                initializationArguments.Add("--audio-filter=normvol");
+
             //Create a lib vlc instance
-            libVlc = new LibVLC("--file-caching=15000", "--disc-caching=15000");
+            libVlc = new LibVLC(initializationArguments.ToArray());
 
             //Set the initial volume
             this.volumePercent = volumePercent;

@@ -1258,6 +1258,11 @@
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_volumeBoost}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
 											<NumericUpDown DockPanel.Dock="Right" Name="pref_player_volumeBoostAtMaxRpm" Minimum="0" Value="0" Maximum="100" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></NumericUpDown>
 										</DockPanel>
+										<!-- pref_player_volumeNormalization -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_volumeNormalization}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<CheckBox DockPanel.Dock="Right" Name="pref_player_volumeNormalization" IsChecked="False" HorizontalAlignment="Right" VerticalAlignment="Center"></CheckBox>
+										</DockPanel>
 										<!-- pref_player_equalizerProfile -->
 										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
 											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_playerTab_equalizerProfile}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
@@ -1395,6 +1400,120 @@
 												<ComboBoxItem>Small</ComboBoxItem>
 												<ComboBoxItem>Medium</ComboBoxItem>
 												<ComboBoxItem>Large</ComboBoxItem>
+											</ComboBox>
+										</DockPanel>
+									</StackPanel>
+								</ScrollViewer>
+							</TabItem>
+							<!-- Mirror Tab -->
+							<TabItem Header="{DynamicResource ResourceKey=appPreferences_mirrorTab_title}" FontSize="16" Margin="16, 0, 0, 0" Padding="0, 0, 0, 0">
+								<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Offset="0, 0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 0, 0, 0">
+									<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="16, 16, 16, 16">
+										<!-- pref_mirror_enableControl -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_mirrorTab_enableControl}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<CheckBox DockPanel.Dock="Right" Name="pref_mirror_enableControl" IsChecked="False" HorizontalAlignment="Right" VerticalAlignment="Center"></CheckBox>
+										</DockPanel>
+										<!-- pref_mirror_enableStayAwake -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_mirrorTab_enableStayAwake}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<CheckBox DockPanel.Dock="Right" Name="pref_mirror_enableStayAwake" IsChecked="False" HorizontalAlignment="Right" VerticalAlignment="Center"></CheckBox>
+										</DockPanel>
+										<!-- pref_mirror_enableTurnScreenOff -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_mirrorTab_enableScreenOff}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<CheckBox DockPanel.Dock="Right" Name="pref_mirror_enableTurnScreenOff" IsChecked="False" HorizontalAlignment="Right" VerticalAlignment="Center"></CheckBox>
+										</DockPanel>
+										<!-- pref_mirror_enableTurnScreenOffDc -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_mirrorTab_enableScreenOffDc}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<CheckBox DockPanel.Dock="Right" Name="pref_mirror_enableTurnScreenOffDc" IsChecked="False" HorizontalAlignment="Right" VerticalAlignment="Center"></CheckBox>
+										</DockPanel>
+										<!-- pref_mirror_enableAudioMirror -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_mirrorTab_enableAudioMirror}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<CheckBox DockPanel.Dock="Right" Name="pref_mirror_enableAudioMirror" IsChecked="False" HorizontalAlignment="Right" VerticalAlignment="Center"></CheckBox>
+										</DockPanel>
+										<!-- pref_mirror_audioCodec -->
+										<DockPanel Name="pref_mirror_audioCodec_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_mirrorTab_audioCodec}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_mirror_audioCodec" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
+												<ComboBoxItem>FLAC</ComboBoxItem>
+												<ComboBoxItem>AAC</ComboBoxItem>
+												<ComboBoxItem>OPUS</ComboBoxItem>
+											</ComboBox>
+										</DockPanel>
+										<!-- pref_mirror_audioBitrate -->
+										<DockPanel Name="pref_mirror_audioBitrate_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_mirrorTab_audioBirate}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_mirror_audioBitrate" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
+												<ComboBoxItem>24Kbps</ComboBoxItem>
+												<ComboBoxItem>32Kbps</ComboBoxItem>
+												<ComboBoxItem>64Kbps</ComboBoxItem>
+												<ComboBoxItem>96Kbps</ComboBoxItem>
+												<ComboBoxItem>128Kbps</ComboBoxItem>
+											</ComboBox>
+										</DockPanel>
+										<!-- pref_mirror_audioBuffer -->
+										<DockPanel Name="pref_mirror_audioBuffer_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_mirrorTab_audioBuffer}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_mirror_audioBuffer" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
+												<ComboBoxItem>Small</ComboBoxItem>
+												<ComboBoxItem>Medium</ComboBoxItem>
+												<ComboBoxItem>Big</ComboBoxItem>
+											</ComboBox>
+										</DockPanel>
+										<!-- pref_mirror_maxViewResolution -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_mirrorTab_videoMaxResolution}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_mirror_maxViewResolution" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
+												<ComboBoxItem>600p</ComboBoxItem>
+												<ComboBoxItem>800p</ComboBoxItem>
+												<ComboBoxItem>920p</ComboBoxItem>
+												<ComboBoxItem>1024p</ComboBoxItem>
+												<ComboBoxItem>1280p</ComboBoxItem>
+												<ComboBoxItem>1440p</ComboBoxItem>
+												<ComboBoxItem>1920p</ComboBoxItem>
+											</ComboBox>
+										</DockPanel>
+										<!-- pref_mirror_maxViewFps -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_mirrorTab_videoFps}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_mirror_maxViewFps" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
+												<ComboBoxItem>15 FPS</ComboBoxItem>
+												<ComboBoxItem>25 FPS</ComboBoxItem>
+												<ComboBoxItem>30 FPS</ComboBoxItem>
+												<ComboBoxItem>40 FPS</ComboBoxItem>
+												<ComboBoxItem>60 FPS</ComboBoxItem>
+											</ComboBox>
+										</DockPanel>
+										<!-- pref_mirror_videoBitrate -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_mirrorTab_videoBirate}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_mirror_videoBitrate" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
+												<ComboBoxItem>1M</ComboBoxItem>
+												<ComboBoxItem>2M</ComboBoxItem>
+												<ComboBoxItem>4M</ComboBoxItem>
+												<ComboBoxItem>6M</ComboBoxItem>
+												<ComboBoxItem>8M</ComboBoxItem>
+												<ComboBoxItem>10M</ComboBoxItem>
+												<ComboBoxItem>12M</ComboBoxItem>
+												<ComboBoxItem>16M</ComboBoxItem>
+											</ComboBox>
+										</DockPanel>
+										<!-- pref_mirror_videoCodec -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_mirrorTab_videoCodec}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_mirror_videoCodec" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
+												<ComboBoxItem>H264 - Lower Latency</ComboBoxItem>
+												<ComboBoxItem>H265 - Better Quality</ComboBoxItem>
+											</ComboBox>
+										</DockPanel>
+										<!-- pref_mirror_videoBuffer -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_mirrorTab_videoBuffer}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_mirror_videoBuffer" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
+												<ComboBoxItem>None</ComboBoxItem>
 											</ComboBox>
 										</DockPanel>
 									</StackPanel>

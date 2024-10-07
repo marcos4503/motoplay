@@ -1,5 +1,5 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<ResourceDictionary xmlns="https://github.com/avaloniaui" 
+					xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
 	<!-- Status Bar -->
 	<x:String x:Key="statusBar_toggleKeyboardTooltip">Motoplay Virtual Keyboard</x:String>
@@ -130,6 +130,7 @@ Attempt #%n</x:String>
 	<x:String x:Key="mirrorPhone_tips">● Disconnect the USB Cable from your Mobile Device.
 ● You will no longer need your USB Cable to connect your Phone unless you Restart your Raspberry Pi.
 ● Reduce Brightness of your Mobile Device.
+● Config your Device to remain in Landscape orientation.
 ● If you intend to use Mirroring for a long time, connect your Phone to a Power Bank.
 ● Store your Mobile Device.</x:String>
 	<x:String x:Key="mirrorPhone_additionalTips">● If the instructions were followed correctly, you now have an active Mirror, with Internet support!
@@ -196,6 +197,7 @@ Attempt #%n</x:String>
 	<x:String x:Key="appPreferences_playerTab_volumeMark6">Automatic Volume Mark 6 (Km/h, Vol%)</x:String>
 	<x:String x:Key="appPreferences_playerTab_volumeMark7">Automatic Volume Mark 7 (Km/h, Vol%)</x:String>
 	<x:String x:Key="appPreferences_playerTab_volumeBoost">Max Relative Volume Boost at Max RPM (%)</x:String>
+	<x:String x:Key="appPreferences_playerTab_volumeNormalization">Enable Musics Normalization</x:String>
 	<x:String x:Key="appPreferences_cameraTab_title">Camera</x:String>
 	<x:String x:Key="appPreferences_cameraTab_projectionQuality">Projection Quality in the Interface</x:String>
 	<x:String x:Key="appPreferences_cameraTab_maxQueuingFrames">Maximum Number of Frames in Queue</x:String>
@@ -203,5 +205,19 @@ Attempt #%n</x:String>
 	<x:String x:Key="appPreferences_cameraTab_showStatistics">Enable Statistics Display</x:String>
 	<x:String x:Key="appPreferences_cameraTab_miniViewSize">Connected Camera Miniview Size</x:String>
 	<x:String x:Key="appPreferences_cameraTab_maxQualityAutoSelect">Automatic Camera Selection Maximum Quality</x:String>
+	<x:String x:Key="appPreferences_mirrorTab_title">Mirror</x:String>
+	<x:String x:Key="appPreferences_mirrorTab_enableControl">Enable Control Support During Mirroring</x:String>
+	<x:String x:Key="appPreferences_mirrorTab_enableStayAwake">Enable "Stay Awake" on Device</x:String>
+	<x:String x:Key="appPreferences_mirrorTab_enableScreenOff">Turn Off Device Screen When Connecting</x:String>
+	<x:String x:Key="appPreferences_mirrorTab_enableScreenOffDc">Turn Off Device Screen on Disconnect</x:String>
+	<x:String x:Key="appPreferences_mirrorTab_enableAudioMirror">Enable Audio Mirror</x:String>
+	<x:String x:Key="appPreferences_mirrorTab_audioCodec">Audio Codec to be Used</x:String>
+	<x:String x:Key="appPreferences_mirrorTab_audioBirate">Audio Bitrate</x:String>
+	<x:String x:Key="appPreferences_mirrorTab_audioBuffer">Audio Buffering</x:String>
+	<x:String x:Key="appPreferences_mirrorTab_videoMaxResolution">Mirror View Maximum Resolution</x:String>
+	<x:String x:Key="appPreferences_mirrorTab_videoFps">Mirror View Maximum FPS</x:String>
+	<x:String x:Key="appPreferences_mirrorTab_videoBirate">Video Bitrate</x:String>
+	<x:String x:Key="appPreferences_mirrorTab_videoCodec">Video Codec to be Used</x:String>
+	<x:String x:Key="appPreferences_mirrorTab_videoBuffer">Video Buffering</x:String>
 
 </ResourceDictionary>

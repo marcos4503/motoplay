@@ -3353,7 +3353,7 @@ public partial class MainWindow : Window
         if (musicPlayerHandler == null)
         {
             //Create a new instance
-            musicPlayerHandler = new MusicPlayer(appPrefs.loadedData.playerVolume);
+            musicPlayerHandler = new MusicPlayer(appPrefs.loadedData.playerVolume, appPrefs.loadedData.enableVolumeNormalization);
 
             //Register the callback of start loading new music
             musicPlayerHandler.RegisterOnStartLoadingNewMusicCallback(() =>
@@ -5026,13 +5026,111 @@ public partial class MainWindow : Window
             wlrctlProcess.StartInfo = wlrctlProcessProcessStartInfo;
             wlrctlProcess.Start();
 
+            //Prepare a list of arguments to scrcpy
+            List<string> scrcpyArguments = new List<string>();
+            if (appPrefs.loadedData.enableMirrorControl == false)       //<- Mirror Control
+                scrcpyArguments.Add("--no-control");
+            if (appPrefs.loadedData.enableStayAwake == true)            //<- Stay Awake
+                scrcpyArguments.Add("--stay-awake");
+            if (appPrefs.loadedData.enableTurnScreenOff == true)        //<- Auto Turn Screen Off on Connect
+                scrcpyArguments.Add("--turn-screen-off");
+            if (appPrefs.loadedData.enableTurnScreenOffDc == true)      //<- Auto Turn Screen Off on Disconnect
+                scrcpyArguments.Add("--power-off-on-close");
+            if (appPrefs.loadedData.enableAudioMirror == true)          //<- Audio Mirror
+            {
+                if (appPrefs.loadedData.mirrorAudioCodecToUse == 0)     //<- Audio Codec To Use
+                    scrcpyArguments.Add("--audio-codec=flac");
+                if (appPrefs.loadedData.mirrorAudioCodecToUse == 1)
+                    scrcpyArguments.Add("--audio-codec=aac");
+                if (appPrefs.loadedData.mirrorAudioCodecToUse == 2)
+                    scrcpyArguments.Add("--audio-codec=opus");
+                if (appPrefs.loadedData.mirrorAudioBitrate == 0)        //<- Audio Bitrate To Use
+                    scrcpyArguments.Add("--audio-bit-rate=24K");
+                if (appPrefs.loadedData.mirrorAudioBitrate == 1)
+                    scrcpyArguments.Add("--audio-bit-rate=32K");
+                if (appPrefs.loadedData.mirrorAudioBitrate == 2)
+                    scrcpyArguments.Add("--audio-bit-rate=64K");
+                if (appPrefs.loadedData.mirrorAudioBitrate == 3)
+                    scrcpyArguments.Add("--audio-bit-rate=96K");
+                if (appPrefs.loadedData.mirrorAudioBitrate == 4)
+                    scrcpyArguments.Add("--audio-bit-rate=128K");
+                if (appPrefs.loadedData.mirrorAudioBuffer == 0)         //<- Audio Buffering
+                    scrcpyArguments.Add("--audio-buffer=50");
+                if (appPrefs.loadedData.mirrorAudioBuffer == 1)
+                    scrcpyArguments.Add("--audio-buffer=150");
+                if (appPrefs.loadedData.mirrorAudioBuffer == 2)
+                    scrcpyArguments.Add("--audio-buffer=300");
+            }
+            if (appPrefs.loadedData.enableAudioMirror == false)         //<- Audio Mirror
+            {
+                scrcpyArguments.Add("--no-audio");
+            }
+            if (appPrefs.loadedData.mirrorMaxResolution == 0)           //<- Max Resolution
+                scrcpyArguments.Add("--max-size=600");
+            if (appPrefs.loadedData.mirrorMaxResolution == 1)
+                scrcpyArguments.Add("--max-size=800");
+            if (appPrefs.loadedData.mirrorMaxResolution == 2)
+                scrcpyArguments.Add("--max-size=920");
+            if (appPrefs.loadedData.mirrorMaxResolution == 3)
+                scrcpyArguments.Add("--max-size=1024");
+            if (appPrefs.loadedData.mirrorMaxResolution == 4)
+                scrcpyArguments.Add("--max-size=1280");
+            if (appPrefs.loadedData.mirrorMaxResolution == 5)
+                scrcpyArguments.Add("--max-size=1440");
+            if (appPrefs.loadedData.mirrorMaxResolution == 6)
+                scrcpyArguments.Add("--max-size=1920");
+            if (appPrefs.loadedData.mirrorMaxFps == 0)                  //<- Max FPS
+                scrcpyArguments.Add("--max-fps=15");
+            if (appPrefs.loadedData.mirrorMaxFps == 1)
+                scrcpyArguments.Add("--max-fps=25");
+            if (appPrefs.loadedData.mirrorMaxFps == 2)
+                scrcpyArguments.Add("--max-fps=30");
+            if (appPrefs.loadedData.mirrorMaxFps == 3)
+                scrcpyArguments.Add("--max-fps=40");
+            if (appPrefs.loadedData.mirrorMaxFps == 4)
+                scrcpyArguments.Add("--max-fps=60");
+            if (appPrefs.loadedData.mirrorVideoBitrate == 0)            //<- Video Bitrate to Use
+                scrcpyArguments.Add("--video-bit-rate=1M");
+            if (appPrefs.loadedData.mirrorVideoBitrate == 1)
+                scrcpyArguments.Add("--video-bit-rate=2M");
+            if (appPrefs.loadedData.mirrorVideoBitrate == 2)
+                scrcpyArguments.Add("--video-bit-rate=4M");
+            if (appPrefs.loadedData.mirrorVideoBitrate == 3)
+                scrcpyArguments.Add("--video-bit-rate=6M");
+            if (appPrefs.loadedData.mirrorVideoBitrate == 4)
+                scrcpyArguments.Add("--video-bit-rate=8M");
+            if (appPrefs.loadedData.mirrorVideoBitrate == 5)
+                scrcpyArguments.Add("--video-bit-rate=10M");
+            if (appPrefs.loadedData.mirrorVideoBitrate == 6)
+                scrcpyArguments.Add("--video-bit-rate=12M");
+            if (appPrefs.loadedData.mirrorVideoBitrate == 7)
+                scrcpyArguments.Add("--video-bit-rate=16M");
+            if (appPrefs.loadedData.mirrorVideoCodecToUse == 0)         //<- Video Codec to Use
+                scrcpyArguments.Add("--video-codec=h264");
+            if (appPrefs.loadedData.mirrorVideoCodecToUse == 1)
+                scrcpyArguments.Add("--video-codec=h265");
+            //Compile the list of arguments into a string
+            string scrcpyArgumentsCompilation = "";
+            for (int i = 0; i < scrcpyArguments.Count; i++)
+            {
+                //Add space if needed
+                if (i > 0)
+                    scrcpyArgumentsCompilation += " ";
+
+                //Add the argument
+                scrcpyArgumentsCompilation += scrcpyArguments[i];
+            }
+
             //Prepare and start the scrcpy process
             Process scrcpyProcess = new Process();
             ProcessStartInfo scrcpyProcessStartInfo = new ProcessStartInfo();
             scrcpyProcessStartInfo.FileName = "/usr/local/bin/scrcpy";
-            scrcpyProcessStartInfo.Arguments = ("--tcpip=" + gatewayIp + " --window-title=Mirror --window-borderless");
+            scrcpyProcessStartInfo.Arguments = ("--tcpip=" + gatewayIp + " --window-title=Mirror --window-borderless " + scrcpyArgumentsCompilation);
             scrcpyProcess.StartInfo = scrcpyProcessStartInfo;
             scrcpyProcess.Start();
+
+            //Warn on debug
+            AvaloniaDebug.WriteLine("Starting SCRCPY with arguments \"" + scrcpyProcessStartInfo.Arguments + "\"");
 
             //Store reference for the scrcpy process
             currentMirrorScrcpyProcess = scrcpyProcess;
@@ -5266,6 +5364,10 @@ public partial class MainWindow : Window
         //Prepare the auto hide of automatic volume mark options
         pref_player_automaticVolume.IsCheckedChanged += (s, e) => { UpdateVolumeMarksOptionsVisibility(); };
         UpdateVolumeMarksOptionsVisibility();
+
+        //Prepare the auto hide of audio mirror options
+        pref_mirror_enableAudioMirror.IsCheckedChanged += (s, e) => { UpdateAudioMirrorOptionsVisibility(); };
+        UpdateAudioMirrorOptionsVisibility();
     }
 
     private void UpdatePreferencesOnUI()
@@ -5500,6 +5602,8 @@ public partial class MainWindow : Window
         pref_player_volumeMark7target.Value = appPrefs.loadedData.mark7volumeTarget;
         //*** pref_player_volumeBoostAtMaxRpm
         pref_player_volumeBoostAtMaxRpm.Value = appPrefs.loadedData.volumeBoostOnMaxRpm;
+        //*** pref_player_volumeNormalization
+        pref_player_volumeNormalization.IsChecked = appPrefs.loadedData.enableVolumeNormalization;
 
         //Camera Tab
         //*** pref_camera_projectionQuality
@@ -5534,6 +5638,34 @@ public partial class MainWindow : Window
             pref_camera_maxAutoSelectQuality.SelectedIndex = 4;
         if (appPrefs.loadedData.cameraMaxQualityForAutoSelect == 1080)
             pref_camera_maxAutoSelectQuality.SelectedIndex = 5;
+
+        //Mirror Tab
+        //*** pref_mirror_enableControl
+        pref_mirror_enableControl.IsChecked = appPrefs.loadedData.enableMirrorControl;
+        //*** pref_mirror_enableStayAwake
+        pref_mirror_enableStayAwake.IsChecked = appPrefs.loadedData.enableStayAwake;
+        //*** pref_mirror_enableTurnScreenOff
+        pref_mirror_enableTurnScreenOff.IsChecked = appPrefs.loadedData.enableTurnScreenOff;
+        //*** pref_mirror_enableTurnScreenOffDc
+        pref_mirror_enableTurnScreenOffDc.IsChecked = appPrefs.loadedData.enableTurnScreenOffDc;
+        //*** pref_mirror_enableAudioMirror
+        pref_mirror_enableAudioMirror.IsChecked = appPrefs.loadedData.enableAudioMirror;
+        //*** pref_mirror_audioCodec
+        pref_mirror_audioCodec.SelectedIndex = appPrefs.loadedData.mirrorAudioCodecToUse;
+        //*** pref_mirror_audioBitrate
+        pref_mirror_audioBitrate.SelectedIndex = appPrefs.loadedData.mirrorAudioBitrate;
+        //*** pref_mirror_audioBuffer
+        pref_mirror_audioBuffer.SelectedIndex = appPrefs.loadedData.mirrorAudioBuffer;
+        //*** pref_mirror_maxViewResolution
+        pref_mirror_maxViewResolution.SelectedIndex = appPrefs.loadedData.mirrorMaxResolution;
+        //*** pref_mirror_maxViewFps
+        pref_mirror_maxViewFps.SelectedIndex = appPrefs.loadedData.mirrorMaxFps;
+        //*** pref_mirror_videoBitrate
+        pref_mirror_videoBitrate.SelectedIndex = appPrefs.loadedData.mirrorVideoBitrate;
+        //*** pref_mirror_videoCodec
+        pref_mirror_videoCodec.SelectedIndex = appPrefs.loadedData.mirrorVideoCodecToUse;
+        //*** pref_mirror_videoBuffer
+        pref_mirror_videoBuffer.SelectedIndex = appPrefs.loadedData.mirrorVideoBuffer;
     }
 
     private void SaveAllPreferences()
@@ -5779,6 +5911,8 @@ public partial class MainWindow : Window
         appPrefs.loadedData.mark7volumeTarget = (int)pref_player_volumeMark7target.Value;
         //*** pref_player_volumeBoostAtMaxRpm
         appPrefs.loadedData.volumeBoostOnMaxRpm = (int)pref_player_volumeBoostAtMaxRpm.Value;
+        //*** pref_player_volumeNormalization
+        appPrefs.loadedData.enableVolumeNormalization = (bool)pref_player_volumeNormalization.IsChecked;
 
         //Camera Tab
         //*** pref_camera_projectionQuality
@@ -5813,6 +5947,34 @@ public partial class MainWindow : Window
             appPrefs.loadedData.cameraMaxQualityForAutoSelect = 1024;
         if (pref_camera_maxAutoSelectQuality.SelectedIndex == 5)
             appPrefs.loadedData.cameraMaxQualityForAutoSelect = 1080;
+
+        //Mirror Tab
+        //*** pref_mirror_enableControl
+        appPrefs.loadedData.enableMirrorControl = (bool)pref_mirror_enableControl.IsChecked;
+        //*** pref_mirror_enableStayAwake
+        appPrefs.loadedData.enableStayAwake = (bool)pref_mirror_enableStayAwake.IsChecked;
+        //*** pref_mirror_enableTurnScreenOff
+        appPrefs.loadedData.enableTurnScreenOff = (bool)pref_mirror_enableTurnScreenOff.IsChecked;
+        //*** pref_mirror_enableTurnScreenOffDc
+        appPrefs.loadedData.enableTurnScreenOffDc = (bool)pref_mirror_enableTurnScreenOffDc.IsChecked;
+        //*** pref_mirror_enableAudioMirror
+        appPrefs.loadedData.enableAudioMirror = (bool)pref_mirror_enableAudioMirror.IsChecked;
+        //*** pref_mirror_audioCodec
+        appPrefs.loadedData.mirrorAudioCodecToUse = pref_mirror_audioCodec.SelectedIndex;
+        //*** pref_mirror_audioBitrate
+        appPrefs.loadedData.mirrorAudioBitrate = pref_mirror_audioBitrate.SelectedIndex;
+        //*** pref_mirror_audioBuffer
+        appPrefs.loadedData.mirrorAudioBuffer = pref_mirror_audioBuffer.SelectedIndex;
+        //*** pref_mirror_maxViewResolution
+        appPrefs.loadedData.mirrorMaxResolution = pref_mirror_maxViewResolution.SelectedIndex;
+        //*** pref_mirror_maxViewFps
+        appPrefs.loadedData.mirrorMaxFps = pref_mirror_maxViewFps.SelectedIndex;
+        //*** pref_mirror_videoBitrate
+        appPrefs.loadedData.mirrorVideoBitrate = pref_mirror_videoBitrate.SelectedIndex;
+        //*** pref_mirror_videoCodec
+        appPrefs.loadedData.mirrorVideoCodecToUse = pref_mirror_videoCodec.SelectedIndex;
+        //*** pref_mirror_videoBuffer
+        appPrefs.loadedData.mirrorVideoBuffer = pref_mirror_videoBuffer.SelectedIndex;
 
         //Save the preferences to file
         appPrefs.Save();
@@ -5874,6 +6036,14 @@ public partial class MainWindow : Window
         pref_player_volumeMark6_root.IsVisible = (bool)pref_player_automaticVolume.IsChecked;
         pref_player_volumeMark7_root.IsVisible = (bool)pref_player_automaticVolume.IsChecked;
         pref_player_volumeBoostAtMaxRpm_root.IsVisible = (bool)pref_player_automaticVolume.IsChecked;
+    }
+
+    private void UpdateAudioMirrorOptionsVisibility()
+    {
+        //Hide the audio mirror options, if the audio mirror is disabled
+        pref_mirror_audioCodec_root.IsVisible = (bool)pref_mirror_enableAudioMirror.IsChecked;
+        pref_mirror_audioBitrate_root.IsVisible = (bool)pref_mirror_enableAudioMirror.IsChecked;
+        pref_mirror_audioBuffer_root.IsVisible = (bool)pref_mirror_enableAudioMirror.IsChecked;
     }
 
     //Interaction Blocker Manager

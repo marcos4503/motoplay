@@ -113,6 +113,9 @@ chmod +x $s
 
 Once you have entered all the commands above, the script will install the "Motoplay Installer" which is the program responsible for executing ALL the remaining installation processes, as well as ensuring that Motoplay on your Raspberry Pi is always up to date.
 
+> [!WARNING]
+> If the Motoplay Installer GUI freezes during any step of the installation, use CTRL + C in the Terminal to stop the GUI and then re-execute the last 3 commands above. This will restart the GUI and continue where it left off.
+
 > [!TIP]
 > You can run the above command lines again if you want to update your Motoplay Installer in the future! While it is not necessary to update the Motoplay Installer, it may help in troubleshooting some specific issues.
 

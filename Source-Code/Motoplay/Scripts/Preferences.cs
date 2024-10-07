@@ -66,6 +66,7 @@ namespace Motoplay.Scripts
             public int equalizerBand4khz = 0;
             public int equalizerBand8khz = 0;
             public int equalizerBand16khz = 0;
+            public bool enableVolumeNormalization = false;
             public bool autoPauseOnStopVehicle = false;
             public bool autoPlayOnVehicleMove = false;
             public int outputSelectorEmulateMoveStep1x = 1920;
@@ -95,6 +96,20 @@ namespace Motoplay.Scripts
             public bool cameraShowStatistics = false;
             public int cameraMiniviewSize = 0; //0 = Small, 1 = Medium, 2 = Large
             public int cameraMaxQualityForAutoSelect = 720;
+
+            public bool enableMirrorControl = true;
+            public bool enableStayAwake = true;
+            public bool enableTurnScreenOff = true;
+            public bool enableTurnScreenOffDc = false;
+            public bool enableAudioMirror = false;
+            public int mirrorAudioCodecToUse = 2; //0 = flac, 1 = aac, 2 = opus
+            public int mirrorAudioBitrate = 1; //0 = 24K, 1 = 32K, 2 = 64K, 3 = 96K, 4 = 128K
+            public int mirrorAudioBuffer = 0; //0 = Small, 1 = Medium, 2 = Big
+            public int mirrorMaxResolution = 1; //0 = 600p, 1 = 800p, 2 = 920p, 3 = 1024p, 4 = 1280p, 5 = 1440p, 6 = 1920p
+            public int mirrorMaxFps = 2; //0 = 15 FPS, 1 = 25 FPS, 2 = 30 FPS, 3 = 40 FPS, 4 = 60 FPS
+            public int mirrorVideoBitrate = 4; //0 = 1M, 1 = 2M, 2 = 4M, 3 = 6M, 4 = 8M, 5 = 10M, 6 = 12M, 7 = 16M
+            public int mirrorVideoCodecToUse = 0; //0 = h264, 1 = h265
+            public int mirrorVideoBuffer = 0; //0 = 0
         }
 
         //Private variables
