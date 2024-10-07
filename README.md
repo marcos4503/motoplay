@@ -21,6 +21,53 @@ Of course, there are some mandatory Hardware accessories that need to be install
 > 
 > You can create topics in the "Issues" tab of this repository, to ask questions, report problems or send suggestions! 🙂
 
+# What functions does Motoplay have?
+
+Motoplay has several Functions, with several additional and useful features. In the list below, you can find the MAIN functions of Motoplay.
+
+- Virtual Panel
+  - RPM Display (optionally with Interpolation to compensate for OBD Adapter Delay).
+  - Speed Display (Km/h or Mp/h).
+  - Gear Display, detected by Software (even if the ECU does not provide this data).
+  - Numeric RPM display.
+  - Coolant Temperature Display (in °C or °F).
+  - Engine Load Display.
+  - Battery Voltage Display.
+  - Displaying Ping Between Computer and OBD Adapter.
+  - Pairing and Connection with the OBD Adapter 100% managed by Motoplay.
+  - Light and Dark Mode (automatic by default, based on time of day).
+- Virtual Keyboard
+  - Motoplay Virtual Keyboard, optimized to eliminate the need for a physical Keyboard.
+  - Configurable Keyboard Height.
+- Metrics
+  - Graph updated in real time, on the time spent in each Gear.
+  - Ping History between Computer and OBD Adapter.
+  - Display of Disconnection Count Metric with OBD Adapter.
+- Music Player
+  - MP3, M4A, OGG, WMV and WAV offline Music Player.
+  - Music Randomization.
+  - Automatic System Volume Control, eliminating the need to worry about adjusting or checking the System Volume.
+  - Equalizer support, with configurable bands between 32Hz and 16KHz with Amplifier.
+  - Support for Normalizing Music Audio.
+  - Automatic Pause and Play, depending on the vehicle's movement (Optional).
+  - Support choosing System Output Device without needing a Keyboard or Mouse.
+  - Automatically adjusts playback Volume based on vehicle Speed and RPM (Optional).
+  - Music Transfer and Musics Management interface.
+- Web Browser (Coming Soon)
+- USB Cameras
+  - Display of USB Cameras Connected to Computer.
+  - Full adjustment of Display quality, Frame Rate and other things.
+  - Support Mini Camera View (Picture-in-Picture).
+- Phone Mirror (Android only)
+  - Android Phone Mirroring Support (Video and Audio).
+  - Fully configurable, with the ability to disable functions, quality and other things.
+  - Support for very low latencies and up to 60 FPS.
+  - Support for full control of your cell phone from your computer.
+  - Support for turning off the phone screen during mirroring.
+  - Wireless mirroring supported. Requires a USB cable only for initial pairing, but mirroring can be maintained wirelessly afterwards.
+
+In addition to all these features, more features may be added in the future through updates. In addition, MANY elements of Motoplay are configurable.
+
 # What Hardware do I need to have if I want to use Motoplay?
 
 This topic will tell you all the Hardware you can buy to install on your motorcycle if you want to use Motoplay. Since there are many functions in Motoplay, not every function may be of interest of you, so the Hardware is divided into groups according to their functions. For each group, there is a Table below, informing you of the Hardware you need to have if you want to use the functions of the group.
