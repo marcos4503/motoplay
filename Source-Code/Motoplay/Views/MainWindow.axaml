@@ -1519,6 +1519,15 @@
 									</StackPanel>
 								</ScrollViewer>
 							</TabItem>
+							<!-- About Tab -->
+							<TabItem Header="{DynamicResource ResourceKey=appPreferences_aboutTab_title}" FontSize="16" Margin="16, 0, 0, 0" Padding="0, 0, 0, 0">
+								<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Offset="0, 0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 0, 0, 0">
+									<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="16, 16, 16, 16">
+										<TextBlock Name="pref_about_versionText" Text="{DynamicResource ResourceKey=appPreferences_aboutTab_version}" HorizontalAlignment="Center" VerticalAlignment="Top"></TextBlock>
+										<TextBlock Text="{DynamicResource ResourceKey=appPreferences_aboutTab_createdBy}" HorizontalAlignment="Center" VerticalAlignment="Top" Opacity="0.5"></TextBlock>
+									</StackPanel>
+								</ScrollViewer>
+							</TabItem>
 						</TabControl>
 						<Rectangle Fill="#ababab" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="1" Margin="0, 0, 0, 48" Opacity="0.5"></Rectangle>
 						<Button Name="preferences_saveButton" Content="{DynamicResource ResourceKey=appPreferences_saveButton}" HorizontalAlignment="Center" VerticalAlignment="Bottom" Height="32" Width="150" HorizontalContentAlignment="Center" Margin="0, 0, 0, 8"></Button>

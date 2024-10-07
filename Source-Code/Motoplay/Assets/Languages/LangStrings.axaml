@@ -122,13 +122,13 @@ Attempt #%n</x:String>
 	<x:String x:Key="mirrorPhone_step5_title">Step 5</x:String>
 	<x:String x:Key="mirrorPhone_step5_msg">In your device's Developer Settings, enable the option to Disable ADB Authorization Timeout.</x:String>
 	<x:String x:Key="mirrorPhone_step6_title">Step 6</x:String>
-	<x:String x:Key="mirrorPhone_step6_msga">Connect your Mobile Device to the Raspberry Pi, using a USB Cable.</x:String>
+	<x:String x:Key="mirrorPhone_step6_msga">Connect your Mobile Device to the Raspberry Pi, using a USB Cable and make sure the screen is unlocked. You can disconnect the USB Cable, later.</x:String>
 	<x:String x:Key="mirrorPhone_step6_msgb">Note that at some point an Authorization warning may appear. If it does, check the "Always allow from this computer" box and click "Allow/OK" to accept Debugging.</x:String>
 	<x:String x:Key="mirrorPhone_textParagrah_3">Finally, to start the connection, click the button below! The Raspberry Pi will use your Mobile Device's Hotspot network to establish the mirroring connection.</x:String>
 	<x:String x:Key="mirrorPhone_connectButton">Try Connect</x:String>
 	<x:String x:Key="mirrorPhone_errorMessage">Unable to connect to Mobile Device. Make sure your Raspberry Pi is connected to your Mobile Device Hotspot Wifi Network, and that your Raspberry Pi is authorized to connect/debug to your Mobile Device.</x:String>
 	<x:String x:Key="mirrorPhone_tips">● Disconnect the USB Cable from your Mobile Device.
-● You will no longer need your USB Cable to connect your Phone unless you Restart your Raspberry Pi.
+● You will no longer need your USB Cable to connect your Phone unless you Restart your Phone.
 ● Reduce Brightness of your Mobile Device.
 ● Config your Device to remain in Landscape orientation.
 ● If you intend to use Mirroring for a long time, connect your Phone to a Power Bank.
@@ -219,5 +219,8 @@ Attempt #%n</x:String>
 	<x:String x:Key="appPreferences_mirrorTab_videoBirate">Video Bitrate</x:String>
 	<x:String x:Key="appPreferences_mirrorTab_videoCodec">Video Codec to be Used</x:String>
 	<x:String x:Key="appPreferences_mirrorTab_videoBuffer">Video Buffering</x:String>
+	<x:String x:Key="appPreferences_aboutTab_title">About</x:String>
+	<x:String x:Key="appPreferences_aboutTab_version">Motoplay Version %v</x:String>
+	<x:String x:Key="appPreferences_aboutTab_createdBy">Created by Marcos Tomaz</x:String>
 
 </ResourceDictionary>

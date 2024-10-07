@@ -308,6 +308,7 @@ public partial class MainWindow : Window
         tryingConnectToObdButton.IsVisible = false;
         connectedToObdButton.IsVisible = false;
         tempInitializationLogo.IsVisible = true;
+        pref_about_versionText.Text = GetStringApplicationResource("appPreferences_aboutTab_version").Replace("%v", applicationVersion);
 
         //Switch to Panel page
         SwitchAppPage(AppPage.VehiclePanel);
