@@ -14,7 +14,7 @@ In the second layer, in Software, we will have the Linux operating system, which
 
 Of course, there are some mandatory Hardware accessories that need to be installed on your motorcycle if you intend to use Motoplay. All of these components are listed below. After that, there are some necessary procedures to prepare the computer and install the "Motoplay" program on the computer. All of this and many other details are all documented on this page, if you want to continue learning more, just keep reading!
 
-[ INSERT-IMAGE ]
+<img src="This-Repository/collage.jpg" />
 
 > [!WARNING]
 > If you intend to use Motoplay, before we continue with this page... It is assumed that you already have prior knowledge regarding the use of the Linux System, Maintenance and Assembly of PCs, Experience With Installing Accessories on Motorcycles, and Knowledge About the OBD Interface of Vehicles. Keep in mind that if you are going to install accessories on your motorcycle, it is interesting that you already have prior knowledge and experience to do so.
