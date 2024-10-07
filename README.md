@@ -169,6 +169,13 @@ Once you have entered all the commands above, the script will install the "Motop
 > [!IMPORTANT]
 > The Raspbian OS (version Bookworm+ x64) is the ONLY operating system officially supported by Motoplay. The only Graphic Server Protocol supported by Motoplay is Wayland and the only Compositor supported by Motoplay is Wayfire, which is already incorporated into Raspbian OS Bookworm+.
 
+# What to do after installing Motoplay?
+
+After installing Motoplay on your motorcycle's Raspberry Pi, the first thing you should do is open it to test. After that, connect Motoplay to your motorcycle's OBD Bluetooth Adapter. Also connect your motorcycle's Speaker (if you use one) and finally, go to Motoplay's Preferences to adjust whatever is necessary. Several parameters need to be adjusted by you, to ensure the best experience!
+
+> [!IMPORTANT]
+> To adjust some specific parameters, you will need to ride your bike to test and find the best setting. While doing this, remember to respect the traffic laws of your city, and pay attention to the road. Remember, take care of yourself too! 🙂
+
 # Uninstalling Motoplay from Raspberry Pi
 
 If for any reason you want to uninstall Motoplay, first, open your Terminal. Make sure that the Terminal is not being opened with "sudo" (as root). Then, just enter all the command lines below, one by one. Just keep in mind that all data related to Motoplay will be deleted, including your preferences of Motoplay.
