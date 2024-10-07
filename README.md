@@ -1,5 +1,5 @@
 <p align="center" style="font-size: 2px;">
-    <img src="This-Repository/repo-logo.png" />
+    <img src="This-Repository/motoplay-repo-banner.png" />
     <br> 
     This repository contains all the information and everything you need to know about what Motoplay is, how to use it and many other details. Read this page to understand everything about Motoplay.
 </p>
