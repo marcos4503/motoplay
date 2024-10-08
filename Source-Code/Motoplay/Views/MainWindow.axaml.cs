@@ -82,6 +82,12 @@ public partial class MainWindow : Window
         Up,
         Down
     }
+    public enum VolumeButtonsState
+    {
+        Unknown,
+        Enabled,
+        Disabled
+    }
 
     //Classes of script
     private class BluetoothDeviceInScanLogs()
@@ -3520,15 +3526,9 @@ public partial class MainWindow : Window
 
         //Show or hide the volume buttons control
         if (appPrefs.loadedData.automaticVolume == true)
-        {
-            musicPlayer_volumeUpButton.IsEnabled = false;
-            musicPlayer_volumeDownButton.IsEnabled = false;
-        }
+            SetVolumeButtonsEnabled(false);
         if (appPrefs.loadedData.automaticVolume == false)
-        {
-            musicPlayer_volumeUpButton.IsEnabled = true;
-            musicPlayer_volumeDownButton.IsEnabled = true;
-        }
+            SetVolumeButtonsEnabled(true);
 
         //If don't have musics
         if (musicPlayerFileList.Count == 0)
@@ -4184,19 +4184,40 @@ public partial class MainWindow : Window
             musicPlayer_drivesEmpty.IsVisible = false;
     }
 
+    private void SetVolumeButtonsEnabled(bool enable)
+    {
+        //If is desired to enable
+        if (enable == true)
+        {
+            musicPlayer_volumeUpButton.IsEnabled = true;
+            musicPlayer_volumeDownButton.IsEnabled = true;
+        }
+
+        //If is desired to disable
+        if (enable == false)
+        {
+            musicPlayer_volumeUpButton.IsEnabled = false;
+            musicPlayer_volumeDownButton.IsEnabled = false;
+        }
+    }
+
     private IEnumerator<Wait> MusicPlayerVehicleMoveMonitor()
     {
+        //Wait a initial time, before start the move monitor
+        yield return new Wait(5.0f);
+
         //Prepare the interval time
         Wait intervalTime = new Wait(1.5f);
 
         //Data variables
         bool wasPausedByMonitor = false;
         int currentAutoVolumeDefined = -1;
+        VolumeButtonsState currentVolumeBtState = VolumeButtonsState.Unknown;
 
         //Start the monitor loop
         while (true)
         {
-            //If the auto pause is enabled
+            //If the auto pause is enabled, and have a active connection
             if (appPrefs.loadedData.autoPauseOnStopVehicle == true && activeObdConnection != null)
             {
                 if (activeObdConnection.transmissionGear == 0 && musicPlayerHandler.isPlaying() == true)
@@ -4206,7 +4227,7 @@ public partial class MainWindow : Window
                 }
             }
 
-            //If the auto pause is enabled
+            //If the auto pause is enabled, and have a active connection
             if (appPrefs.loadedData.autoPlayOnVehicleMove == true && activeObdConnection != null)
             {
                 if (activeObdConnection.transmissionGear > 0 && musicPlayerHandler.isPlaying() == false && wasPausedByMonitor == true)
@@ -4216,7 +4237,7 @@ public partial class MainWindow : Window
                 }
             }
 
-            //If the automatic volume is enabled
+            //If the automatic volume is enabled, and have a active connection
             if (appPrefs.loadedData.automaticVolume == true && activeObdConnection != null)
             {
                 //Prepare the target volume
@@ -4277,6 +4298,23 @@ public partial class MainWindow : Window
 
                     //Inform the new current volume
                     currentAutoVolumeDefined = targetVolume;
+                }
+
+                //Disable the volume buttons, if needed
+                if (currentVolumeBtState != VolumeButtonsState.Disabled)
+                {
+                    SetVolumeButtonsEnabled(false);
+                    currentVolumeBtState = VolumeButtonsState.Disabled;
+                }
+            }
+            //If the automatic volume is enabled, and NOT have a active connection
+            if (appPrefs.loadedData.automaticVolume == true && activeObdConnection == null)
+            {
+                //Enable the volume buttons, if needed
+                if (currentVolumeBtState != VolumeButtonsState.Enabled)
+                {
+                    SetVolumeButtonsEnabled(true);
+                    currentVolumeBtState = VolumeButtonsState.Enabled;
                 }
             }
 
