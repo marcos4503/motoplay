@@ -1,0 +1,116 @@
+################################################################################################
+                          INSTALLING DS3231 REAL TIME CLOCK FOR I2C
+################################################################################################
+
+As you may already know, the Raspberry Pi 1, 2, 3 and 4 do not have an integrated RTC (Real Time
+Clock). Therefore, they depend solely on the Internet to update their time when they are turned
+on. If they do not have an Internet connection, they will remain with the last time calculated
+before they were turned off, and will only calculate time while they are turned on.
+
+This guide will teach you how to install an RTC Circuit, with a DS3231 chip on your Raspberry Pi,
+via I2C. In addition to having a low-power chip, RTC circuits have a battery that allows the circuit
+to operate 24 hours per day, calculating the time and date. When the Raspberry Pi is turned on,
+it obtains the time from the RTC, instead of relying solely on the Internet.
+
+NOTE: The Raspberry Pi 5 has an integrated RTC, and for it to work, you just need to connect a
+3V battery with a JST connector to the Raspberry Pi 5 board. This battery can easily be found on
+the Internet.
+
+This guide has only been tested with the Raspberry Pi 4 Model B, running Raspbian OS Bookworm x64.
+
+Starting...
+
+
+
+
+
+--> Step 1
+
+Install the RTC on your Raspberry Pi I2C, as shown in the demonstration images in this directory.
+
+--> Step 2
+
+Run the command below to install the packages required for RTC to work...
+    - sudo apt install python3-smbus i2c-tools
+
+--> Step 3
+
+Run the command below to access your Raspberry Pi 4 settings...
+    - sudo raspi-config
+      - Select the "Interface Options" option.
+      - Select the "I2C" option.
+      - In the dialog box that appears, select "<YES>"
+
+At the end, a message saying "The ARM I2C interface is enabled" should appear. Press "ESC" until you
+exit this blue interface.
+
+Now to finish the setup, use the command below to restart your Raspberry Pi.
+    - sudo reboot
+
+--> Step 4
+
+Now, run the command below to check if your DS3231 is connected correctly.
+    - sudo i2cdetect -y 1
+
+If you have correctly connected your DS3231, you should now see that there is "ID 68" appearing connected
+at the coordinate "60:8".
+
+--> Step 5
+
+Now, let's edit the Raspberry Pi Boot settings to configure the DS3231. To do this, run the command below...
+    - sudo nano /boot/firmware/config.txt
+
+Add the line "dtoverlay=i2c-rtc,ds3231" (without quotes) to the end of config.txt. Finally, save the 
+changes to the file.
+
+Now to apply the configuration, reboot your Raspberry Pi using the below command.
+    - sudo reboot
+
+--> Step 6
+
+Now, run the below command again.
+    - sudo i2cdetect -y 1
+
+If you see "UU" appearing where "68" was previously appearing (at coordinate 60:8), then it means that the
+RTC chip drivers have been loaded successfully.
+
+--> Step 7
+
+Now that the driver is active for the RTC chip, and we know that it is communicating with the Raspberry Pi,
+we can remove the "fake-hwclock" package. This package acts as a fake clock, while the Raspberry Pi does
+not have a hardware clock. To remove the package, run the commands below.
+    - sudo apt -y remove fake-hwclock
+    - sudo update-rc.d -f fake-hwclock remove
+
+--> Step 8
+
+Now, make sure you are connected to a network with Internet. Then run the commands below to get the current
+time from the network, and then adjust the RTC chip time to the correct time. Run the below commands...
+    - date
+    - sudo hwclock -w
+
+Now, if everything went well so far, your RTC should already be calculating the time 24 hours per day, and if
+you turn on your Raspberry Pi without Internet, you will notice that the time will be correct.
+
+NOTE: You will need to run the commands of this step again if your RTC battery has been discharged, removed,
+      or replaced.
+
+
+
+
+
+
+
+
+
+
+################################################################################################
+                                         OPTIONAL STEPS
+################################################################################################
+
+--> Reading the current time from your RTC
+
+To read the current time directly from your RTC, use the command below...
+    - sudo hwclock -D -r
+    or
+    - sudo hwclock -r
