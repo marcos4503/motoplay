@@ -129,6 +129,7 @@ Once you have the operating system installed and configured on your Raspberry Pi
 - <a href="https://github.com/marcos4503/motoplay/blob/main/Additional-Material/Topics/Editing%20Taskbar%20and%20Adding%20Useful%20Meters.txt">Editing Taskbar and Adding Useful Meters</a>
 - <a href="https://github.com/marcos4503/motoplay/blob/main/Additional-Material/Topics/Changing%20Wallpaper%20And%20Hidding%20Wastebasket.txt">Changing Wallpaper and Hidding Wastebasket From Desktop</a>
 - <a href="https://github.com/marcos4503/motoplay/blob/main/Additional-Material/Topics/Disabling%20ServicesPrograms%20From%20AutoStart.txt">Disabling Services/Programs From AutoStart</a>
+- <a href="https://github.com/marcos4503/motoplay/blob/main/Additional-Material/Topics/Installing%20DS3231%20Real%20Time%20Clock%20for%20I2C/Content.txt">Installing and Configuring the DS3231 Real Time Clock Chip</a>
 - <a href="https://github.com/marcos4503/motoplay/blob/main/Additional-Material/Topics/Its%20Necessary%20To%20Create%20a%20Swap%20File.txt">It's Necessary The Creation of a Memmory Swap File?</a>
 
 > [!TIP]
