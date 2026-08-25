@@ -1,0 +1,9 @@
+This is a PlatformIO project. To learn how to open and edit it, and to execute 
+the Build, Upload, and Run cycle, see the steps below:
+
+1. Install VS Code on your system.
+2. Install the "PlatformIO IDE" extension in VS Code.
+3. Open this project's root folder in VS Code.
+4. Wait for the automatic download and installation of any dependencies required
+   for this project.
+5. If everything was successful, now just code, build, and upload to a board.
