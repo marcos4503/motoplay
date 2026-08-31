@@ -21,7 +21,7 @@
 		IsEnabled="True"
 		Background="Transparent"
 		d:DesignWidth="800" d:DesignHeight="480">
-	
+
 	<!-- Window Resources -->
 	<Window.Resources>
 		<!-- Toast Notification Entry Animation -->
@@ -51,10 +51,82 @@
 				<Setter Property="Opacity" Value="0.0"/>
 			</KeyFrame>
 		</Animation>
+		<!-- Simple Tap Feedback: Up/Down -->
+		<Animation x:Key="simpleTapFeedbackUpDown" x:SetterTargetType="Border" Duration="0:0:0.35" Delay="0:0:0.0" FillMode="Forward" Easing="LinearEasing" IterationCount="1">
+			<KeyFrame Cue="0%">
+				<Setter Property="Height" Value="0"/>
+			</KeyFrame>
+			<KeyFrame Cue="50%">
+				<Setter Property="Height" Value="64"/>
+			</KeyFrame>
+			<KeyFrame Cue="100%">
+				<Setter Property="Height" Value="0"/>
+			</KeyFrame>
+		</Animation>
+		<!-- Simple Tap Feedback: Left/Right -->
+		<Animation x:Key="simpleTapFeedbackLeftRight" x:SetterTargetType="Border" Duration="0:0:0.35" Delay="0:0:0.0" FillMode="Forward" Easing="LinearEasing" IterationCount="1">
+			<KeyFrame Cue="0%">
+				<Setter Property="Width" Value="0"/>
+			</KeyFrame>
+			<KeyFrame Cue="50%">
+				<Setter Property="Width" Value="64"/>
+			</KeyFrame>
+			<KeyFrame Cue="100%">
+				<Setter Property="Width" Value="0"/>
+			</KeyFrame>
+		</Animation>
+		<!-- Simple Tap Feedback: Click -->
+		<Animation x:Key="simpleTapFeedbackClick" x:SetterTargetType="Arc" Duration="0:0:0.35" Delay="0:0:0.0" FillMode="Forward" Easing="LinearEasing" IterationCount="1">
+			<KeyFrame Cue="0%">
+				<Setter Property="StrokeThickness" Value="0"/>
+			</KeyFrame>
+			<KeyFrame Cue="50%">
+				<Setter Property="StrokeThickness" Value="64"/>
+			</KeyFrame>
+			<KeyFrame Cue="100%">
+				<Setter Property="StrokeThickness" Value="0"/>
+			</KeyFrame>
+		</Animation>
+		<!-- Controls Display Entry Animation -->
+		<Animation x:Key="controlsDisplayEntry" x:SetterTargetType="Grid" Duration="0:0:0.2" Delay="0:0:0.0" FillMode="Forward" Easing="QuadraticEaseInOut">
+			<KeyFrame Cue="0%">
+				<Setter Property="Margin" Value="0, 0, -280, 0"/>
+			</KeyFrame>
+			<KeyFrame Cue="100%">
+				<Setter Property="Margin" Value="0, 0, 0, 0"/>
+			</KeyFrame>
+		</Animation>
+		<!-- Controls Display Exit Animation -->
+		<Animation x:Key="controlsDisplayExit" x:SetterTargetType="Grid" Duration="0:0:0.2" Delay="0:0:0.0" FillMode="Forward" Easing="CubicEaseIn">
+			<KeyFrame Cue="0%">
+				<Setter Property="Margin" Value="0, 0, 0, 0"/>
+			</KeyFrame>
+			<KeyFrame Cue="100%">
+				<Setter Property="Margin" Value="0, 0, -280, 0"/>
+			</KeyFrame>
+		</Animation>
+		<!-- Shutdown Popup Entry Animation -->
+		<Animation x:Key="controlShutdownPopupEntry" x:SetterTargetType="Grid" Duration="0:0:0.5" Delay="0:0:0.0" FillMode="Forward" Easing="QuadraticEaseInOut">
+			<KeyFrame Cue="0%">
+				<Setter Property="Margin" Value="0, 0, 0, -64"/>
+			</KeyFrame>
+			<KeyFrame Cue="100%">
+				<Setter Property="Margin" Value="0, 0, 0, 0"/>
+			</KeyFrame>
+		</Animation>
+		<!-- Shutdown Popup Exit Animation -->
+		<Animation x:Key="controlShutdownPopupExit" x:SetterTargetType="Grid" Duration="0:0:0.5" Delay="0:0:0.0" FillMode="Forward" Easing="CubicEaseIn">
+			<KeyFrame Cue="0%">
+				<Setter Property="Margin" Value="0, 0, 0, 0"/>
+			</KeyFrame>
+			<KeyFrame Cue="100%">
+				<Setter Property="Margin" Value="0, 0, 0, -64"/>
+			</KeyFrame>
+		</Animation>
 	</Window.Resources>
+
 	
-	
-	
+
 	<!-- Root of Window -->
 	<Grid Name="windowRoot" Background="White" RowDefinitions="2,*,2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 		<!-- Top Divisor -->
@@ -237,11 +309,15 @@
 					<Grid Name="pageBgForPreferences" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 						<Image Source="/Assets/background-gears.png" HorizontalAlignment="Right" VerticalAlignment="Bottom" Height="300" Opacity="0.03" Margin="0, 0, -28, 0"></Image>
 					</Grid>
+					<!-- Mouse Emulator -->
+					<Grid Name="pageBgForMouseEmulator" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<Image Source="/Assets/mouse-emulator-bg.png" HorizontalAlignment="Right" VerticalAlignment="Bottom" Height="300" Opacity="0.03" Margin="0, 0, -28, -24"></Image>
+					</Grid>
 				</Grid>
 				<!-- Menu Bar Background Area -->
 				<Grid ColumnDefinitions="15.5*,85.0*" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 					<Grid Grid.Row="0" Grid.Column="0">
-						<Image Source="/Assets/menubar-background.png" Stretch="Fill" RenderOptions.BitmapInterpolationMode="HighQuality" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, -8, 0, -8"></Image>
+						<Image Name="menuBarBackgroundImg" Source="/Assets/menubar-background.png" Stretch="Fill" RenderOptions.BitmapInterpolationMode="HighQuality" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, -8, 0, -8"></Image>
 					</Grid>
 					<Grid Grid.Row="0" Grid.Column="1"></Grid>
 				</Grid>
@@ -249,11 +325,11 @@
 			<!-- Mid Area -->
 			<Grid ColumnDefinitions="12.6*,2,88*" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 				<!-- Menu Bar -->
-				<Grid Grid.Row="0" Grid.Column="0">
+				<Grid Grid.Row="0" Grid.Column="0" Background="#ABABAB">
 					<Grid RowDefinitions="72,*,72" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="8, 8, 8, 8">
 						<Grid Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 							<Button Name="rollMenuUp" HorizontalAlignment="Center" VerticalAlignment="Stretch" Width="72" CornerRadius="16" Background="#ededed" Padding="16, 16, 16, 16">
-								<Image Source="/Assets/arrow-up.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7"></Image>
+								<Image Name="pagesManagerGoUpImg" Source="/Assets/arrow-up.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7"></Image>
 							</Button>
 						</Grid>
 						<Grid Grid.Row="1" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -284,8 +360,12 @@
 										<Image Source="/Assets/menu-phone-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7"></Image>
 									</Button>
 									<!-- App Preferences Button -->
-									<Button Name="menuPreferencesButton" HorizontalAlignment="Center" VerticalAlignment="Top" Width="72" Height="72" CornerRadius="16" Background="#ededed" Padding="16, 16, 16, 16" BorderThickness="0" BorderBrush="White">
+									<Button Name="menuPreferencesButton" HorizontalAlignment="Center" VerticalAlignment="Top" Width="72" Height="72" CornerRadius="16" Background="#ededed" Padding="16, 16, 16, 16" BorderThickness="0" BorderBrush="White" Margin="0, 36, 0, 0">
 										<Image Source="/Assets/menu-preferences-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7"></Image>
+									</Button>
+									<!-- App Mouse Emulator Button -->
+									<Button Name="menuMouseEmulatorButton" HorizontalAlignment="Center" VerticalAlignment="Top" Width="72" Height="72" CornerRadius="16" Background="#ededed" Padding="16, 16, 16, 16" BorderThickness="0" BorderBrush="White">
+										<Image Source="/Assets/menu-ms-emulator-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7"></Image>
 									</Button>
 									<!-- App Quit Button -->
 									<Button Name="menuQuitButton" HorizontalAlignment="Center" VerticalAlignment="Top" Width="72" Height="72" CornerRadius="16" Background="#ededed" Padding="16, 16, 16, 16">
@@ -317,13 +397,16 @@
 						</Grid>
 						<Grid Grid.Row="2" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 							<Button Name="rollMenuDown" HorizontalAlignment="Center" VerticalAlignment="Stretch" Width="72" CornerRadius="16" Background="#ededed" Padding="16, 16, 16, 16">
-								<Image Source="/Assets/arrow-down.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7"></Image>
+								<Image Name="pagesManagerGoDownImg" Source="/Assets/arrow-down.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7"></Image>
 							</Button>
 						</Grid>
 					</Grid>
+
+					<!-- Motoplay Input: Pages Focus Display -->
+					<Grid Name="motoplayInputFocusOnPagesDisplay" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsHitTestVisible="False" Background="#000000"></Grid>
 				</Grid>
 				<!-- Mid Area Divisor -->
-				<Grid Grid.Row="0" Grid.Column="1" Background="#a3a3a3"></Grid>
+				<Grid Name="midAreaDivisor" Grid.Row="0" Grid.Column="1" Background="#A3A3A3"></Grid>
 				<!-- Page Area -->
 				<Grid Grid.Row="0" Grid.Column="2">
 					<!-- Temporary Initialization Logo -->
@@ -391,10 +474,11 @@
 						</Grid>
 						<!-- OBD Connect -->
 						<Grid Name="vehiclePanel_obdConnectScreen" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+							<Grid Name="vehiclePanel_obdConnect_darkModeOverlay" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#000000" Opacity="0.7"></Grid>
 							<StackPanel Orientation="Vertical" Spacing="24" HorizontalAlignment="Center" VerticalAlignment="Center">
 								<Grid HorizontalAlignment="Center" VerticalAlignment="Top" Width="150" Height="150">
-									<gif:GifImage HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="avares://Motoplay/Assets/bluetooth-pairing-gif.gif" Stretch="Fill" Opacity="0.8"/>
-									<Image Source="/Assets/odb-connect-hd.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7" Margin="44, 44, 44, 44"></Image>
+									<gif:GifImage Name="vehiclePanel_obdConnect_spinnerImg" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="avares://Motoplay/Assets/bluetooth-pairing-gif.gif" Stretch="Fill" Opacity="0.8"/>
+									<Image Name="vehiclePanel_obdConnect_iconImg" Source="/Assets/odb-connect-hd.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Opacity="0.7" Margin="44, 44, 44, 44"></Image>
 								</Grid>
 								<TextBlock Name="vehiclePanel_odbConnect_statusText" Text="Place Holder" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Top"></TextBlock>
 								<Button Name="vehiclePanel_obdConnect_unpairButton" Content="{DynamicResource ResourceKey=vehiclePanel_odbConnectUnpairButton}" HorizontalAlignment="Center" VerticalAlignment="Top" Height="32" HorizontalContentAlignment="Center" Background="#940000" Foreground="#f2f2f2" Margin="0, 32, 0, 0"></Button>
@@ -554,6 +638,31 @@
 						<Grid Name="vehiclePanel_connectTriesExcedeed" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 							<Button Name="vehiclePanel_rebootButton" Content="{DynamicResource ResourceKey=vehiclePanel_rebootButton}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="164" Height="48" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"></Button>
 						</Grid>
+						<!-- Music Miniplayer -->
+						<Border Name="vehiclePanel_miniplayerRoot" IsVisible="False" HorizontalAlignment="Center" VerticalAlignment="Top" CornerRadius="16, 16, 16, 16" Background="#000000" BorderBrush="#7a0400" BorderThickness="0, 0, 0, 0" Padding="14, 0, 14, 0" Margin="0, 8, 0, 0">
+							<StackPanel Orientation="Horizontal" Spacing="0" HorizontalAlignment="Center" VerticalAlignment="Top">
+								<Image Name="vehiclePanel_miniplayerRoot_cover" Source="/Assets/no-album-cover.png" HorizontalAlignment="Left" VerticalAlignment="Center" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality" Height="26" Margin="0, 0, 8, 0"></Image>
+								<gif:GifImage Name="vehiclePanel_miniplayerRoot_waveAnim" Source="avares://Motoplay/Assets/music-wave-animation-x64.gif" Stretch="Fill" HorizontalAlignment="Left" VerticalAlignment="Center" Width="20" Height="20" Margin="0, 0, 8, 0" />
+								<TextBlock Name="vehiclePanel_miniplayerRoot_musicTitle" Text="Place Holder place holder" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="#ffffff" FontSize="15" Margin="0, 0, 8, 0"></TextBlock>
+								<Rectangle HorizontalAlignment="Left" VerticalAlignment="Center" Width="1" Height="8" Fill="#ffffff" Opacity="0.5" Margin="8, 0, 8, 0"></Rectangle>
+								<TextBlock Name="vehiclePanel_miniplayerRoot_volumeText" Text="000%" TextAlignment="Right" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#ffffff" FontWeight="Bold" FontSize="15" MinWidth="52"></TextBlock>
+							</StackPanel>
+						</Border>
+						<!-- Shutdown Popup -->
+						<Border Name="motoplayInputShutdownPopup" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="64" CornerRadius="0, 0, 0, 0" Background="#540300" BorderBrush="#7a0400" BorderThickness="0, 2, 0, 0" Margin="0, 0, 0, 0">
+							<Grid>
+								<Grid Name="motoplayInputShutdownPopupFill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#cf0700">
+									<Grid.RenderTransform>
+										<TransformGroup>
+											<ScaleTransform ScaleX="0.5" ScaleY="1.0"></ScaleTransform>
+											<TranslateTransform X="0" Y="0"></TranslateTransform>
+											<RotateTransform CenterX="0" CenterY="0" Angle="0"></RotateTransform>
+										</TransformGroup>
+									</Grid.RenderTransform>
+								</Grid>
+								<TextBlock Text="{DynamicResource ResourceKey=vehiclePanel_shutdownWarn}" HorizontalAlignment="Center" VerticalAlignment="Top" Foreground="#ffffff" FontWeight="Bold" FontSize="20" LineHeight="45"></TextBlock>
+							</Grid>
+						</Border>
 					</Grid>
 					<!-- General Metrics Page Content -->
 					<Grid Name="pageContentForMetrics" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -561,11 +670,15 @@
 						<Rectangle Fill="#ababab" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="1" Margin="0, 48, 0, 0" Opacity="0.5"></Rectangle>
 						<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Offset="0, 0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 48, 0, 0">
 							<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="16, 8, 16, 32">
-								<ComboBox Name="generalMetrics_contentSelector" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Stretch" VerticalAlignment="Top">
-									<ComboBoxItem>Number of Disconnections with OBD Adapter</ComboBoxItem>
-									<ComboBoxItem>OBD Adapter Response Time (Ping)</ComboBoxItem>
-									<ComboBoxItem>Time Spent In Each Gear</ComboBoxItem>
-								</ComboBox>
+								<Grid ColumnDefinitions="*, 8, 420, 8, *" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+									<Button Grid.Row="0" Grid.Column="0" Name="generalMetrics_previousButton" Content="{DynamicResource ResourceKey=generalMetrics_btnPrevious}" HorizontalAlignment="Stretch" VerticalAlignment="Center" HorizontalContentAlignment="Center"></Button>
+									<ComboBox Grid.Row="0" Grid.Column="2" Name="generalMetrics_contentSelector" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Stretch" VerticalAlignment="Center" MinWidth="420">
+										<ComboBoxItem>Number of Disconnections with OBD Adapter</ComboBoxItem>
+										<ComboBoxItem>OBD Adapter Response Time (Ping)</ComboBoxItem>
+										<ComboBoxItem>Time Spent In Each Gear</ComboBoxItem>
+									</ComboBox>
+									<Button Grid.Row="0" Grid.Column="4" Name="generalMetrics_nextButton" Content="{DynamicResource ResourceKey=generalMetrics_btnNext}" HorizontalAlignment="Stretch" VerticalAlignment="Center" HorizontalContentAlignment="Center"></Button>
+								</Grid>
 								<Grid HorizontalAlignment="Stretch" VerticalAlignment="Top">
 									<Grid Name="generalMetrics_content_disconnectionCount" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Top">
 										<Border HorizontalAlignment="Stretch" VerticalAlignment="Top" BorderThickness="2" BorderBrush="#a6a6a6" CornerRadius="8" Padding="8, 8, 8, 8">
@@ -834,7 +947,7 @@
 							<!-- Mirror Screen -->
 							<Grid Name="mirrorPhone_mirrorScreen" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 								<Grid Name="mirrorPhone_mirrorScreen_preConnect_root" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-									<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Offset="0, 0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 0, 0, 0">
+									<ScrollViewer Name="mirrorPhone_mirrorScreen_scrollView" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Offset="0, 0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 0, 0, 0">
 										<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="16, 16, 16, 16">
 											<Border Background="Red" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="64" CornerRadius="8" ClipToBounds="True">
 												<Grid HorizontalAlignment="Stretch" VerticalAlignment="Top">
@@ -960,6 +1073,60 @@
 												<ComboBoxItem>25%</ComboBoxItem>
 												<ComboBoxItem>35%</ComboBoxItem>
 												<ComboBoxItem>45%</ComboBoxItem>
+											</ComboBox>
+										</DockPanel>
+									</StackPanel>
+								</ScrollViewer>
+							</TabItem>
+							<!-- Input Tab -->
+							<TabItem Header="{DynamicResource ResourceKey=appPreferences_InputTab_title}" FontSize="16" Margin="16, 0, 0, 0" Padding="0, 0, 0, 0">
+								<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Offset="0, 0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 0, 0, 0">
+									<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="16, 16, 16, 16">
+										<!-- pref_input_motoplayInputSupport -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_InputTab_motoplayInputSupport}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<CheckBox DockPanel.Dock="Right" Name="pref_input_motoplayInputSupport" IsChecked="False" HorizontalAlignment="Right" VerticalAlignment="Center"></CheckBox>
+										</DockPanel>
+										<!-- pref_input_pollingRate -->
+										<DockPanel Name="pref_input_pollingRate_root"  HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_InputTab_pollingRate}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_input_pollingRate" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
+												<ComboBoxItem>45Hz</ComboBoxItem>
+												<ComboBoxItem>60Hz</ComboBoxItem>
+												<ComboBoxItem>90Hz</ComboBoxItem>
+												<ComboBoxItem>125Hz</ComboBoxItem>
+											</ComboBox>
+										</DockPanel>
+										<!-- pref_input_invertXaxis -->
+										<DockPanel Name="pref_input_invertXaxis_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_InputTab_invertXaxis}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<CheckBox DockPanel.Dock="Right" Name="pref_input_invertXaxis" IsChecked="False" HorizontalAlignment="Right" VerticalAlignment="Center"></CheckBox>
+										</DockPanel>
+										<!-- pref_input_invertYaxis -->
+										<DockPanel Name="pref_input_invertYaxis_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_InputTab_invertYaxis}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<CheckBox DockPanel.Dock="Right" Name="pref_input_invertYaxis" IsChecked="False" HorizontalAlignment="Right" VerticalAlignment="Center"></CheckBox>
+										</DockPanel>
+										<!-- pref_input_invertXbyY -->
+										<DockPanel Name="pref_input_invertXbyY_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_InputTab_invertXbyY}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<CheckBox DockPanel.Dock="Right" Name="pref_input_invertXbyY" IsChecked="False" HorizontalAlignment="Right" VerticalAlignment="Center"></CheckBox>
+										</DockPanel>
+										<!-- pref_input_deadZone -->
+										<DockPanel Name="pref_input_deadZone_root" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_InputTab_deadZone}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<ComboBox DockPanel.Dock="Right" Name="pref_input_deadZone" SelectedIndex="0" MaxDropDownHeight="128" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224">
+												<ComboBoxItem>50%</ComboBoxItem>
+												<ComboBoxItem>55%</ComboBoxItem>
+												<ComboBoxItem>60%</ComboBoxItem>
+												<ComboBoxItem>65%</ComboBoxItem>
+												<ComboBoxItem>70%</ComboBoxItem>
+												<ComboBoxItem>75%</ComboBoxItem>
+												<ComboBoxItem>80%</ComboBoxItem>
+												<ComboBoxItem>85%</ComboBoxItem>
+												<ComboBoxItem>90%</ComboBoxItem>
+												<ComboBoxItem>95%</ComboBoxItem>
+												<ComboBoxItem>98%</ComboBoxItem>
 											</ComboBox>
 										</DockPanel>
 									</StackPanel>
@@ -1164,6 +1331,16 @@
 												<ComboBoxItem>Dark</ComboBoxItem>
 												<ComboBoxItem>Light</ComboBoxItem>
 											</ComboBox>
+										</DockPanel>
+										<!-- pref_panel_lightThemeBacklightCmd -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_panelLightThemeBacklightCmd}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_lightThemeBacklightCmd" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></local:ValidableTextBox>
+										</DockPanel>
+										<!-- pref_panel_darkThemeBacklightCmd -->
+										<DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="32">
+											<TextBlock DockPanel.Dock="Left" Text="{DynamicResource ResourceKey=appPreferences_panelTab_panelDarkThemeBacklightCmd}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<local:ValidableTextBox DockPanel.Dock="Right" Name="pref_panel_darkThemeBacklightCmd" LabelVisible="False" HorizontalAlignment="Right" VerticalAlignment="Center" Width="224"></local:ValidableTextBox>
 										</DockPanel>
 									</StackPanel>
 								</ScrollViewer>
@@ -1532,6 +1709,162 @@
 						<Rectangle Fill="#ababab" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="1" Margin="0, 0, 0, 48" Opacity="0.5"></Rectangle>
 						<Button Name="preferences_saveButton" Content="{DynamicResource ResourceKey=appPreferences_saveButton}" HorizontalAlignment="Center" VerticalAlignment="Bottom" Height="32" Width="150" HorizontalContentAlignment="Center" Margin="0, 0, 0, 8"></Button>
 					</Grid>
+					<!-- Mouse Emulator Page Content -->
+					<Grid Name="pageContentForMouseEmulator" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<StackPanel Name="mouseEmulatorTipPanel" Orientation="Vertical" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+							<Image Source="/Assets/mouse-emulator-warn.png" HorizontalAlignment="Center" VerticalAlignment="Top" Opacity="1.0" Height="128"></Image>
+							<TextBlock Text="{DynamicResource ResourceKey=mouseEmulator_tipMessage}" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Top" MaxWidth="400" TextAlignment="Center" Margin="0, 16, 0, 32"></TextBlock>
+							<StackPanel Name="pageContentForMouseEmulator_startMsg" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Top">
+								<TextBlock Text="{DynamicResource ResourceKey=mouseEmulator_startMessage0}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+								<Image Source="/Assets/joystick-click.png" HorizontalAlignment="Left" VerticalAlignment="Center" Opacity="0.5" Height="32"></Image>
+								<TextBlock Text="{DynamicResource ResourceKey=mouseEmulator_startMessage1}" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+							</StackPanel>
+						</StackPanel>
+					</Grid>
+
+					<!-- Motoplay Input: Page Manager Focus Display -->
+					<Grid Name="motoplayInputFocusOnPageManagerDisplay" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsHitTestVisible="False" Background="#000000"></Grid>
+					<!-- Motoplay Input: Page Manager Controls Display -->
+					<Grid Name="motoplayInputControlsDisplay_root" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsHitTestVisible="False">
+						<Grid Name="motoplayInputControlsDisplay_managable" IsVisible="True" HorizontalAlignment="Right" VerticalAlignment="Center" Width="280" Height="350" Margin="0, 0, 0, 0">
+							<Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch" CornerRadius="4, 0, 0, 4" Background="#f5f5f5" BorderBrush="#dbdbdb" BorderThickness="2, 2, 0, 2">
+								<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Offset="0, 0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 0, 0, 0" Padding="8, 8, 8, 8">
+									<StackPanel Orientation="Vertical" Spacing="0" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+										<!-- Controls for: Vehicle Panel -->
+										<Grid Name="motoplayInputControlDisplay_panel" IsVisible="False" ColumnDefinitions="32,8,*" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+											<!-- -->
+											<TextBlock Grid.Row="0" Grid.Column="2" Text="{DynamicResource ResourceKey=vehiclePanel_pageTitle}" TextAlignment="Center" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="-40, 0, 0, 0"></TextBlock>
+											<!-- -->
+											<Image Grid.Row="1" Grid.Column="0" Source="/Assets/joystick-down-long.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+											<TextBlock Grid.Row="1" Grid.Column="2" Text="{DynamicResource ResourceKey=vehiclePanel_controls_shutdown}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<!-- -->
+											<TextBlock Grid.Row="2" Grid.Column="2" Text="{DynamicResource ResourceKey=vehiclePanel_controls_miniplayer}" TextAlignment="Center" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="-40, 0, 0, 0"></TextBlock>
+											<!-- -->
+											<Image Grid.Row="3" Grid.Column="0" Source="/Assets/joystick-left-long.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+											<TextBlock Grid.Row="3" Grid.Column="2" Text="{DynamicResource ResourceKey=vehiclePanel_controls_miniplayer_previous}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<!-- -->
+											<Image Grid.Row="4" Grid.Column="0" Source="/Assets/joystick-right-long.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+											<TextBlock Grid.Row="4" Grid.Column="2" Text="{DynamicResource ResourceKey=vehiclePanel_controls_miniplayer_next}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<!-- -->
+											<Image Grid.Row="5" Grid.Column="0" Source="/Assets/joystick-up.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+											<TextBlock Grid.Row="5" Grid.Column="2" Text="{DynamicResource ResourceKey=vehiclePanel_controls_miniplayer_volumeup}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<!-- -->
+											<Image Grid.Row="6" Grid.Column="0" Source="/Assets/joystick-down.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+											<TextBlock Grid.Row="6" Grid.Column="2" Text="{DynamicResource ResourceKey=vehiclePanel_controls_miniplayer_volumedown}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<!-- -->
+											<Image Grid.Row="7" Grid.Column="0" Source="/Assets/joystick-click.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+											<TextBlock Grid.Row="7" Grid.Column="2" Text="{DynamicResource ResourceKey=vehiclePanel_controls_miniplayer_pause}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+										</Grid>
+										<!-- Controls for: General Metrics -->
+										<Grid Name="motoplayInputControlDisplay_metrics" IsVisible="False" ColumnDefinitions="32,8,*" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+											<!-- -->
+											<TextBlock Grid.Row="0" Grid.Column="2" Text="{DynamicResource ResourceKey=generalMetrics_title}" TextAlignment="Center" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="-40, 0, 0, 0"></TextBlock>
+											<!-- -->
+											<Image Grid.Row="1" Grid.Column="0" Source="/Assets/joystick-left.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+											<TextBlock Grid.Row="1" Grid.Column="2" Text="{DynamicResource ResourceKey=generalMetrics_controls_previousMetric}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<!-- -->
+											<Image Grid.Row="2" Grid.Column="0" Source="/Assets/joystick-right.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+											<TextBlock Grid.Row="2" Grid.Column="2" Text="{DynamicResource ResourceKey=generalMetrics_controls_nextMetric}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+										</Grid>
+										<!-- Controls for: Music Player -->
+										<Grid Name="motoplayInputControlDisplay_player" IsVisible="False" ColumnDefinitions="32,8,*" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+											<!-- -->
+											<TextBlock Grid.Row="0" Grid.Column="2" Text="{DynamicResource ResourceKey=musicPlayer_pageTitle}" TextAlignment="Center" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="-40, 0, 0, 0"></TextBlock>
+											<!-- -->
+											<Image Grid.Row="1" Grid.Column="0" Source="/Assets/joystick-left-long.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+											<TextBlock Grid.Row="1" Grid.Column="2" Text="{DynamicResource ResourceKey=vehiclePanel_controls_miniplayer_previous}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<!-- -->
+											<Image Grid.Row="2" Grid.Column="0" Source="/Assets/joystick-right-long.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+											<TextBlock Grid.Row="2" Grid.Column="2" Text="{DynamicResource ResourceKey=vehiclePanel_controls_miniplayer_next}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<!-- -->
+											<Image Grid.Row="3" Grid.Column="0" Source="/Assets/joystick-up.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+											<TextBlock Grid.Row="3" Grid.Column="2" Text="{DynamicResource ResourceKey=vehiclePanel_controls_miniplayer_volumeup}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<!-- -->
+											<Image Grid.Row="4" Grid.Column="0" Source="/Assets/joystick-down.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+											<TextBlock Grid.Row="4" Grid.Column="2" Text="{DynamicResource ResourceKey=vehiclePanel_controls_miniplayer_volumedown}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<!-- -->
+											<Image Grid.Row="5" Grid.Column="0" Source="/Assets/joystick-click.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+											<TextBlock Grid.Row="5" Grid.Column="2" Text="{DynamicResource ResourceKey=vehiclePanel_controls_miniplayer_pause}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+										</Grid>
+										<!-- Controls for: Web Browser -->
+										<Grid Name="motoplayInputControlDisplay_browser" IsVisible="False" ColumnDefinitions="32,8,*" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+											<!-- -->
+											<TextBlock Grid.Row="0" Grid.Column="2" Text="{DynamicResource ResourceKey=webBrowser_title}" TextAlignment="Center" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="-40, 0, 0, 0"></TextBlock>
+										</Grid>
+										<!-- Controls for: USB Camera -->
+										<Grid Name="motoplayInputControlDisplay_camera" IsVisible="False" ColumnDefinitions="32,8,*" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+											<!-- -->
+											<TextBlock Grid.Row="0" Grid.Column="2" Text="{DynamicResource ResourceKey=usbCamera_title}" TextAlignment="Center" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="-40, 0, 0, 0"></TextBlock>
+											<!-- -->
+											<Image Grid.Row="1" Grid.Column="0" Source="/Assets/joystick-click.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+											<TextBlock Grid.Row="1" Grid.Column="2" Text="{DynamicResource ResourceKey=usbCamera_controls_autoSelectOrReset}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+										</Grid>
+										<!-- Controls for: Mirror Phone -->
+										<Grid Name="motoplayInputControlDisplay_mirrorPhone" IsVisible="False" ColumnDefinitions="32,8,*" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+											<!-- -->
+											<TextBlock Grid.Row="0" Grid.Column="2" Text="{DynamicResource ResourceKey=mirrorPhone_title}" TextAlignment="Center" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="-40, 0, 0, 0"></TextBlock>
+											<!-- -->
+											<Image Grid.Row="1" Grid.Column="0" Source="/Assets/joystick-click.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+											<TextBlock Grid.Row="1" Grid.Column="2" Text="{DynamicResource ResourceKey=mirrorPhone_controls_connectDisconnect}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+										</Grid>
+										<!-- Controls for: Preferences Manager -->
+										<Grid Name="motoplayInputControlDisplay_preferences" IsVisible="False" ColumnDefinitions="32,8,*" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+											<!-- -->
+											<TextBlock Grid.Row="0" Grid.Column="2" Text="{DynamicResource ResourceKey=appPreferences_title}" TextAlignment="Center" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="-40, 0, 0, 0"></TextBlock>
+										</Grid>
+										<!-- Controls for: Mouse Emulator -->
+										<Grid Name="motoplayInputControlDisplay_mouseEmulator" IsVisible="False" ColumnDefinitions="32,8,*" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+											<!-- -->
+											<TextBlock Grid.Row="0" Grid.Column="2" Text="{DynamicResource ResourceKey=mouseEmulator_pageTitle}" TextAlignment="Center" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="-40, 0, 0, 0"></TextBlock>
+											<!-- -->
+											<Image Grid.Row="1" Grid.Column="0" Source="/Assets/joystick-click.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+											<TextBlock Grid.Row="1" Grid.Column="2" Text="{DynamicResource ResourceKey=mouseEmulator_controls_start}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<!-- -->
+											<TextBlock Grid.Row="2" Grid.Column="2" Text="{DynamicResource ResourceKey=mouseEmulator_controls_emulating}" TextAlignment="Center" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="-40, 0, 0, 0"></TextBlock>
+											<!-- -->
+											<Image Grid.Row="3" Grid.Column="0" Source="/Assets/joystick-click-long.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+											<TextBlock Grid.Row="3" Grid.Column="2" Text="{DynamicResource ResourceKey=mouseEmulator_controls_emulating_stop}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<!-- -->
+											<Image Grid.Row="4" Grid.Column="0" Source="/Assets/joystick-click-long.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+											<TextBlock Grid.Row="4" Grid.Column="2" Text="{DynamicResource ResourceKey=mouseEmulator_controls_emulating_rightClick}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<!-- -->
+											<Image Grid.Row="5" Grid.Column="0" Source="/Assets/joystick-click.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+											<TextBlock Grid.Row="5" Grid.Column="2" Text="{DynamicResource ResourceKey=mouseEmulator_controls_emulating_leftClick}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<!-- -->
+											<Image Grid.Row="6" Grid.Column="0" Source="/Assets/joystick-up.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+											<TextBlock Grid.Row="6" Grid.Column="2" Text="{DynamicResource ResourceKey=mouseEmulator_controls_emulating_up}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<!-- -->
+											<Image Grid.Row="7" Grid.Column="0" Source="/Assets/joystick-right.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+											<TextBlock Grid.Row="7" Grid.Column="2" Text="{DynamicResource ResourceKey=mouseEmulator_controls_emulating_right}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<!-- -->
+											<Image Grid.Row="8" Grid.Column="0" Source="/Assets/joystick-down.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+											<TextBlock Grid.Row="8" Grid.Column="2" Text="{DynamicResource ResourceKey=mouseEmulator_controls_emulating_down}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+											<!-- -->
+											<Image Grid.Row="9" Grid.Column="0" Source="/Assets/joystick-left.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+											<TextBlock Grid.Row="9" Grid.Column="2" Text="{DynamicResource ResourceKey=mouseEmulator_controls_emulating_left}" TextWrapping="Wrap" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+										</Grid>
+									</StackPanel>
+								</ScrollViewer>
+							</Border>
+						</Grid>
+						<StackPanel Name="motoplayInputControlsDisplayTip_managable" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="16, 0, 0, 0">
+							<TextBlock Text="{DynamicResource ResourceKey=pagesManager_focusPage0}" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="#ffffff"></TextBlock>
+							<Image Source="/Assets/joystick-click-w.png" HorizontalAlignment="Left" VerticalAlignment="Center" Height="32"></Image>
+							<TextBlock Text="{DynamicResource ResourceKey=pagesManager_focusPage1}" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="#ffffff"></TextBlock>
+						</StackPanel>
+					</Grid>
+					<!-- Motoplay Input Visual Feedback -->
+					<Grid Name="motoplayInputJoystickClick" IsVisible="False" HorizontalAlignment="Center" VerticalAlignment="Center" Width="256" Height="256">
+						<Arc Name="motoplayInputJoystickClickArc" StartAngle="0" SweepAngle="360" StrokeThickness="18" StrokeLineCap="Flat" Stroke="#6ed4ff" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
+							<Arc.RenderTransform>
+								<TransformGroup>
+									<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
+									<TranslateTransform X="0" Y="0"></TranslateTransform>
+									<RotateTransform CenterX="0" CenterY="0" Angle="270"></RotateTransform>
+								</TransformGroup>
+							</Arc.RenderTransform>
+						</Arc>
+					</Grid>
 				</Grid>
 			</Grid>
 
@@ -1566,6 +1899,10 @@
 							</Border>
 						</Grid>
 					</Grid>
+					<!-- Motoplay Input Notification -->
+					<Button Name="motoInputButton" HorizontalAlignment="Right" VerticalAlignment="Top" Width="32" Height="32" Padding="6, 6, 6, 6" ToolTip.Tip="{DynamicResource ResourceKey=statusBar_motoplayInputNone}">
+						<Image Name="motoInputButtonImg" Source="/Assets/joystick-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
+					</Button>
 					<!-- Update Notification -->
 					<Button Name="updateAppButton" HorizontalAlignment="Right" VerticalAlignment="Top" Width="32" Height="32" Padding="6, 6, 6, 6" ToolTip.Tip="{DynamicResource ResourceKey=statusBar_updateTooltip}">
 						<Image Source="/Assets/update-icon.png" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></Image>
@@ -1613,6 +1950,64 @@
 				</Border>
 			</Grid>
 
+			<!-- Motoplay Input Visual Feedback -->
+			<Grid Name="motoplayInputJoystickTop" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="0, -2, 0, 0">
+				<Border Name="motoplayInputJoystickTopFill" HorizontalAlignment="Stretch" VerticalAlignment="Top" Background="#6ed4ff" Height="16">
+					<Border.RenderTransform>
+						<TransformGroup>
+							<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
+							<TranslateTransform X="0" Y="0"></TranslateTransform>
+							<RotateTransform CenterX="0" CenterY="0" Angle="0"></RotateTransform>
+						</TransformGroup>
+					</Border.RenderTransform>
+				</Border>
+			</Grid>
+			<Grid Name="motoplayInputJoystickRight" IsVisible="False" HorizontalAlignment="Right" VerticalAlignment="Stretch" Margin="0, 0, 0, 0">
+				<Border Name="motoplayInputJoystickRightFill" HorizontalAlignment="Right" VerticalAlignment="Stretch" Background="#6ed4ff" Width="16">
+					<Border.RenderTransform>
+						<TransformGroup>
+							<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
+							<TranslateTransform X="0" Y="0"></TranslateTransform>
+							<RotateTransform CenterX="0" CenterY="0" Angle="0"></RotateTransform>
+						</TransformGroup>
+					</Border.RenderTransform>
+				</Border>
+			</Grid>
+			<Grid Name="motoplayInputJoystickDown" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Margin="0, 0, 0, 0">
+				<Border Name="motoplayInputJoystickDownFill" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Background="#6ed4ff" Height="16">
+					<Border.RenderTransform>
+						<TransformGroup>
+							<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
+							<TranslateTransform X="0" Y="0"></TranslateTransform>
+							<RotateTransform CenterX="0" CenterY="0" Angle="0"></RotateTransform>
+						</TransformGroup>
+					</Border.RenderTransform>
+				</Border>
+			</Grid>
+			<Grid Name="motoplayInputJoystickLeft" IsVisible="False" HorizontalAlignment="Left" VerticalAlignment="Stretch" Margin="0, 0, 0, 0">
+				<Border Name="motoplayInputJoystickLeftFill" HorizontalAlignment="Left" VerticalAlignment="Stretch" Background="#6ed4ff" Width="16">
+					<Border.RenderTransform>
+						<TransformGroup>
+							<ScaleTransform ScaleX="1.0" ScaleY="1.0"></ScaleTransform>
+							<TranslateTransform X="0" Y="0"></TranslateTransform>
+							<RotateTransform CenterX="0" CenterY="0" Angle="0"></RotateTransform>
+						</TransformGroup>
+					</Border.RenderTransform>
+				</Border>
+			</Grid>
+
+			<!-- Mouse Emulator Interaction Blocker -->
+			<Grid Name="mouseEmulatorInteractionBlock" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+				<Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#000000" Opacity="0.75"></Grid>
+				<StackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+					<TextBlock Text="{DynamicResource ResourceKey=mouseEmulator_emulatingMsgTitle}" HorizontalAlignment="Center" VerticalAlignment="Top" Foreground="#ffffff" FontWeight="Bold" FontSize="35"></TextBlock>
+					<StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+						<TextBlock Text="{DynamicResource ResourceKey=mouseEmulator_emulatingMsgBody0}" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="#ffffff"></TextBlock>
+						<Image Source="/Assets/joystick-click-long-w.png" HorizontalAlignment="Left" VerticalAlignment="Center" Height="32"></Image>
+						<TextBlock Text="{DynamicResource ResourceKey=mouseEmulator_emulatingMsgBody1}" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="#ffffff"></TextBlock>
+					</StackPanel>
+				</StackPanel>
+			</Grid>
 			<!-- Interaction Blocker -->
 			<Grid Name="appInteractionBlocker" IsVisible="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#000000" Opacity="0.75"></Grid>
 			

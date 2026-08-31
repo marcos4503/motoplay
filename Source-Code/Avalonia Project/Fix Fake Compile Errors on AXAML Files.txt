@@ -1,0 +1,9 @@
+Sometimes, the `x:SetterTargetType="X"` and `Property="X"` properties can trigger errors in AXAML
+for no apparent reason, even when the syntax is correct. This can happen due to invalid caches
+caused by the Avalonia extension for Visual Studio. To resolve this, follow these steps:
+
+1. Delete the "bin" and "obj" folders from the project folders that do not have the ".Desktop"
+   suffix. For example:
+   - Motoplay
+   - InstallerMotoplay
+2. Ensure that the Avalonia extension is up to date in Visual Studio.

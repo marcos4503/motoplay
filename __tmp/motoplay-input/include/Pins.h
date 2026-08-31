@@ -5,6 +5,8 @@
 //Do the necessary includes
 #include <Arduino.h>
 
+
+
 /*
  * This file contains references for each Pin (or component) of Arduino Nano, regarding the components required
  * for the Motoplay Input mini-computer. All Motoplay Input firmware uses this file to get these references.
@@ -51,6 +53,8 @@
 constexpr uint8_t PIN_JOYSTICK_VRX = A6;
 constexpr uint8_t PIN_JOYSTICK_VRY = A7;
 constexpr uint8_t PIN_JOYSTICK_SW = 3;
+
+
 
 //Finish the include code...
 #endif

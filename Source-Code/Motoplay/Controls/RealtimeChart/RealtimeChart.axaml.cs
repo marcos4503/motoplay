@@ -1,14 +1,12 @@
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
-using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore;
-using System.Collections.ObjectModel;
 using LiveChartsCore.Defaults;
-using System.Collections.Generic;
-using System;
+using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace Motoplay;
 
@@ -68,7 +66,7 @@ public partial class RealtimeChart : UserControl
     {
         //Add a new value to chart
         tempValues.Add(new DateTimePoint(DateTime.Now, value));
-        if (tempValues.Count > 300)
+        if (tempValues.Count > 295)
             tempValues.RemoveAt(0);
 
         //Update the separator
@@ -95,8 +93,8 @@ public partial class RealtimeChart : UserControl
             now.AddSeconds(-180).Ticks,
             now.AddSeconds(-120).Ticks,
             now.AddSeconds(-60).Ticks,
-            now.AddSeconds(-30).Ticks,
-            now.AddSeconds(-5).Ticks,
+            //now.AddSeconds(-30).Ticks,
+            //now.AddSeconds(-5).Ticks,
             now.Ticks
         };
     }

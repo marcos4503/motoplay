@@ -8,7 +8,6 @@ using MarcosTomaz.ATS;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -210,7 +209,7 @@ public partial class MainWindow : Window
         asyncTask.Execute(AsyncTaskSimplified.ExecutionMode.NewDefaultThread);
     }
 
-    private IEnumerator<Wait> SetupTheP7ZipFull() 
+    private IEnumerator<Wait> SetupTheP7ZipFull()
     {
         //If is Linux...
         if (OperatingSystem.IsLinux() == true)
@@ -403,7 +402,7 @@ public partial class MainWindow : Window
         CoroutineHandler.Start(SetupTheWaylandClientDev());
     }
 
-    private IEnumerator<Wait> SetupTheWaylandClientDev() 
+    private IEnumerator<Wait> SetupTheWaylandClientDev()
     {
         //If is Linux...
         if (OperatingSystem.IsLinux() == true)
@@ -598,7 +597,7 @@ public partial class MainWindow : Window
         CoroutineHandler.Start(SetupTheXKBCommon());
     }
 
-    private IEnumerator<Wait> SetupTheXKBCommon() 
+    private IEnumerator<Wait> SetupTheXKBCommon()
     {
         //If is Linux...
         if (OperatingSystem.IsLinux() == true)
@@ -773,7 +772,7 @@ public partial class MainWindow : Window
 
     private IEnumerator<Wait> SetupTheSed()
     {
-         //If is Linux...
+        //If is Linux...
         if (OperatingSystem.IsLinux() == true)
         {
             //Inform that is checking
@@ -1557,7 +1556,7 @@ public partial class MainWindow : Window
 
         //Check each line to get info
         foreach (string line in terminalReceivedOutputLines)
-            if(line.Contains("> Done Command!") == true)
+            if (line.Contains("> Done Command!") == true)
             {
                 toReturn = true;
                 break;

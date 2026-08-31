@@ -1,17 +1,12 @@
 ﻿using Avalonia;
 using Avalonia.Threading;
-using Coroutine;
-using HarfBuzzSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Ports;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Channels;
-using System.Threading.Tasks;
 
 namespace Motoplay.Scripts
 {
@@ -226,7 +221,7 @@ namespace Motoplay.Scripts
         public void TryConnect()
         {
             //Start a new thread to start the connection and watch the maintenance of the connection, if have one
-            new Thread(() => 
+            new Thread(() =>
             {
                 //Inform that is a background thread
                 Thread.CurrentThread.IsBackground = true;
@@ -466,7 +461,7 @@ namespace Motoplay.Scripts
             catch (Exception e)
             {
                 //If have a problem, warn the user and force disconnection
-                SendAlertDialogMessage("Error", "Unable to open communication with Serial Port \""+ rfcommSerialPortPath +"\". Try restarting the Bluetooth OBD Adapter and Motoplay.\n\nE: \"" + e.Message + "\"");
+                SendAlertDialogMessage("Error", "Unable to open communication with Serial Port \"" + rfcommSerialPortPath + "\". Try restarting the Bluetooth OBD Adapter and Motoplay.\n\nE: \"" + e.Message + "\"");
                 ForceDisconnect();
             }
         }
@@ -474,7 +469,7 @@ namespace Motoplay.Scripts
         private void InitializeTheObdAdapter()
         {
             //Prepare the OBD Adapter Initialization Thread
-            new Thread(() => 
+            new Thread(() =>
             {
                 //Inform that is a background thread
                 Thread.CurrentThread.IsBackground = true;
@@ -574,21 +569,22 @@ namespace Motoplay.Scripts
                 //Start the data extraction from Bluetooth OBD Adapter
                 ExtractDataFromObdAdapter();
 
-            //...
+                //...
 
 
 
-            //Prepare the end point of this Thread...
+                //Prepare the end point of this Thread...
             ThreadEndPoint:
                 abortObdAdapterInitializationThreadIfRunning = false;
-                    AvaloniaDebug.WriteLine("OBD Adapter Initialization Thread aborted!");
+                AvaloniaDebug.WriteLine("OBD Adapter Initialization Thread aborted!");
             }).Start();
         }
 
         private void ExtractDataFromObdAdapter()
         {
             //Prepare the OBD Adapter Initialization Thread
-            new Thread(() => {
+            new Thread(() =>
+            {
                 //Inform that is a background thread
                 Thread.CurrentThread.IsBackground = true;
 
@@ -603,7 +599,7 @@ namespace Motoplay.Scripts
                 queueOfCommands.AddRange(Enumerable.Repeat(CommandsOfExtractionLoop.batteryVoltage, 1));
                 queueOfCommands.AddRange(Enumerable.Repeat(CommandsOfExtractionLoop.coolantTemperature, 1));
 
-            //Prepare the queue feed point
+                //Prepare the queue feed point
             QueueFeedPoint:
 
                 //Feed the queue with commands
@@ -682,11 +678,11 @@ namespace Motoplay.Scripts
                 //If endend the loop, re-feed the queue of commands to start the loop again
                 goto QueueFeedPoint;
 
-            //...
+                //...
 
 
 
-            //Prepare the end point of this Thread...
+                //Prepare the end point of this Thread...
             ThreadEndPoint:
                 abortObdDataExtractionThreadIfRunning = false;
                 AvaloniaDebug.WriteLine("OBD Data Extraction Thread aborted!");
@@ -844,7 +840,8 @@ namespace Motoplay.Scripts
                 //Send the command
                 rfcommActiveSerialPort.Write(finalCommandToSend);
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 //Add to disconnection additional informations
                 disconnectionAdditionalInformation += ("Fail on Send command to device through Serial Port: " + e.Message + ".");
 
@@ -929,8 +926,8 @@ namespace Motoplay.Scripts
             if (responseContainsError == true)
             {
                 //Warn to user
-                SendAlertDialogMessage("Error", 
-                                      ("The connection with the Bluetooth OBD Adapter has been undone. Found a Error on Response obtained from Command \"" + 
+                SendAlertDialogMessage("Error",
+                                      ("The connection with the Bluetooth OBD Adapter has been undone. Found a Error on Response obtained from Command \"" +
                                        finalCommandToSend.Replace("\r", "").Replace(">", "") + "\": \"" + finalCommandResponse.Replace("\r", "").Replace(">", "") + "\"."));
 
                 //Warn on debug
@@ -983,7 +980,7 @@ namespace Motoplay.Scripts
             //Return the response
             return responseToReturn;
         }
-    
+
         private object GetInterpretedCommandResponse(string commandResponse, string sourceCommand)
         {
             //Prepare the value to return
@@ -1025,7 +1022,7 @@ namespace Motoplay.Scripts
                         float rpmFloat = Convert.ToInt32(commandResponse.Replace(("410C"), ""), 16);
                         toReturn = (int)(rpmFloat / 4.0f);
                     }
-                    catch (Exception e) 
+                    catch (Exception e)
                     {
                         SendLogMessage("CRI: Ununderstood response obtained from command \"" + sourceCommand + "\" sended to OBD: \"" + commandResponse + "\". Not parseable value.");
                         toReturn = null;
@@ -1034,7 +1031,7 @@ namespace Motoplay.Scripts
                 //If the origin command is a Coolant Temperature command...
                 if (originCommand == "05")
                 {
-                    try 
+                    try
                     {
                         int tempInt = Convert.ToInt32(commandResponse.Replace(("4105"), ""), 16);
                         toReturn = (int)(tempInt - 40);
@@ -1048,7 +1045,7 @@ namespace Motoplay.Scripts
                 //If the origin command is a Engine Load command...
                 if (originCommand == "04")
                 {
-                    try 
+                    try
                     {
                         float loadFloat = Convert.ToInt32(commandResponse.Replace(("4104"), ""), 16);
                         toReturn = (int)((loadFloat / 255.0f) * 100.0f);
@@ -1104,7 +1101,7 @@ namespace Motoplay.Scripts
             //Return the value
             return toReturn;
         }
-    
+
         private void UpdateEngineRpmInterpolated()
         {
             //Update current time
@@ -1122,14 +1119,14 @@ namespace Motoplay.Scripts
                 lastRpmSampleStoredForInterpolation = engineRpm;
                 rpmInterpoltaionElpasedTime = 0;
             }
-                
+
             //Generate the interpolated RPM
             int rpmDiffSinceLastSample = (engineRpm - lastRpmSampleStoredForInterpolation);
             int rpmInterpolationValue = (int)((float)rpmDiffSinceLastSample * rpmInterpolationAggressiveness);
             int finalInterpolatedRpm = (engineRpm + rpmInterpolationValue);
             engineRpmInterpolated = finalInterpolatedRpm;
         }
-    
+
         private void UpdateTransmissionGear()
         {
             /*
@@ -1246,7 +1243,7 @@ namespace Motoplay.Scripts
             int estimatedGear = -1;
 
             //Determine the current RPM and Speed relation
-            float currentRpmSpeedRelation = ((float) engineRpm / (float) vehicleSpeedKmh);
+            float currentRpmSpeedRelation = ((float)engineRpm / (float)vehicleSpeedKmh);
 
             //Determine the current estimated gear
             if (maxTransmissionGears <= 5)

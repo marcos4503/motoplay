@@ -33,6 +33,12 @@ namespace Motoplay.Views;
 
 public partial class MainWindow : Window
 {
+    //Private constant variables
+    private const int PANEL_DARK_MODE_START_HOUR = 18;   //Default: 18
+    private const int PANEL_DARK_MODE_START_MINUTE = 30; //Default: 30
+    private const int PANEL_DARK_MODE_END_HOUR = 6;      //Default: 6
+    private const int PANEL_DARK_MODE_END_MINUTE = 15;   //Default: 15
+
     //Enums of script
     public enum ToastDuration
     {
@@ -57,7 +63,8 @@ public partial class MainWindow : Window
         WebBrowser,
         UsbCamera,
         MirrorPhone,
-        AppPreferences
+        AppPreferences,
+        MouseEmulator
     }
     public enum BluetoothDeviceAction
     {
@@ -87,6 +94,20 @@ public partial class MainWindow : Window
         Unknown,
         Enabled,
         Disabled
+    }
+    public enum SimpleTapType
+    {
+        Up,
+        Right,
+        Down,
+        Left,
+        Click
+    }
+    public enum PanelThemeMode
+    {
+        Unknown,
+        Dark,
+        Light
     }
 
     //Classes of script
@@ -163,6 +184,24 @@ public partial class MainWindow : Window
     private UvcDevice[] usbCameraCurrentConnectedUvcDevices = null;
     private List<string> mirrorPhoneDependenciesToInstall = new List<string>();
     private Process currentMirrorScrcpyProcess = null;
+    private ActiveCoroutine simpleTapFeedbackUpRoutine = null;
+    private ActiveCoroutine simpleTapFeedbackRightRoutine = null;
+    private ActiveCoroutine simpleTapFeedbackDownRoutine = null;
+    private ActiveCoroutine simpleTapFeedbackLeftRoutine = null;
+    private ActiveCoroutine simpleTapFeedbackClickRoutine = null;
+    private double defaultInputFeedbackLinesHeight = 0.0f;
+    private double defaultInputFeedbackLinesWidth = 0.0f;
+    private double defaultInputFeedbackArcStroke = 0.0f;
+    private IBrush defaultColorForMotoplayInputStatusButton = null;
+    private int currentStateOfMotoplayInputStatusButton = -1;
+    private float mouseEmulatingTimeElapsedHoldingMotoplayInputClick = 0.0f;
+    private ActiveCoroutine showInputControlsDisplayRoutine = null;
+    private ActiveCoroutine hideInputControlsDisplayRoutine = null;
+    private ActiveCoroutine showInputShutdownPopupRoutine = null;
+    private ActiveCoroutine hideInputShutdownPopupRoutine = null;
+    private float shutdownPoupupTimeElapsedHoldingMotoplayInput = 0.0f;
+    private bool sendedCommandToShutdownFromMotoplayInput = false;
+    private PanelThemeMode currentVehiclePanelTheme = PanelThemeMode.Unknown;
 
     //Private variables
     private string[] receivedCliArgs = null;
@@ -172,6 +211,7 @@ public partial class MainWindow : Window
     private string originalWindowTitle = "";
     private string applicationVersion = "";
     private ObdAdapterHandler activeObdConnection = null;
+    private MotoplayInputHandler activeInputHandler = null;
 
     //Core methods
 
@@ -257,6 +297,11 @@ public partial class MainWindow : Window
                 Directory.CreateDirectory(motoplayRootPath);
         }
 
+        //Prepare the PersistentData folder path
+        string motoplayPersistDataFolderPath = (motoplayRootPath + "/PersistentData");
+        //Create the PersistentData folder if not exists
+        if (Directory.Exists(motoplayPersistDataFolderPath) == false)
+            Directory.CreateDirectory(motoplayPersistDataFolderPath);
         //Load the preferences
         appPrefs = new Preferences((motoplayRootPath + "/PersistentData/preferences.json"));
         //Update the preferences on UI
@@ -287,6 +332,153 @@ public partial class MainWindow : Window
 
         //Prepare and start the UI
         PrepareTheUI();
+
+        //Extract the default parameters of Motoplay Input visual elements
+        defaultInputFeedbackLinesHeight = motoplayInputJoystickTopFill.Height;
+        defaultInputFeedbackLinesWidth = motoplayInputJoystickRightFill.Width;
+        defaultInputFeedbackArcStroke = motoplayInputJoystickClickArc.StrokeThickness;
+        defaultColorForMotoplayInputStatusButton = motoInputButton.Background;
+
+        //Prepare and Start the Motoplay Input Handler
+        activeInputHandler = new MotoplayInputHandler();
+        activeInputHandler.SetSystemCurrentUsername(systemCurrentUsername);
+        activeInputHandler.RegisterOnUpdateConnectionStateCallback((MotoplayInputHandler.ConnectionStatus connectionStatus) =>
+        {
+            //If is disconnected
+            if (connectionStatus == MotoplayInputHandler.ConnectionStatus.Disconnected && currentStateOfMotoplayInputStatusButton != 0)
+            {
+                if (appPrefs.loadedData.inputMotoplayInputSupport == true)
+                    motoInputButton.IsVisible = true;
+                motoInputButton.Background = new SolidColorBrush(new Color(255, 255, 125, 125), 1.0f);
+                ToolTip.SetTip(motoInputButton, GetStringApplicationResource("statusBar_motoplayInputNone"));
+                UpdateUIForMotoplayInputConnectionState(false);
+                currentStateOfMotoplayInputStatusButton = 0;
+            }
+            //If is connecting
+            if (connectionStatus == MotoplayInputHandler.ConnectionStatus.Connecting && currentStateOfMotoplayInputStatusButton != 1)
+            {
+                motoInputButton.IsVisible = true;
+                motoInputButton.Background = new SolidColorBrush(new Color(255, 230, 214, 0), 1.0f);
+                ToolTip.SetTip(motoInputButton, GetStringApplicationResource("statusBar_motoplayInputConnecting"));
+                currentStateOfMotoplayInputStatusButton = 1;
+            }
+            //If is connected
+            if (connectionStatus == MotoplayInputHandler.ConnectionStatus.Connected && currentStateOfMotoplayInputStatusButton != 2)
+            {
+                motoInputButton.IsVisible = true;
+                motoInputButton.Background = defaultColorForMotoplayInputStatusButton;
+                ToolTip.SetTip(motoInputButton, GetStringApplicationResource("statusBar_motoplayInputConnected"));
+                UpdateUIForMotoplayInputConnectionState(true);
+                currentStateOfMotoplayInputStatusButton = 2;
+            }
+        });
+        if (appPrefs.loadedData.inputPollingRate == 0)
+            activeInputHandler.SetPollingRate(MotoplayInputHandler.PollingRate.hz45);
+        if (appPrefs.loadedData.inputPollingRate == 1)
+            activeInputHandler.SetPollingRate(MotoplayInputHandler.PollingRate.hz60);
+        if (appPrefs.loadedData.inputPollingRate == 2)
+            activeInputHandler.SetPollingRate(MotoplayInputHandler.PollingRate.hz90);
+        if (appPrefs.loadedData.inputPollingRate == 3)
+            activeInputHandler.SetPollingRate(MotoplayInputHandler.PollingRate.hz125);
+        activeInputHandler.SetAxisXbyY(appPrefs.loadedData.inputInvertXbyY);
+        activeInputHandler.SetInvertAxisX(appPrefs.loadedData.inputInvertXAxis);
+        activeInputHandler.SetInvertAxisY(appPrefs.loadedData.inputInvertYAxis);
+        activeInputHandler.SetDeadZonePercent(appPrefs.loadedData.inputDeadZone);
+        activeInputHandler.SetInputCooldown(350);
+        activeInputHandler.RegisterOnLongTapProgressUpCallback((float progress) =>
+        {
+            //Render the Up Long Tap feedback
+            if (progress != -1.0f)
+            {
+                motoplayInputJoystickTop.IsVisible = true;
+                motoplayInputJoystickTopFill.RenderTransform = new ScaleTransform(progress, 1.0f);
+            }
+            if (progress == -1.0f && simpleTapFeedbackUpRoutine == null)
+                if (motoplayInputJoystickTop.IsVisible == true)
+                    motoplayInputJoystickTop.IsVisible = false;
+        });
+        activeInputHandler.RegisterOnSimpleTapProgressUpCallback(() =>
+        {
+            //Render the Up Simple Tap feedback
+            AnimateSimpleTapFeedback(SimpleTapType.Up);
+        });
+        activeInputHandler.RegisterOnLongTapProgressDownCallback((float progress) =>
+        {
+            //Render the Down Long Tap feedback
+            if (progress != -1.0f)
+            {
+                motoplayInputJoystickDown.IsVisible = true;
+                motoplayInputJoystickDownFill.RenderTransform = new ScaleTransform(progress, 1.0f);
+            }
+            if (progress == -1.0f && simpleTapFeedbackDownRoutine == null)
+                if (motoplayInputJoystickDown.IsVisible == true)
+                    motoplayInputJoystickDown.IsVisible = false;
+        });
+        activeInputHandler.RegisterOnSimpleTapProgressDownCallback(() =>
+        {
+            //Render the Down Simple Tap feedback
+            AnimateSimpleTapFeedback(SimpleTapType.Down);
+        });
+        activeInputHandler.RegisterOnLongTapProgressLeftCallback((float progress) =>
+        {
+            //Render the Left Long Tap feedback
+            if (progress != -1.0f)
+            {
+                motoplayInputJoystickLeft.IsVisible = true;
+                motoplayInputJoystickLeftFill.RenderTransform = new ScaleTransform(1.0f, progress);
+            }
+            if (progress == -1.0f && simpleTapFeedbackLeftRoutine == null)
+                if (motoplayInputJoystickLeft.IsVisible == true)
+                    motoplayInputJoystickLeft.IsVisible = false;
+        });
+        activeInputHandler.RegisterOnSimpleTapProgressLeftCallback(() =>
+        {
+            //Render the Left Simple Tap feedback
+            AnimateSimpleTapFeedback(SimpleTapType.Left);
+        });
+        activeInputHandler.RegisterOnLongTapProgressRightCallback((float progress) =>
+        {
+            //Render the Right Long Tap feedback
+            if (progress != -1.0f)
+            {
+                motoplayInputJoystickRight.IsVisible = true;
+                motoplayInputJoystickRightFill.RenderTransform = new ScaleTransform(1.0f, progress);
+            }
+            if (progress == -1.0f && simpleTapFeedbackRightRoutine == null)
+                if (motoplayInputJoystickRight.IsVisible == true)
+                    motoplayInputJoystickRight.IsVisible = false;
+        });
+        activeInputHandler.RegisterOnSimpleTapProgressRightCallback(() =>
+        {
+            //Render the Right Simple Tap feedback
+            AnimateSimpleTapFeedback(SimpleTapType.Right);
+        });
+        activeInputHandler.RegisterOnLongTapProgressClickCallback((float progress) =>
+        {
+            //Render the Click Long Tap feedback
+            if (progress != -1.0f)
+            {
+                motoplayInputJoystickClick.IsVisible = true;
+                motoplayInputJoystickClickArc.SweepAngle = (360.0f * progress);
+            }
+            if (progress == -1.0f && simpleTapFeedbackClickRoutine == null)
+                if (motoplayInputJoystickClick.IsVisible == true)
+                    motoplayInputJoystickClick.IsVisible = false;
+        });
+        activeInputHandler.RegisterOnSimpleTapProgressClickCallback(() =>
+        {
+            //Render the Click Simple Tap feedback
+            AnimateSimpleTapFeedback(SimpleTapType.Click);
+        });
+        if (appPrefs.loadedData.inputMotoplayInputSupport == true)
+        {
+            //Start handling the Motoplay Input devices
+            activeInputHandler.StartHandler();
+            //Auto put focus on Vehicle Panel page
+            OnEnterMotoplayInputFocus_VehiclePanel();
+        }
+        if (appPrefs.loadedData.inputMotoplayInputSupport == false)
+            activeInputHandler.ForceCallOfOnUpdateConnectionStateCallbackAsDisconnected();
     }
 
     private void PrepareTheUI()
@@ -294,6 +486,7 @@ public partial class MainWindow : Window
         //Prepare the UI
         toggleKeyboardButton.IsVisible = false;
         toggleKeyboardButton.Click += (s, e) => { ToggleVirtualKeyboard(); };
+        motoInputButton.IsVisible = false;
         toastNotificationRoot.IsVisible = false;
         toastNotificationDismissButton.IsEnabled = false;
         toastNotificationDismissButton.Click += (s, e) => { HideToastNow(); };
@@ -309,6 +502,7 @@ public partial class MainWindow : Window
         menuCameraButton.Click += (s, e) => { SwitchAppPage(AppPage.UsbCamera); };
         menuPhoneButton.Click += (s, e) => { SwitchAppPage(AppPage.MirrorPhone); };
         menuPreferencesButton.Click += (s, e) => { SwitchAppPage(AppPage.AppPreferences); };
+        menuMouseEmulatorButton.Click += (s, e) => { SwitchAppPage(AppPage.MouseEmulator); };
         bindedCliButton.IsVisible = false;
         bindedbluetoothCtlButton.IsVisible = false;
         tryingConnectToObdButton.IsVisible = false;
@@ -321,6 +515,39 @@ public partial class MainWindow : Window
 
         //Start a terminal for CLI process
         StartBindedCliTerminalProcess();
+    }
+
+    private void UpdateUIForMotoplayInputConnectionState(bool connectedNow)
+    {
+        //If is now connected to a Motoplay Input Device
+        if (connectedNow == true)
+        {
+            menuBarBackgroundImg.Margin = new Thickness(0.0d, -8.0, 10.0d, -8.0d);
+            //midAreaDivisor.Opacity = 0.0d;
+            motoplayInputFocusOnPagesDisplay.Margin = new Thickness(0.0d, 0.0d, 0.0d, 0.0d);
+            motoplayInputFocusOnPagesDisplay.Opacity = 0.35d;
+            motoplayInputFocusOnPageManagerDisplay.Opacity = 0.75d;
+            motoplayInputControlsDisplay_root.IsVisible = true;
+            pagesManagerGoUpImg.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/joystick-up.png")));
+            pagesManagerGoDownImg.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/joystick-down.png")));
+            vehiclePanel_shutdownShortcut_root.IsVisible = false;
+            vehiclePanel_shutdownShortcutButton.IsVisible = false;
+        }
+
+        //If is now disconnected of Motoplay Input device
+        if (connectedNow == false)
+        {
+            menuBarBackgroundImg.Margin = new Thickness(0.0d, -8.0, 0.0d, -8.0d);
+            //midAreaDivisor.Opacity = 1.0d;
+            motoplayInputFocusOnPagesDisplay.Margin = new Thickness(0.0d, 0.0d, 0.0d, 0.0d);
+            motoplayInputFocusOnPagesDisplay.Opacity = 0.0d;
+            motoplayInputFocusOnPageManagerDisplay.Opacity = 0.0d;
+            motoplayInputControlsDisplay_root.IsVisible = false;
+            pagesManagerGoUpImg.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/arrow-up.png")));
+            pagesManagerGoDownImg.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/arrow-down.png")));
+            vehiclePanel_shutdownShortcut_root.IsVisible = true;
+            vehiclePanel_shutdownShortcutButton.IsVisible = true;
+        }
     }
 
     private void StartBindedCliTerminalProcess()
@@ -421,11 +648,20 @@ public partial class MainWindow : Window
 
     private void OnDoneStartOfBindedCliTerminalProcess()
     {
+        //Start the routine of vehicle panel theme management
+        CoroutineHandler.Start(VehiclePanelThemeUpdateRoutine());
+
         //Kill possible already processes of virtual keyboard
         CoroutineHandler.Start(KillPossibleExistingVirtualKeyboardProcess());
 
         //Start the process of setup for "unclutter"
         CoroutineHandler.Start(SetupTheUnclutterCursorHider());
+
+        //Start the process of setup for "uhubctl"
+        CoroutineHandler.Start(SetupUhubctlUsbPowerControl());
+
+        //Start the process of ensure permissions for handle Serial devices
+        CoroutineHandler.Start(EnsurePermissionsToHandleSerialDevices());
 
         //Check if have updates for Motoplay App
         CoroutineHandler.Start(CheckIfHaveUpdatesForApp());
@@ -457,6 +693,9 @@ public partial class MainWindow : Window
 
         //Prepare the UI for Preferences
         PrepareThePreferences();
+
+        //Prepare the UI for Mouse Emulator
+        PrepareTheMouseEmulator();
     }
 
     private IEnumerator<Wait> KillPossibleExistingVirtualKeyboardProcess()
@@ -575,6 +814,107 @@ public partial class MainWindow : Window
         RemoveTask("unclutter_setup");
     }
 
+    private IEnumerator<Wait> SetupUhubctlUsbPowerControl()
+    {
+        //Add this task running
+        AddTask("uhubctl_setup", "Setup the Uhubctl to control Power of USB Ports.");
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+
+
+        //Wait time
+        yield return new Wait(1.0f);
+
+        //If Linux, continue...
+        if (OperatingSystem.IsLinux() == true)
+        {
+            //Send a command to check if the "uhubctl" is installed
+            SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo dpkg -s uhubctl");
+            //Wait the end of command execution
+            while (isLastCommandFinishedExecution(rKey) == false)
+                yield return new Wait(0.1f);
+
+            //If not installed, start installation
+            if (isThermFoundInTerminalOutputLines(rKey, "is not installed") == true)
+            {
+                //Wait time
+                yield return new Wait(1.0f);
+
+                //Send a command to install the "uhubctl"
+                SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo apt-get install uhubctl -y");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution(rKey) == false)
+                    yield return new Wait(0.1f);
+
+                //Wait time
+                yield return new Wait(1.0f);
+
+                //Send a command to confirm that the "ubuctl" is installed
+                SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo dpkg -s uhubctl");
+                //Wait the end of command execution
+                while (isLastCommandFinishedExecution(rKey) == false)
+                    yield return new Wait(0.1f);
+
+                //If not installed, stop the program
+                if (isThermFoundInTerminalOutputLines(rKey, "is not installed") == true)
+                {
+                    var diag = MessageBoxManager.GetMessageBoxStandard("Error", "There was a problem, when installing a required package. Check your Internet connection!", ButtonEnum.Ok).ShowAsync();
+                    while (diag.IsCompleted == false)
+                        yield return new Wait(0.1f);
+                    this.Close();
+                }
+            }
+        }
+
+        //If Windows, just continue...
+        if (OperatingSystem.IsWindows() == true)
+            AvaloniaDebug.WriteLine("The tool \"uhubctl\" is not necessary on Windows.");
+
+
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //Remove the task running
+        RemoveTask("uhubctl_setup");
+    }
+
+    private IEnumerator<Wait> EnsurePermissionsToHandleSerialDevices()
+    {
+        //Add this task running
+        AddTask("ensureSerialDevicesPermissions", "Ensure that the current User have permissions to handle Serial Devices.");
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+
+
+        //Wait time
+        yield return new Wait(0.5f);
+
+        //Send command to give put current User on groups "dialout" and "tty" to not have troubles on handling Serial devices
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo usermod -aG dialout,tty $USER");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //Remove the task running
+        RemoveTask("ensureSerialDevicesPermissions");
+    }
+
     private IEnumerator<Wait> CheckIfHaveUpdatesForApp()
     {
         //Add this task running
@@ -674,7 +1014,105 @@ public partial class MainWindow : Window
     }
 
     //Vehicle Panel methods
-    
+
+    private void OnEnterMotoplayInputFocus_VehiclePanel()
+    {
+        //Install Motoplay Input callbacks for this screen
+        activeInputHandler.RegisterNewInputReceiver(
+        new UpEvents(
+            () => { },
+            (float deltaTimeMs) => { },
+            () => { },
+            () =>
+            {
+                //Redirect the command
+                if (musicPlayer_playerScreen.IsVisible == true)
+                    if (musicPlayer_volumeUpButton.IsVisible == true && musicPlayer_volumeUpButton.IsHitTestVisible == true && musicPlayer_volumeUpButton.IsEnabled == true)
+                        MusicPlayerVolumeUp();
+            }),
+        new RightEvents(
+            () =>
+            {
+                //Redirect the command
+                if (musicPlayer_playerScreen.IsVisible == true)
+                    if (musicPlayer_skipNextButton.IsVisible == true && musicPlayer_skipNextButton.IsHitTestVisible == true && musicPlayer_skipNextButton.IsEnabled == true)
+                        MusicPlayerSkipToNext();
+            },
+            (float deltaTimeMs) => { },
+            () => { },
+            () => { }),
+        new DownEvents(
+            () =>
+            {
+                //Show the shutdown popup
+                ShowInputShutdownPopupDisplay(true);
+            },
+            (float deltaTimeMs) =>
+            {
+                //Increase the elapsed time meter
+                shutdownPoupupTimeElapsedHoldingMotoplayInput += deltaTimeMs;
+                //Update the fill
+                motoplayInputShutdownPopupFill.RenderTransform = new ScaleTransform(Math.Min(1.0f, (shutdownPoupupTimeElapsedHoldingMotoplayInput / 3000.0f)), 1.0f);
+                //If reached the time to shutdown
+                if (shutdownPoupupTimeElapsedHoldingMotoplayInput >= 3000.0f)
+                    if (sendedCommandToShutdownFromMotoplayInput == false)
+                    {
+                        CoroutineHandler.Start(PanelShutdownShortcutRoutine());
+                        sendedCommandToShutdownFromMotoplayInput = true;
+                    }
+            },
+            () =>
+            {
+                //If not reached the time to shutdown
+                if (shutdownPoupupTimeElapsedHoldingMotoplayInput < 3000.0f)
+                {
+                    //Reset the elapsed time meter
+                    shutdownPoupupTimeElapsedHoldingMotoplayInput = 0.0f;
+                    //Hide the shutdown popup
+                    ShowInputShutdownPopupDisplay(false);
+                }
+            },
+            () =>
+            {
+                //Redirect the command
+                if (musicPlayer_playerScreen.IsVisible == true)
+                    if (musicPlayer_volumeDownButton.IsVisible == true && musicPlayer_volumeDownButton.IsHitTestVisible == true && musicPlayer_volumeDownButton.IsEnabled == true)
+                        MusicPlayerVolumeDown();
+            }),
+        new LeftEvents(
+            () =>
+            {
+                //Redirect the command
+                if (musicPlayer_playerScreen.IsVisible == true)
+                    if (musicPlayer_skipPreviousButton.IsVisible == true && musicPlayer_skipPreviousButton.IsHitTestVisible == true && musicPlayer_skipPreviousButton.IsEnabled == true)
+                        MusicPlayerSkipToPrevious();
+            },
+            (float deltaTimeMs) => { },
+            () => { },
+            () => { }),
+        new ClickEvents(
+            () => { },
+            (float deltaTimeMs) => { },
+            () =>
+            {
+                //Change the focus to Pages Manager
+                OnEnterMotoplayInputFocus_PagesManager();
+            },
+            () =>
+            {
+                //Redirect the command
+                if (musicPlayer_playerScreen.IsVisible == true)
+                    if (musicPlayer_playPauseButton.IsVisible == true && musicPlayer_playPauseButton.IsHitTestVisible == true && musicPlayer_playPauseButton.IsEnabled == true)
+                        MusicPlayerPlayPause();
+            })
+        );
+
+        //Represent the focus on Pages
+        motoplayInputFocusOnPageManagerDisplay.IsVisible = false;
+        motoplayInputFocusOnPagesDisplay.IsVisible = true;
+        ShowMotoplayInputControlsDisplay(false);
+    }
+
     private void PrepareTheVehiclePanel()
     {
         //Prepare the UI of Vehicle Panel
@@ -707,6 +1145,76 @@ public partial class MainWindow : Window
 
         //Connect to the paired Bluetooth OBD adapter
         ConnectToPairedBluetoothObdDeviceAndStablishSerialPort();
+    }
+
+    private void ShowInputShutdownPopupDisplay(bool show)
+    {
+        //If is desired to Show
+        if (show == true)
+        {
+            //If is already running a enter, stop the routine
+            if (showInputShutdownPopupRoutine != null)
+            {
+                showInputShutdownPopupRoutine.Cancel();
+                showInputShutdownPopupRoutine = null;
+            }
+            //If is already running a hide, stop the routine
+            if (hideInputShutdownPopupRoutine != null)
+            {
+                hideInputShutdownPopupRoutine.Cancel();
+                hideInputShutdownPopupRoutine = null;
+            }
+            //Show the controls display
+            showInputShutdownPopupRoutine = CoroutineHandler.Start(ShowInputShutdownPopupRoutine());
+        }
+
+        //If is desired to hide
+        if (show == false)
+        {
+            //If is already running a enter, stop the routine
+            if (showInputShutdownPopupRoutine != null)
+            {
+                showInputShutdownPopupRoutine.Cancel();
+                showInputShutdownPopupRoutine = null;
+            }
+            //If is already running a hide, stop the routine
+            if (hideInputShutdownPopupRoutine != null)
+            {
+                hideInputShutdownPopupRoutine.Cancel();
+                hideInputShutdownPopupRoutine = null;
+            }
+            //Show the controls display
+            hideInputShutdownPopupRoutine = CoroutineHandler.Start(HideInputShutdownPopupRoutine());
+        }
+    }
+
+    private IEnumerator<Wait> ShowInputShutdownPopupRoutine()
+    {
+        //Show the controls display
+        motoplayInputShutdownPopup.IsVisible = true;
+        //Call the enter animation
+        ((Animation)this.Resources["controlShutdownPopupEntry"]).RunAsync(motoplayInputShutdownPopup);
+
+        //Wait until the end of the animation
+        yield return new Wait(0.5f);
+
+        //Inform that the routine was finished
+        showInputShutdownPopupRoutine = null;
+    }
+
+    private IEnumerator<Wait> HideInputShutdownPopupRoutine()
+    {
+        //Call the exit animation
+        ((Animation)this.Resources["controlShutdownPopupExit"]).RunAsync(motoplayInputShutdownPopup);
+
+        //Wait until the end of the animation
+        yield return new Wait(0.5f);
+
+        //Hide the controls display
+        motoplayInputShutdownPopup.IsVisible = false;
+
+        //Inform that the routine was finished
+        hideInputShutdownPopupRoutine = null;
     }
 
     //Vehicle Panel methods: Setup Flow
@@ -840,7 +1348,7 @@ public partial class MainWindow : Window
         foreach (string line in bluetoothctlReceivedOutputLines)
             if (line.Contains("Changing power on succeeded") == true)
                 wasStartedSuccessfully = true;
-        
+
         //If was not started successfully
         if (wasStartedSuccessfully == false)
         {
@@ -860,7 +1368,7 @@ public partial class MainWindow : Window
             //Start the bluetooth devices search
             StartBluetoothDevicesSearch();
         }
-        
+
 
 
         //Enable the "Start Setup" button
@@ -940,7 +1448,7 @@ public partial class MainWindow : Window
         while (true)
         {
             //If the number of logs of bluetoothctl was changed since last UI update, update the UI again
-            if(bluetoothctlReceivedOutputLines.Count != lastNumberOfBtCtlLogsSinceLastUiUpdate)
+            if (bluetoothctlReceivedOutputLines.Count != lastNumberOfBtCtlLogsSinceLastUiUpdate)
             {
                 //Warn to debug
                 AvaloniaDebug.WriteLine("Updating found Bluetooth Devices to UI!");
@@ -986,7 +1494,7 @@ public partial class MainWindow : Window
                     //Fill this item
                     item.SetDeviceName(key.Value);
                     item.SetDeviceMAC(key.Key);
-                    item.RegisterOnClickCallback((btDeviceInfo) => 
+                    item.RegisterOnClickCallback((btDeviceInfo) =>
                     {
                         //Stop the Bluetooth Devices search routine
                         StopBluetoothDevicesSearch();
@@ -1570,7 +2078,7 @@ public partial class MainWindow : Window
     private void OnActiveConnectionForObdHandlerFinished()
     {
         //Warn the user about the disconnection
-        ShowToast((GetStringApplicationResource("vehiclePanel_odbConnectLostConnection").Replace("%d", appPrefs.loadedData.configuredObdBtAdapter.deviceName) + 
+        ShowToast((GetStringApplicationResource("vehiclePanel_odbConnectLostConnection").Replace("%d", appPrefs.loadedData.configuredObdBtAdapter.deviceName) +
                    "\n\n" + activeObdConnection.disconnectionAdditionalInformation),
                    ToastDuration.Long, ToastType.Problem);
 
@@ -1698,9 +2206,6 @@ public partial class MainWindow : Window
         vehiclePanel_obdSetupScreen.IsVisible = false;
         vehiclePanel_obdConnectScreen.IsVisible = false;
         vehiclePanel_panelScreen.IsVisible = true;
-
-        //Set to Dark mode, if necessary
-        SetPanelDarkModeIfNecessary();
 
         //Show the information of adapter in the place
         vehiclePanel_drawer_adapterTab_deviceName.Text = appPrefs.loadedData.configuredObdBtAdapter.deviceName;
@@ -2922,57 +3427,228 @@ public partial class MainWindow : Window
         instantiatedPanelLogsInUi.Clear();
     }
 
-    private void SetPanelDarkModeIfNecessary()
+    private IEnumerator<Wait> VehiclePanelThemeUpdateRoutine()
     {
-        //Prepare the result
-        bool isDarkModeNecessary = false;
+        //Get the colors and changes for "Light" mode
+        bool l__vehiclePanel_background_wallDarkOverlay__isVisible = vehiclePanel_background_wallDarkOverlay.IsVisible;
+        IImage l__vehiclePanel_background_groundImage__source = vehiclePanel_background_groundImage.Source;
+        string l__vehiclePanel_rpmGauge__rpmValuesColor = vehiclePanel_rpmGauge.RpmValuesColor;
+        IBrush l__vehiclePanel_rpmGauge__brightRing_Stroke = vehiclePanel_rpmGauge.brightRing.Stroke;
+        IBrush l__vehiclePanel_gearIndicatorText__foreground = vehiclePanel_gearIndicatorText.Foreground;
+        IBrush l__vehiclePanel_gearIndicatorTitle__foreground = vehiclePanel_gearIndicatorTitle.Foreground;
+        IBrush l__vehiclePanel_speedometerText__foreground = vehiclePanel_speedometerText.Foreground;
+        IBrush l__vehiclePanel_speedometerUnitText__foreground = vehiclePanel_speedometerUnitText.Foreground;
+        IBrush l__vehiclePanel_background_speedArc40Kmh__stroke = vehiclePanel_background_speedArc40Kmh.Stroke;
+        IBrush l__vehiclePanel_background_speedArc40Kmh_reflection_arc__stroke = vehiclePanel_background_speedArc40Kmh_reflection_arc.Stroke;
+        IBrush l__vehiclePanel_background_speedArc70Kmh__stroke = vehiclePanel_background_speedArc70Kmh.Stroke;
+        IBrush l__vehiclePanel_background_speedArc70Kmh_reflection_arc__stroke = vehiclePanel_background_speedArc70Kmh_reflection_arc.Stroke;
+        IBrush l__vehiclePanel_background_speedArc100Kmh__stroke = vehiclePanel_background_speedArc100Kmh.Stroke;
+        IBrush l__vehiclePanel_background_speedArc100Kmh_reflection_arc__stroke = vehiclePanel_background_speedArc100Kmh_reflection_arc.Stroke;
+        bool l__vehiclePanel_obdConnect_darkModeOverlay__isVisible = vehiclePanel_obdConnect_darkModeOverlay.IsVisible;
+        Uri l__vehiclePanel_obdConnect_spinnerImg__source = vehiclePanel_obdConnect_spinnerImg.Source;
+        IImage l__vehiclePanel_obdConnect_iconImg__source = vehiclePanel_obdConnect_iconImg.Source;
+        IBrush l__vehiclePanel_odbConnect_statusText__foreground = vehiclePanel_odbConnect_statusText.Foreground;
 
-        //If the automatic mode is enabled, detect the dark mode using time
-        if (appPrefs.loadedData.panelColorScheme == 0)
-        {
-            int currentHour = DateTime.Now.Hour;
-            if (currentHour >= 19 || currentHour <= 7)
-                isDarkModeNecessary = true;
-        }
-
-        //If the dark mode is enabled, force dark mode
-        if (appPrefs.loadedData.panelColorScheme == 1)
-            isDarkModeNecessary = true;
-
-        //If the light mode is enabled, force to not use dark mode
-        if (appPrefs.loadedData.panelColorScheme == 2)
-            isDarkModeNecessary = false;
-
-        //If not necessary, cancel here
-        if (isDarkModeNecessary == false)
-            return;
-
-        //Do the changes to UI
-        vehiclePanel_background_wallDarkOverlay.IsVisible = true;
-        vehiclePanel_background_groundImage.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/panel-ground-dark-mode.png")));
-        vehiclePanel_rpmGauge.RpmValuesColor = "#adadad";
+        //Get the colors and changes for "Dark" mode
+        bool d__vehiclePanel_background_wallDarkOverlay__isVisible = true;
+        IImage d__vehiclePanel_background_groundImage__source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/panel-ground-dark-mode.png")));
+        string d__vehiclePanel_rpmGauge__rpmValuesColor = "#adadad";
         LinearGradientBrush brightRingGradient = new LinearGradientBrush();
         brightRingGradient.StartPoint = new RelativePoint(0.2f, 0.1f, RelativeUnit.Relative);
         brightRingGradient.EndPoint = new RelativePoint(0.5f, 1.0f, RelativeUnit.Relative);
         brightRingGradient.GradientStops.Add(new GradientStop(new Color(255, 0, 212, 255), 0.0f));
         brightRingGradient.GradientStops.Add(new GradientStop(new Color(255, 189, 244, 255), 1.0f));
-        vehiclePanel_rpmGauge.brightRing.Stroke = brightRingGradient;
-        vehiclePanel_gearIndicatorText.Foreground = new SolidColorBrush(new Color(255, 252, 252, 252));
-        vehiclePanel_gearIndicatorTitle.Foreground = new SolidColorBrush(new Color(255, 227, 227, 227));
-        vehiclePanel_speedometerText.Foreground = new SolidColorBrush(new Color(255, 224, 224, 224));
-        vehiclePanel_speedometerUnitText.Foreground = new SolidColorBrush(new Color(255, 227, 227, 227));
-        vehiclePanel_background_speedArc40Kmh.Stroke = new SolidColorBrush(new Color(255, 84, 184, 250));
-        vehiclePanel_background_speedArc40Kmh_reflection_arc.Stroke = new SolidColorBrush(new Color(255, 84, 184, 250));
-        vehiclePanel_background_speedArc70Kmh.Stroke = new SolidColorBrush(new Color(255, 111, 143, 165));
-        vehiclePanel_background_speedArc70Kmh_reflection_arc.Stroke = new SolidColorBrush(new Color(255, 111, 143, 165));
-        vehiclePanel_background_speedArc100Kmh.Stroke = new SolidColorBrush(new Color(255, 250, 215, 85));
-        vehiclePanel_background_speedArc100Kmh_reflection_arc.Stroke = new SolidColorBrush(new Color(255, 250, 215, 85));
+        IBrush d__vehiclePanel_rpmGauge__brightRing_Stroke = brightRingGradient;
+        IBrush d__vehiclePanel_gearIndicatorText__foreground = new SolidColorBrush(new Color(255, 252, 252, 252));
+        IBrush d__vehiclePanel_gearIndicatorTitle__foreground = new SolidColorBrush(new Color(255, 227, 227, 227));
+        IBrush d__vehiclePanel_speedometerText__foreground = new SolidColorBrush(new Color(255, 224, 224, 224));
+        IBrush d__vehiclePanel_speedometerUnitText__foreground = new SolidColorBrush(new Color(255, 227, 227, 227));
+        IBrush d__vehiclePanel_background_speedArc40Kmh__stroke = new SolidColorBrush(new Color(255, 84, 184, 250));
+        IBrush d__vehiclePanel_background_speedArc40Kmh_reflection_arc__stroke = new SolidColorBrush(new Color(255, 84, 184, 250));
+        IBrush d__vehiclePanel_background_speedArc70Kmh__stroke = new SolidColorBrush(new Color(255, 111, 143, 165));
+        IBrush d__vehiclePanel_background_speedArc70Kmh_reflection_arc__stroke = new SolidColorBrush(new Color(255, 111, 143, 165));
+        IBrush d__vehiclePanel_background_speedArc100Kmh__stroke = new SolidColorBrush(new Color(255, 250, 215, 85));
+        IBrush d__vehiclePanel_background_speedArc100Kmh_reflection_arc__stroke = new SolidColorBrush(new Color(255, 250, 215, 85));
+        bool d__vehiclePanel_obdConnect_darkModeOverlay__isVisible = true;
+        Uri d__vehiclePanel_obdConnect_spinnerImg__source = new Uri("avares://Motoplay/Assets/bluetooth-pairing-gif-w.gif");
+        IImage d__vehiclePanel_obdConnect_iconImg__source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/odb-connect-hd-w.png")));
+        IBrush d__vehiclePanel_odbConnect_statusText__foreground = new SolidColorBrush(new Color(255, 255, 255, 255));
+
+        //Start the update loop
+        while (true)
+        {
+            //Prepare the target theme to set
+            PanelThemeMode targetTheme = PanelThemeMode.Unknown;
+            //If the automatic mod is enabled, detect the theme to be used
+            if (appPrefs.loadedData.panelColorScheme == 0)
+            {
+                //Get current time of the day, but, in milliseconds
+                long dayTimeMs = (int)DateTime.Now.TimeOfDay.TotalMilliseconds;
+                //Convert dark mode start and end time to milliseconds
+                long darkModeStartTimeMs = (int)(new TimeSpan(PANEL_DARK_MODE_START_HOUR, PANEL_DARK_MODE_START_MINUTE, 0).TotalMilliseconds);
+                long darkModeEndTimeMs = (int)(new TimeSpan(PANEL_DARK_MODE_END_HOUR, PANEL_DARK_MODE_END_MINUTE, 0).TotalMilliseconds);
+                //Detect the target theme
+                targetTheme = PanelThemeMode.Light;
+                if (dayTimeMs >= darkModeStartTimeMs || dayTimeMs < darkModeEndTimeMs)
+                    targetTheme = PanelThemeMode.Dark;
+            }
+            //If the "Dark" mode is enabled, force this theme
+            if (appPrefs.loadedData.panelColorScheme == 1)
+                targetTheme = PanelThemeMode.Dark;
+            //If the "Light" mode is enabled, force this theme
+            if (appPrefs.loadedData.panelColorScheme == 2)
+                targetTheme = PanelThemeMode.Light;
+
+            //Change to "Light" mode, if possible...
+            if (targetTheme == PanelThemeMode.Light)
+                if (currentVehiclePanelTheme != PanelThemeMode.Light)
+                {
+                    //Update the UI
+                    vehiclePanel_background_wallDarkOverlay.IsVisible = l__vehiclePanel_background_wallDarkOverlay__isVisible;
+                    vehiclePanel_background_groundImage.Source = l__vehiclePanel_background_groundImage__source;
+                    vehiclePanel_rpmGauge.RpmValuesColor = l__vehiclePanel_rpmGauge__rpmValuesColor;
+                    vehiclePanel_rpmGauge.brightRing.Stroke = l__vehiclePanel_rpmGauge__brightRing_Stroke;
+                    vehiclePanel_gearIndicatorText.Foreground = l__vehiclePanel_gearIndicatorText__foreground;
+                    vehiclePanel_gearIndicatorTitle.Foreground = l__vehiclePanel_gearIndicatorTitle__foreground;
+                    vehiclePanel_speedometerText.Foreground = l__vehiclePanel_speedometerText__foreground;
+                    vehiclePanel_speedometerUnitText.Foreground = l__vehiclePanel_speedometerUnitText__foreground;
+                    vehiclePanel_background_speedArc40Kmh.Stroke = l__vehiclePanel_background_speedArc40Kmh__stroke;
+                    vehiclePanel_background_speedArc40Kmh_reflection_arc.Stroke = l__vehiclePanel_background_speedArc40Kmh_reflection_arc__stroke;
+                    vehiclePanel_background_speedArc70Kmh.Stroke = l__vehiclePanel_background_speedArc70Kmh__stroke;
+                    vehiclePanel_background_speedArc70Kmh_reflection_arc.Stroke = l__vehiclePanel_background_speedArc70Kmh_reflection_arc__stroke;
+                    vehiclePanel_background_speedArc100Kmh.Stroke = l__vehiclePanel_background_speedArc100Kmh__stroke;
+                    vehiclePanel_background_speedArc100Kmh_reflection_arc.Stroke = l__vehiclePanel_background_speedArc100Kmh_reflection_arc__stroke;
+                    vehiclePanel_obdConnect_darkModeOverlay.IsVisible = l__vehiclePanel_obdConnect_darkModeOverlay__isVisible;
+                    vehiclePanel_obdConnect_spinnerImg.Source = l__vehiclePanel_obdConnect_spinnerImg__source;
+                    vehiclePanel_obdConnect_iconImg.Source = l__vehiclePanel_obdConnect_iconImg__source;
+                    vehiclePanel_odbConnect_statusText.Foreground = l__vehiclePanel_odbConnect_statusText__foreground;
+                    //Change the Backlight level
+                    CoroutineHandler.Start(ChangeScreenBacklight(PanelThemeMode.Light));
+                    //Inform that was changed to "Light" mode
+                    currentVehiclePanelTheme = PanelThemeMode.Light;
+                }
+            //Change to "Dark" mode, if possible...
+            if (targetTheme == PanelThemeMode.Dark)
+                if (currentVehiclePanelTheme != PanelThemeMode.Dark)
+                {
+                    //Update the UI
+                    vehiclePanel_background_wallDarkOverlay.IsVisible = d__vehiclePanel_background_wallDarkOverlay__isVisible;
+                    vehiclePanel_background_groundImage.Source = d__vehiclePanel_background_groundImage__source;
+                    vehiclePanel_rpmGauge.RpmValuesColor = d__vehiclePanel_rpmGauge__rpmValuesColor;
+                    vehiclePanel_rpmGauge.brightRing.Stroke = d__vehiclePanel_rpmGauge__brightRing_Stroke;
+                    vehiclePanel_gearIndicatorText.Foreground = d__vehiclePanel_gearIndicatorText__foreground;
+                    vehiclePanel_gearIndicatorTitle.Foreground = d__vehiclePanel_gearIndicatorTitle__foreground;
+                    vehiclePanel_speedometerText.Foreground = d__vehiclePanel_speedometerText__foreground;
+                    vehiclePanel_speedometerUnitText.Foreground = d__vehiclePanel_speedometerUnitText__foreground;
+                    vehiclePanel_background_speedArc40Kmh.Stroke = d__vehiclePanel_background_speedArc40Kmh__stroke;
+                    vehiclePanel_background_speedArc40Kmh_reflection_arc.Stroke = d__vehiclePanel_background_speedArc40Kmh_reflection_arc__stroke;
+                    vehiclePanel_background_speedArc70Kmh.Stroke = d__vehiclePanel_background_speedArc70Kmh__stroke;
+                    vehiclePanel_background_speedArc70Kmh_reflection_arc.Stroke = d__vehiclePanel_background_speedArc70Kmh_reflection_arc__stroke;
+                    vehiclePanel_background_speedArc100Kmh.Stroke = d__vehiclePanel_background_speedArc100Kmh__stroke;
+                    vehiclePanel_background_speedArc100Kmh_reflection_arc.Stroke = d__vehiclePanel_background_speedArc100Kmh_reflection_arc__stroke;
+                    vehiclePanel_obdConnect_darkModeOverlay.IsVisible = d__vehiclePanel_obdConnect_darkModeOverlay__isVisible;
+                    vehiclePanel_obdConnect_spinnerImg.Source = d__vehiclePanel_obdConnect_spinnerImg__source;
+                    vehiclePanel_obdConnect_iconImg.Source = d__vehiclePanel_obdConnect_iconImg__source;
+                    vehiclePanel_odbConnect_statusText.Foreground = d__vehiclePanel_odbConnect_statusText__foreground;
+                    //Change the Backlight level
+                    CoroutineHandler.Start(ChangeScreenBacklight(PanelThemeMode.Dark));
+                    //Inform that was changed to "Dark" mode
+                    currentVehiclePanelTheme = PanelThemeMode.Dark;
+                }
+
+            //Wait the interval time
+            yield return new Wait(60.0f);
+        }
+    }
+
+    public IEnumerator<Wait> ChangeScreenBacklight(PanelThemeMode panelThemeMode)
+    {
+        //Add this task running
+        AddTask("newScreenBacklight", "Changes the Screen Backlight level.");
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+
+
+        //Wait time
+        yield return new Wait(0.05f);
+
+        //Change the backlight level...
+        if (panelThemeMode == PanelThemeMode.Light)
+            SendCommandToTerminalAndClearCurrentOutputLines(rKey, appPrefs.loadedData.panelLightBacklightCmd);
+        if (panelThemeMode == PanelThemeMode.Dark)
+            SendCommandToTerminalAndClearCurrentOutputLines(rKey, appPrefs.loadedData.panelDarkBacklightCmd);
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //Remove the task running
+        RemoveTask("newScreenBacklight");
     }
 
     //General Metrics
 
+    private void OnEnterMotoplayInputFocus_GeneralMetrics()
+    {
+        //Install Motoplay Input callbacks for this screen
+        activeInputHandler.RegisterNewInputReceiver(
+        new UpEvents(
+            () => { }, (float deltaTimeMs) => { }, () => { }, () => { }),
+        new RightEvents(
+            () => { },
+            (float deltaTimeMs) => { },
+            () => { },
+            () =>
+            {
+                //Redirect the command
+                if (generalMetrics_nextButton.IsVisible == true && generalMetrics_nextButton.IsHitTestVisible == true && generalMetrics_nextButton.IsEnabled == true)
+                    GoToNextMetric();
+            }),
+        new DownEvents(
+            () => { }, (float deltaTimeMs) => { }, () => { }, () => { }),
+        new LeftEvents(
+            () => { },
+            (float deltaTimeMs) => { },
+            () => { },
+            () =>
+            {
+                //Redirect the command
+                if (generalMetrics_previousButton.IsVisible == true && generalMetrics_previousButton.IsHitTestVisible == true && generalMetrics_previousButton.IsEnabled == true)
+                    GoToPreviousMetric();
+            }),
+        new ClickEvents(
+            () => { },
+            (float deltaTimeMs) => { },
+            () =>
+            {
+                //Change the focus to Pages Manager
+                OnEnterMotoplayInputFocus_PagesManager();
+            },
+            () => { })
+        );
+
+        //Represent the focus on Pages
+        motoplayInputFocusOnPageManagerDisplay.IsVisible = false;
+        motoplayInputFocusOnPagesDisplay.IsVisible = true;
+        ShowMotoplayInputControlsDisplay(false);
+    }
+
     private void PrepareTheGeneralMetrics()
     {
+        //Prepare the UI of Vehicle Panel
+        generalMetrics_previousButton.Click += (s, e) => { GoToPreviousMetric(); };
+        generalMetrics_nextButton.Click += (s, e) => { GoToNextMetric(); };
+        generalMetrics_previousButton.IsEnabled = false;
+
         //Initialize the array of contents
         arrayOfMetricsContents = new Grid[3];
         arrayOfMetricsContents[0] = generalMetrics_content_disconnectionCount;
@@ -2992,13 +3668,47 @@ public partial class MainWindow : Window
             //Disable all contents
             foreach (Grid item in arrayOfMetricsContents)
                 item.IsVisible = false;
+            generalMetrics_previousButton.IsEnabled = false;
+            generalMetrics_nextButton.IsEnabled = false;
 
             //Enable the required content
             arrayOfMetricsContents[generalMetrics_contentSelector.SelectedIndex].IsVisible = true;
+            if (generalMetrics_contentSelector.SelectedIndex > 0)
+                generalMetrics_previousButton.IsEnabled = true;
+            if (generalMetrics_contentSelector.SelectedIndex < (arrayOfMetricsContents.Length - 1))
+                generalMetrics_nextButton.IsEnabled = true;
         };
 
         //Start the routine of general metrics
         CoroutineHandler.Start(GeneralMetricsRoutine());
+    }
+
+    private void GoToPreviousMetric()
+    {
+        //Get the current index of selection
+        int index = generalMetrics_contentSelector.SelectedIndex;
+
+        //Decrease it
+        index -= 1;
+        if (index <= 0)
+            index = 0;
+
+        //Set the new index of selection
+        generalMetrics_contentSelector.SelectedIndex = index;
+    }
+
+    private void GoToNextMetric()
+    {
+        //Get the current index of selection
+        int index = generalMetrics_contentSelector.SelectedIndex;
+
+        //Increase it
+        index += 1;
+        if (index >= (arrayOfMetricsContents.Length - 1))
+            index = (arrayOfMetricsContents.Length - 1);
+
+        //Set the new index of selection
+        generalMetrics_contentSelector.SelectedIndex = index;
     }
 
     private IEnumerator<Wait> GeneralMetricsRoutine()
@@ -3161,6 +3871,72 @@ public partial class MainWindow : Window
     }
 
     //Music Player
+
+    private void OnEnterMotoplayInputFocus_MusicPlayer()
+    {
+        //Install Motoplay Input callbacks for this screen
+        activeInputHandler.RegisterNewInputReceiver(
+        new UpEvents(
+            () => { },
+            (float deltaTimeMs) => { },
+            () => { },
+            () =>
+            {
+                //Redirect the command
+                if (musicPlayer_volumeUpButton.IsVisible == true && musicPlayer_volumeUpButton.IsHitTestVisible == true && musicPlayer_volumeUpButton.IsEnabled == true)
+                    MusicPlayerVolumeUp();
+            }),
+        new RightEvents(
+            () =>
+            {
+                //Redirect the command
+                if (musicPlayer_skipNextButton.IsVisible == true && musicPlayer_skipNextButton.IsHitTestVisible == true && musicPlayer_skipNextButton.IsEnabled == true)
+                    MusicPlayerSkipToNext();
+            },
+            (float deltaTimeMs) => { },
+            () => { },
+            () => { }),
+        new DownEvents(
+            () => { },
+            (float deltaTimeMs) => { },
+            () => { },
+            () =>
+            {
+                //Redirect the command
+                if (musicPlayer_volumeDownButton.IsVisible == true && musicPlayer_volumeDownButton.IsHitTestVisible == true && musicPlayer_volumeDownButton.IsEnabled == true)
+                    MusicPlayerVolumeDown();
+            }),
+        new LeftEvents(
+            () =>
+            {
+                //Redirect the command
+                if (musicPlayer_skipPreviousButton.IsVisible == true && musicPlayer_skipPreviousButton.IsHitTestVisible == true && musicPlayer_skipPreviousButton.IsEnabled == true)
+                    MusicPlayerSkipToPrevious();
+            },
+            (float deltaTimeMs) => { },
+            () => { },
+            () => { }),
+        new ClickEvents(
+            () => { },
+            (float deltaTimeMs) => { },
+            () =>
+            {
+                //Change the focus to Pages Manager
+                OnEnterMotoplayInputFocus_PagesManager();
+            },
+            () =>
+            {
+                //Redirect the command
+                if (musicPlayer_playPauseButton.IsVisible == true && musicPlayer_playPauseButton.IsHitTestVisible == true && musicPlayer_playPauseButton.IsEnabled == true)
+                    MusicPlayerPlayPause();
+            })
+        );
+
+        //Represent the focus on Pages
+        motoplayInputFocusOnPageManagerDisplay.IsVisible = false;
+        motoplayInputFocusOnPagesDisplay.IsVisible = true;
+        ShowMotoplayInputControlsDisplay(false);
+    }
 
     private void PrepareTheMusicPlayer()
     {
@@ -3368,6 +4144,9 @@ public partial class MainWindow : Window
                 //Reset the track name
                 musicPlayer_musicName.Text = "-";
                 musicPlayer_musicAuthor.Text = "-";
+                //Update the Miniplayer
+                vehiclePanel_miniplayerRoot_musicTitle.Text = "-";
+                vehiclePanel_miniplayerRoot_waveAnim.IsVisible = false;
 
                 //Show the time
                 musicPlayer_musicCurrentTime.Text = "00:00";
@@ -3381,6 +4160,8 @@ public partial class MainWindow : Window
                 musicPlayer_cover4.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
                 musicPlayer_cover5.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
                 musicPlayer_musicsCount.Text = "-/-";
+                //Update the Miniplayer
+                vehiclePanel_miniplayerRoot_cover.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/no-album-cover.png")));
 
                 //Disable skip buttons
                 musicPlayer_skipPreviousButton.IsVisible = false;
@@ -3400,6 +4181,11 @@ public partial class MainWindow : Window
                     //Render the cover
                     musicPlayer_cover1.Source = coverBitmap;
                     musicPlayer_background_album.Source = coverBitmap;
+
+                    //Update the Miniplayer
+                    vehiclePanel_miniplayerRoot_cover.Source = coverBitmap;
+                    vehiclePanel_miniplayerRoot_musicTitle.Text = musicName;
+                    vehiclePanel_miniplayerRoot_waveAnim.IsVisible = true;
                 }
 
                 //If is for nexts
@@ -3422,7 +4208,7 @@ public partial class MainWindow : Window
             });
 
             //Register the callback of pause
-            musicPlayerHandler.RegisterOnPausedCallback(() => 
+            musicPlayerHandler.RegisterOnPausedCallback(() =>
             {
                 //Change the UI
                 musicPlayer_musicsCount.Text = ((musicPlayerCurrentPlayingIndex + 1) + "/" + musicPlayerFileList.Count);
@@ -3430,6 +4216,8 @@ public partial class MainWindow : Window
                 musicPlayer_playPauseButton.IsEnabled = true;
                 musicPlayer_playPauseImage.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/play-icon.png")));
                 musicPlayer_skipNextButton.IsEnabled = true;
+                //Update the Miniplayer
+                vehiclePanel_miniplayerRoot.IsVisible = false;
             });
 
             //Register the callback of play
@@ -3441,6 +4229,9 @@ public partial class MainWindow : Window
                 musicPlayer_playPauseButton.IsEnabled = true;
                 musicPlayer_playPauseImage.Source = new Bitmap(AssetLoader.Open(new Uri("avares://Motoplay/Assets/pause-icon.png")));
                 musicPlayer_skipNextButton.IsEnabled = true;
+                //Update the Miniplayer
+                vehiclePanel_miniplayerRoot.IsVisible = true;
+                vehiclePanel_miniplayerRoot_volumeText.Text = (appPrefs.loadedData.playerVolume + "%");
 
                 //Reset the volume of system, if is enabled
                 if (appPrefs.loadedData.resetSystemVolumeOnPlaySong == true)
@@ -3459,7 +4250,7 @@ public partial class MainWindow : Window
             });
 
             //Register the callback of time changed
-            musicPlayerHandler.RegisterOnUpdateTimeCallback((curTime, maxTime, progress) => 
+            musicPlayerHandler.RegisterOnUpdateTimeCallback((curTime, maxTime, progress) =>
             {
                 //Change the UI
                 musicPlayer_musicCurrentTime.Text = curTime;
@@ -3468,7 +4259,7 @@ public partial class MainWindow : Window
             });
 
             //Register the callback of finished
-            musicPlayerHandler.RegisterOnFinishedTimeCallback(() => 
+            musicPlayerHandler.RegisterOnFinishedTimeCallback(() =>
             {
                 //Go to next music
                 MusicPlayerSkipToNext();
@@ -3665,7 +4456,7 @@ public partial class MainWindow : Window
             index += 1;
             inListCount += 1;
         }
-        
+
         //Change the music player to the current new music
         musicPlayerHandler.ChangeMusicTo(currentAndNext4Musics, true);
     }
@@ -3792,6 +4583,9 @@ public partial class MainWindow : Window
 
         //Sync the save volume to UI
         musicPlayer_volumeProgress.Value = (((float)appPrefs.loadedData.playerVolume / 150.0f) * 100.0f);
+
+        //Update the Miniplayer
+        vehiclePanel_miniplayerRoot_volumeText.Text = (appPrefs.loadedData.playerVolume + "%");
     }
 
     private IEnumerator<Wait> SetSystemVolumeRoutine(int targetVolume)
@@ -3811,7 +4605,7 @@ public partial class MainWindow : Window
         yield return new Wait(1.0f);
 
         //Send command to set all volumes to the target volume
-        SendCommandToTerminalAndClearCurrentOutputLines(rKey, ("amixer -q -M sset Master "+targetVolume+"% ; amixer -q -M sset Headphone "+targetVolume+"% ; amixer -q -M sset PCM "+targetVolume+"%"));
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, ("amixer -q -M sset Master " + targetVolume + "% ; amixer -q -M sset Headphone " + targetVolume + "% ; amixer -q -M sset PCM " + targetVolume + "%"));
         //Wait the end of command execution
         while (isLastCommandFinishedExecution(rKey) == false)
             yield return new Wait(0.1f);
@@ -3935,7 +4729,7 @@ public partial class MainWindow : Window
         //Inform that is finished
         openCloseMusicPlayerDrawerRoutine = null;
     }
-    
+
     private void RenderAllMusicsOfLibrary()
     {
         //Clear the current rendered musics in UI
@@ -4533,12 +5327,83 @@ public partial class MainWindow : Window
 
     //Web Browser
 
+    private void OnEnterMotoplayInputFocus_WebBrowser()
+    {
+        //Install Motoplay Input callbacks for this screen
+        activeInputHandler.RegisterNewInputReceiver(
+        new UpEvents(
+            () => { }, (float deltaTimeMs) => { }, () => { }, () => { }),
+        new RightEvents(
+            () => { }, (float deltaTimeMs) => { }, () => { }, () => { }),
+        new DownEvents(
+            () => { }, (float deltaTimeMs) => { }, () => { }, () => { }),
+        new LeftEvents(
+            () => { }, (float deltaTimeMs) => { }, () => { }, () => { }),
+        new ClickEvents(
+            () => { },
+            (float deltaTimeMs) => { },
+            () =>
+            {
+                //Change the focus to Pages Manager
+                OnEnterMotoplayInputFocus_PagesManager();
+            },
+            () => { })
+        );
+
+        //Represent the focus on Pages
+        motoplayInputFocusOnPageManagerDisplay.IsVisible = false;
+        motoplayInputFocusOnPagesDisplay.IsVisible = true;
+        ShowMotoplayInputControlsDisplay(false);
+    }
+
     private void PrepareTheWebBrowser()
     {
         //...
     }
 
     //USB Camera
+
+    private void OnEnterMotoplayInputFocus_UsbCamera()
+    {
+        //Install Motoplay Input callbacks for this screen
+        activeInputHandler.RegisterNewInputReceiver(
+        new UpEvents(
+            () => { }, (float deltaTimeMs) => { }, () => { }, () => { }),
+        new RightEvents(
+            () => { }, (float deltaTimeMs) => { }, () => { }, () => { }),
+        new DownEvents(
+            () => { }, (float deltaTimeMs) => { }, () => { }, () => { }),
+        new LeftEvents(
+            () => { }, (float deltaTimeMs) => { }, () => { }, () => { }),
+        new ClickEvents(
+            () => { },
+            (float deltaTimeMs) => { },
+            () =>
+            {
+                //Change the focus to Pages Manager
+                OnEnterMotoplayInputFocus_PagesManager();
+            },
+            () =>
+            {
+                //Redirect the command
+                if (usbCamera_autoSelectBt.IsVisible == true && usbCamera_autoSelectBt.IsHitTestVisible == true && usbCamera_autoSelectBt.IsEnabled == true)
+                {
+                    AutoSelectCamera();
+                    return;
+                }
+                if (usbCamera_autoResetBt.IsVisible == true && usbCamera_autoResetBt.IsHitTestVisible == true && usbCamera_autoResetBt.IsEnabled == true)
+                {
+                    AutoResetCamera();
+                    return;
+                }
+            })
+        );
+
+        //Represent the focus on Pages
+        motoplayInputFocusOnPageManagerDisplay.IsVisible = false;
+        motoplayInputFocusOnPagesDisplay.IsVisible = true;
+        ShowMotoplayInputControlsDisplay(false);
+    }
 
     private void PrepareTheUsbCamera()
     {
@@ -4576,7 +5441,7 @@ public partial class MainWindow : Window
         usbCamera_uvcHandler.SetMaxQueuingFrames(appPrefs.loadedData.cameraMaxQueuingFrames);
         usbCamera_uvcHandler.SetEnabledMultiThread(appPrefs.loadedData.cameraMultiThread);
         usbCamera_uvcHandler.SetShowStatistics(appPrefs.loadedData.cameraShowStatistics);
-        usbCamera_uvcHandler.RegisterOnUpdateDevicesCallback((ref List<UvcDevice> uvcDevices) => 
+        usbCamera_uvcHandler.RegisterOnUpdateDevicesCallback((ref List<UvcDevice> uvcDevices) =>
         {
             //Store the current connected UVC Devices
             usbCameraCurrentConnectedUvcDevices = new UvcDevice[(uvcDevices.Count + 1)];
@@ -4740,6 +5605,49 @@ public partial class MainWindow : Window
     }
 
     //Mirror Phone
+
+    private void OnEnterMotoplayInputFocus_MirrorPhone()
+    {
+        //Install Motoplay Input callbacks for this screen
+        activeInputHandler.RegisterNewInputReceiver(
+        new UpEvents(
+            () => { }, (float deltaTimeMs) => { }, () => { }, () => { }),
+        new RightEvents(
+            () => { }, (float deltaTimeMs) => { }, () => { }, () => { }),
+        new DownEvents(
+            () => { }, (float deltaTimeMs) => { }, () => { }, () => { }),
+        new LeftEvents(
+            () => { }, (float deltaTimeMs) => { }, () => { }, () => { }),
+        new ClickEvents(
+            () => { },
+            (float deltaTimeMs) => { },
+            () =>
+            {
+                //Change the focus to Pages Manager
+                OnEnterMotoplayInputFocus_PagesManager();
+            },
+            () =>
+            {
+                //Redirect the command
+                if (mirrorPhone_mirrorScreen_connectButton.IsVisible == true && mirrorPhone_mirrorScreen_connectButton.IsHitTestVisible == true && mirrorPhone_mirrorScreen_connectButton.IsEnabled == true)
+                {
+                    mirrorPhone_mirrorScreen_scrollView.ScrollToEnd();
+                    CoroutineHandler.Start(TryConnectToMirrorPhone());
+                    return;
+                }
+                if (mirrorPhone_mirrorScreen_disconnectButton.IsVisible == true && mirrorPhone_mirrorScreen_disconnectButton.IsHitTestVisible == true && mirrorPhone_mirrorScreen_disconnectButton.IsEnabled == true)
+                {
+                    DisconnectFromMirrorPhone();
+                    return;
+                }
+            })
+        );
+
+        //Represent the focus on Pages
+        motoplayInputFocusOnPageManagerDisplay.IsVisible = false;
+        motoplayInputFocusOnPagesDisplay.IsVisible = true;
+        ShowMotoplayInputControlsDisplay(false);
+    }
 
     private void PrepareTheMirrorPhone()
     {
@@ -5240,6 +6148,67 @@ public partial class MainWindow : Window
 
     //Pages Manager
 
+    private void OnEnterMotoplayInputFocus_PagesManager()
+    {
+        //Install Motoplay Input callbacks for this screen
+        activeInputHandler.RegisterNewInputReceiver(
+        new UpEvents(
+            () => { },
+            (float deltaTimeMs) => { },
+            () => { },
+            () =>
+            {
+                if (pageContentForPanel.IsVisible == true)         /**/ { menuItensScroll.Offset -= new Vector(0.0d, 000.0d); return; }
+                if (pageContentForMetrics.IsVisible == true)       /**/ { menuItensScroll.Offset -= new Vector(0.0d, 000.0d); SwitchAppPage(AppPage.VehiclePanel); return; }
+                if (pageContentForPlayer.IsVisible == true)        /**/ { menuItensScroll.Offset -= new Vector(0.0d, 100.0d); SwitchAppPage(AppPage.GeneralMetrics); return; }
+                if (pageContentForBrowser.IsVisible == true)       /**/ { menuItensScroll.Offset -= new Vector(0.0d, 100.0d); SwitchAppPage(AppPage.MusicPlayer); return; }
+                if (pageContentForCamera.IsVisible == true)        /**/ { menuItensScroll.Offset -= new Vector(0.0d, 100.0d); SwitchAppPage(AppPage.WebBrowser); return; }
+                if (pageContentForPhone.IsVisible == true)         /**/ { menuItensScroll.Offset -= new Vector(0.0d, 100.0d); SwitchAppPage(AppPage.UsbCamera); return; }
+                if (pageContentForPreferences.IsVisible == true)   /**/ { menuItensScroll.Offset -= new Vector(0.0d, 100.0d); SwitchAppPage(AppPage.MirrorPhone); return; }
+                if (pageContentForMouseEmulator.IsVisible == true) /**/ { menuItensScroll.Offset -= new Vector(0.0d, 100.0d); SwitchAppPage(AppPage.AppPreferences); return; }
+            }),
+        new RightEvents(
+            () => { }, (float deltaTimeMs) => { }, () => { }, () => { }),
+        new DownEvents(
+            () => { },
+            (float deltaTimeMs) => { },
+            () => { },
+            () =>
+            {
+                if (pageContentForPanel.IsVisible == true)         /**/ { menuItensScroll.Offset += new Vector(0.0d, 000.0d); SwitchAppPage(AppPage.GeneralMetrics); return; }
+                if (pageContentForMetrics.IsVisible == true)       /**/ { menuItensScroll.Offset += new Vector(0.0d, 000.0d); SwitchAppPage(AppPage.MusicPlayer); return; }
+                if (pageContentForPlayer.IsVisible == true)        /**/ { menuItensScroll.Offset += new Vector(0.0d, 100.0d); SwitchAppPage(AppPage.WebBrowser); return; }
+                if (pageContentForBrowser.IsVisible == true)       /**/ { menuItensScroll.Offset += new Vector(0.0d, 100.0d); SwitchAppPage(AppPage.UsbCamera); return; }
+                if (pageContentForCamera.IsVisible == true)        /**/ { menuItensScroll.Offset += new Vector(0.0d, 100.0d); SwitchAppPage(AppPage.MirrorPhone); return; }
+                if (pageContentForPhone.IsVisible == true)         /**/ { menuItensScroll.Offset += new Vector(0.0d, 100.0d); SwitchAppPage(AppPage.AppPreferences); return; }
+                if (pageContentForPreferences.IsVisible == true)   /**/ { menuItensScroll.Offset += new Vector(0.0d, 100.0d); SwitchAppPage(AppPage.MouseEmulator); return; }
+                if (pageContentForMouseEmulator.IsVisible == true) /**/ { return; }
+            }),
+        new LeftEvents(
+            () => { }, (float deltaTimeMs) => { }, () => { }, () => { }),
+        new ClickEvents(
+            () => { },
+            (float deltaTimeMs) => { },
+            () => { },
+            () =>
+            {
+                if (pageContentForPanel.IsVisible == true)         /**/ { OnEnterMotoplayInputFocus_VehiclePanel(); }
+                if (pageContentForMetrics.IsVisible == true)       /**/ { OnEnterMotoplayInputFocus_GeneralMetrics(); }
+                if (pageContentForPlayer.IsVisible == true)        /**/ { OnEnterMotoplayInputFocus_MusicPlayer(); }
+                if (pageContentForBrowser.IsVisible == true)       /**/ { OnEnterMotoplayInputFocus_WebBrowser(); }
+                if (pageContentForCamera.IsVisible == true)        /**/ { OnEnterMotoplayInputFocus_UsbCamera(); }
+                if (pageContentForPhone.IsVisible == true)         /**/ { OnEnterMotoplayInputFocus_MirrorPhone(); }
+                if (pageContentForPreferences.IsVisible == true)   /**/ { OnEnterMotoplayInputFocus_PreferencesManager(); }
+                if (pageContentForMouseEmulator.IsVisible == true) /**/ { OnEnterMotoplayInputFocus_MouseEmulator(); }
+            })
+        );
+
+        //Represent the focus on Page Manager
+        motoplayInputFocusOnPageManagerDisplay.IsVisible = true;
+        motoplayInputFocusOnPagesDisplay.IsVisible = false;
+        ShowMotoplayInputControlsDisplay(true);
+    }
+
     private void SwitchAppPage(AppPage targetPage)
     {
         //Build a list of page menu buttons
@@ -5251,6 +6220,7 @@ public partial class MainWindow : Window
         pageButtons.Add(menuCameraButton);
         pageButtons.Add(menuPhoneButton);
         pageButtons.Add(menuPreferencesButton);
+        pageButtons.Add(menuMouseEmulatorButton);
 
         //Build a list of page backgrounds
         List<Grid> pageBackgrounds = new List<Grid>();
@@ -5261,6 +6231,7 @@ public partial class MainWindow : Window
         pageBackgrounds.Add(pageBgForCamera);
         pageBackgrounds.Add(pageBgForPhone);
         pageBackgrounds.Add(pageBgForPreferences);
+        pageBackgrounds.Add(pageBgForMouseEmulator);
 
         //Build a list of page contents
         List<Grid> pageContents = new List<Grid>();
@@ -5271,6 +6242,18 @@ public partial class MainWindow : Window
         pageContents.Add(pageContentForCamera);
         pageContents.Add(pageContentForPhone);
         pageContents.Add(pageContentForPreferences);
+        pageContents.Add(pageContentForMouseEmulator);
+
+        //Build a list of page controls
+        List<Grid> pageControls = new List<Grid>();
+        pageControls.Add(motoplayInputControlDisplay_panel);
+        pageControls.Add(motoplayInputControlDisplay_metrics);
+        pageControls.Add(motoplayInputControlDisplay_player);
+        pageControls.Add(motoplayInputControlDisplay_browser);
+        pageControls.Add(motoplayInputControlDisplay_camera);
+        pageControls.Add(motoplayInputControlDisplay_mirrorPhone);
+        pageControls.Add(motoplayInputControlDisplay_preferences);
+        pageControls.Add(motoplayInputControlDisplay_mouseEmulator);
 
         //Set all menu buttons as default
         foreach (Button item in pageButtons)
@@ -5283,6 +6266,9 @@ public partial class MainWindow : Window
             item.IsVisible = false;
         //Disable all page contents
         foreach (Grid item in pageContents)
+            item.IsVisible = false;
+        //Disable all page controls
+        foreach (Grid item in pageControls)
             item.IsVisible = false;
 
         //Prepare the target page int ID
@@ -5297,6 +6283,7 @@ public partial class MainWindow : Window
             case AppPage.UsbCamera: targetPageIndex = 4; break;
             case AppPage.MirrorPhone: targetPageIndex = 5; break;
             case AppPage.AppPreferences: targetPageIndex = 6; break;
+            case AppPage.MouseEmulator: targetPageIndex = 7; break;
         }
 
         //Set color for the selected page menu item
@@ -5304,7 +6291,12 @@ public partial class MainWindow : Window
         pageButtons[targetPageIndex].BorderBrush = new SolidColorBrush(new Color(255, 38, 197, 255));
         pageBackgrounds[targetPageIndex].IsVisible = true;
         pageContents[targetPageIndex].IsVisible = true;
+        pageControls[targetPageIndex].IsVisible = true;
 
+        //If Motoplay Input support is enabled, keep focus on Page Manager
+        if (appPrefs.loadedData.inputMotoplayInputSupport == true)
+            if (activeInputHandler != null)
+                OnEnterMotoplayInputFocus_PagesManager();
         //Do on post change app page callback
         OnPostChangeAppPage();
     }
@@ -5329,7 +6321,110 @@ public partial class MainWindow : Window
         //...
     }
 
+    private void ShowMotoplayInputControlsDisplay(bool show)
+    {
+        //If is desired to Show
+        if (show == true)
+        {
+            //If is already running a enter, stop the routine
+            if (showInputControlsDisplayRoutine != null)
+            {
+                showInputControlsDisplayRoutine.Cancel();
+                showInputControlsDisplayRoutine = null;
+            }
+            //If is already running a hide, stop the routine
+            if (hideInputControlsDisplayRoutine != null)
+            {
+                hideInputControlsDisplayRoutine.Cancel();
+                hideInputControlsDisplayRoutine = null;
+            }
+            //Show the controls display
+            showInputControlsDisplayRoutine = CoroutineHandler.Start(ShowMotoplayInputControlsDisplayRoutine());
+        }
+
+        //If is desired to hide
+        if (show == false)
+        {
+            //If is already running a enter, stop the routine
+            if (showInputControlsDisplayRoutine != null)
+            {
+                showInputControlsDisplayRoutine.Cancel();
+                showInputControlsDisplayRoutine = null;
+            }
+            //If is already running a hide, stop the routine
+            if (hideInputControlsDisplayRoutine != null)
+            {
+                hideInputControlsDisplayRoutine.Cancel();
+                hideInputControlsDisplayRoutine = null;
+            }
+            //Show the controls display
+            hideInputControlsDisplayRoutine = CoroutineHandler.Start(HideMotoplayInputControlsDisplayRoutine());
+        }
+    }
+
+    private IEnumerator<Wait> ShowMotoplayInputControlsDisplayRoutine()
+    {
+        //Show the controls display
+        motoplayInputControlsDisplay_managable.IsVisible = true;
+        motoplayInputControlsDisplayTip_managable.IsVisible = true;
+        //Call the enter animation
+        ((Animation)this.Resources["controlsDisplayEntry"]).RunAsync(motoplayInputControlsDisplay_managable);
+
+        //Wait until the end of the animation
+        yield return new Wait(0.2f);
+
+        //Inform that the routine was finished
+        showInputControlsDisplayRoutine = null;
+    }
+
+    private IEnumerator<Wait> HideMotoplayInputControlsDisplayRoutine()
+    {
+        //Hide the controls tip
+        motoplayInputControlsDisplayTip_managable.IsVisible = false;
+
+        //Call the exit animation
+        ((Animation)this.Resources["controlsDisplayExit"]).RunAsync(motoplayInputControlsDisplay_managable);
+
+        //Wait until the end of the animation
+        yield return new Wait(0.2f);
+
+        //Hide the controls display
+        motoplayInputControlsDisplay_managable.IsVisible = false;
+
+        //Inform that the routine was finished
+        hideInputControlsDisplayRoutine = null;
+    }
+
     //Preferences manager
+
+    private void OnEnterMotoplayInputFocus_PreferencesManager()
+    {
+        //Install Motoplay Input callbacks for this screen
+        activeInputHandler.RegisterNewInputReceiver(
+        new UpEvents(
+            () => { }, (float deltaTimeMs) => { }, () => { }, () => { }),
+        new RightEvents(
+            () => { }, (float deltaTimeMs) => { }, () => { }, () => { }),
+        new DownEvents(
+            () => { }, (float deltaTimeMs) => { }, () => { }, () => { }),
+        new LeftEvents(
+            () => { }, (float deltaTimeMs) => { }, () => { }, () => { }),
+        new ClickEvents(
+            () => { },
+            (float deltaTimeMs) => { },
+            () =>
+            {
+                //Change the focus to Pages Manager
+                OnEnterMotoplayInputFocus_PagesManager();
+            },
+            () => { })
+        );
+
+        //Represent the focus on Pages
+        motoplayInputFocusOnPageManagerDisplay.IsVisible = false;
+        motoplayInputFocusOnPagesDisplay.IsVisible = true;
+        ShowMotoplayInputControlsDisplay(false);
+    }
 
     private void PrepareThePreferences()
     {
@@ -5347,8 +6442,8 @@ public partial class MainWindow : Window
         pref_panel_maxSpeedForGear5.RegisterOnTextChangedValidationCallback((currentInput) => { return ValidateIfInputIsValidIntegerAndGetResult(currentInput); });
         pref_panel_maxSpeedForGear6.RegisterOnTextChangedValidationCallback((currentInput) => { return ValidateIfInputIsValidIntegerAndGetResult(currentInput); });
 
-        //Prepare validation for gears letters
-        pref_panel_letterForVehicleStopped.RegisterOnTextChangedValidationCallback((currentInput) => 
+        //Prepare validations
+        pref_panel_letterForVehicleStopped.RegisterOnTextChangedValidationCallback((currentInput) =>
         {
             //Prepare the value to return
             string toReturn = "";
@@ -5384,9 +6479,19 @@ public partial class MainWindow : Window
             //Return the value
             return toReturn;
         });
+        pref_panel_lightThemeBacklightCmd.RegisterOnTextChangedValidationCallback((currentInput) =>
+        {
+            //Always return valid
+            return "";
+        });
+        pref_panel_darkThemeBacklightCmd.RegisterOnTextChangedValidationCallback((currentInput) =>
+        {
+            //Always return valid
+            return "";
+        });
 
         //Prepare the auto hide of max speed for gear 6, field
-        pref_panel_maxTransmissionGears.SelectionChanged += (s, e) => 
+        pref_panel_maxTransmissionGears.SelectionChanged += (s, e) =>
         {
             if (pref_panel_maxTransmissionGears.SelectedIndex == 0)
                 pref_panel_maxSpeedForGear6_root.IsVisible = false;
@@ -5396,8 +6501,12 @@ public partial class MainWindow : Window
         if (appPrefs.loadedData.maxTransmissionGears < 6)
             pref_panel_maxSpeedForGear6_root.IsVisible = false;
 
+        //Prepare the auto hide of input options
+        pref_input_motoplayInputSupport.IsCheckedChanged += (s, e) => { UpdateInputOptionsVisibility(); };
+        UpdateInputOptionsVisibility();
+
         //Prepare the auto hide of equalizer options
-        pref_player_equalizerProfile.SelectionChanged += (s, e) =>  { UpdateEqualizerBandOptionsVisibility(); };
+        pref_player_equalizerProfile.SelectionChanged += (s, e) => { UpdateEqualizerBandOptionsVisibility(); };
         UpdateEqualizerBandOptionsVisibility();
 
         //Prepare the auto hide of automatic volume mark options
@@ -5423,6 +6532,41 @@ public partial class MainWindow : Window
             pref_keyboard_heightScreenPercent.SelectedIndex = 2;
         if (appPrefs.loadedData.keyboardHeightScreenPercent == 0.45f)
             pref_keyboard_heightScreenPercent.SelectedIndex = 3;
+
+        //Input Tab
+        //*** pref_input_motoplayInputSupport
+        pref_input_motoplayInputSupport.IsChecked = appPrefs.loadedData.inputMotoplayInputSupport;
+        //*** pref_input_pollingRate
+        pref_input_pollingRate.SelectedIndex = appPrefs.loadedData.inputPollingRate;
+        //*** pref_input_invertXaxis
+        pref_input_invertXaxis.IsChecked = appPrefs.loadedData.inputInvertXAxis;
+        //*** pref_input_invertYaxis
+        pref_input_invertYaxis.IsChecked = appPrefs.loadedData.inputInvertYAxis;
+        //*** pref_input_invertXbyY
+        pref_input_invertXbyY.IsChecked = appPrefs.loadedData.inputInvertXbyY;
+        //*** pref_input_deadZone
+        if (appPrefs.loadedData.inputDeadZone == 0.5f)
+            pref_input_deadZone.SelectedIndex = 0;
+        if (appPrefs.loadedData.inputDeadZone == 0.55f)
+            pref_input_deadZone.SelectedIndex = 1;
+        if (appPrefs.loadedData.inputDeadZone == 0.6f)
+            pref_input_deadZone.SelectedIndex = 2;
+        if (appPrefs.loadedData.inputDeadZone == 0.65f)
+            pref_input_deadZone.SelectedIndex = 3;
+        if (appPrefs.loadedData.inputDeadZone == 0.7f)
+            pref_input_deadZone.SelectedIndex = 4;
+        if (appPrefs.loadedData.inputDeadZone == 0.75f)
+            pref_input_deadZone.SelectedIndex = 5;
+        if (appPrefs.loadedData.inputDeadZone == 0.8f)
+            pref_input_deadZone.SelectedIndex = 6;
+        if (appPrefs.loadedData.inputDeadZone == 0.85f)
+            pref_input_deadZone.SelectedIndex = 7;
+        if (appPrefs.loadedData.inputDeadZone == 0.9f)
+            pref_input_deadZone.SelectedIndex = 8;
+        if (appPrefs.loadedData.inputDeadZone == 0.95f)
+            pref_input_deadZone.SelectedIndex = 9;
+        if (appPrefs.loadedData.inputDeadZone == 0.98f)
+            pref_input_deadZone.SelectedIndex = 10;
 
         //Panel Tab
         //*** preferences_panel_serialPortToUse
@@ -5567,6 +6711,10 @@ public partial class MainWindow : Window
         pref_panel_letterForClutchPressed.textBox.Text = appPrefs.loadedData.letterToUseAsClutchPressed;
         //*** pref_panel_panelColorScheme
         pref_panel_panelColorScheme.SelectedIndex = appPrefs.loadedData.panelColorScheme;
+        //*** pref_panel_lightThemeBacklightCmd
+        pref_panel_lightThemeBacklightCmd.textBox.Text = appPrefs.loadedData.panelLightBacklightCmd;
+        //*** pref_panel_darkThemeBacklightCmd
+        pref_panel_darkThemeBacklightCmd.textBox.Text = appPrefs.loadedData.panelDarkBacklightCmd;
 
         //Player Tab
         //*** pref_player_resetSystemVolumeOnPlay
@@ -5722,6 +6870,41 @@ public partial class MainWindow : Window
         if (pref_keyboard_heightScreenPercent.SelectedIndex == 3)
             appPrefs.loadedData.keyboardHeightScreenPercent = 0.45f;
 
+        //Input Tab
+        //*** pref_input_motoplayInputSupport
+        appPrefs.loadedData.inputMotoplayInputSupport = (bool)pref_input_motoplayInputSupport.IsChecked;
+        //*** pref_input_pollingRate
+        appPrefs.loadedData.inputPollingRate = pref_input_pollingRate.SelectedIndex;
+        //*** pref_input_invertXaxis
+        appPrefs.loadedData.inputInvertXAxis = (bool)pref_input_invertXaxis.IsChecked;
+        //*** pref_input_invertYaxis
+        appPrefs.loadedData.inputInvertYAxis = (bool)pref_input_invertYaxis.IsChecked;
+        //*** pref_input_invertXbyY
+        appPrefs.loadedData.inputInvertXbyY = (bool)pref_input_invertXbyY.IsChecked;
+        //*** pref_input_deadZone
+        if (pref_input_deadZone.SelectedIndex == 0)
+            appPrefs.loadedData.inputDeadZone = 0.5f;
+        if (pref_input_deadZone.SelectedIndex == 1)
+            appPrefs.loadedData.inputDeadZone = 0.55f;
+        if (pref_input_deadZone.SelectedIndex == 2)
+            appPrefs.loadedData.inputDeadZone = 0.6f;
+        if (pref_input_deadZone.SelectedIndex == 3)
+            appPrefs.loadedData.inputDeadZone = 0.65f;
+        if (pref_input_deadZone.SelectedIndex == 4)
+            appPrefs.loadedData.inputDeadZone = 0.7f;
+        if (pref_input_deadZone.SelectedIndex == 5)
+            appPrefs.loadedData.inputDeadZone = 0.75f;
+        if (pref_input_deadZone.SelectedIndex == 6)
+            appPrefs.loadedData.inputDeadZone = 0.8f;
+        if (pref_input_deadZone.SelectedIndex == 7)
+            appPrefs.loadedData.inputDeadZone = 0.85f;
+        if (pref_input_deadZone.SelectedIndex == 8)
+            appPrefs.loadedData.inputDeadZone = 0.9f;
+        if (pref_input_deadZone.SelectedIndex == 9)
+            appPrefs.loadedData.inputDeadZone = 0.95f;
+        if (pref_input_deadZone.SelectedIndex == 10)
+            appPrefs.loadedData.inputDeadZone = 0.98f;
+
         //Panel Tab
         //*** preferences_panel_serialPortToUse
         if (pref_panel_serialPortToUse.SelectedIndex == 0)
@@ -5876,6 +7059,10 @@ public partial class MainWindow : Window
             appPrefs.loadedData.letterToUseAsClutchPressed = pref_panel_letterForClutchPressed.textBox.Text;
         //*** pref_panel_panelColorScheme
         appPrefs.loadedData.panelColorScheme = pref_panel_panelColorScheme.SelectedIndex;
+        //*** pref_panel_lightThemeBacklightCmd
+        appPrefs.loadedData.panelLightBacklightCmd = pref_panel_lightThemeBacklightCmd.textBox.Text;
+        //*** pref_panel_darkThemeBacklightCmd
+        appPrefs.loadedData.panelDarkBacklightCmd = pref_panel_darkThemeBacklightCmd.textBox.Text;
 
         //Player Tab
         //*** pref_player_resetSystemVolumeOnPlay
@@ -6048,6 +7235,16 @@ public partial class MainWindow : Window
         RemoveTask("postSavePreferences");
     }
 
+    private void UpdateInputOptionsVisibility()
+    {
+        //Hide the input options if the Motoplay Input device support is disabled
+        pref_input_pollingRate_root.IsVisible = (bool)pref_input_motoplayInputSupport.IsChecked;
+        pref_input_invertXaxis_root.IsVisible = (bool)pref_input_motoplayInputSupport.IsChecked;
+        pref_input_invertYaxis_root.IsVisible = (bool)pref_input_motoplayInputSupport.IsChecked;
+        pref_input_invertXbyY_root.IsVisible = (bool)pref_input_motoplayInputSupport.IsChecked;
+        pref_input_deadZone_root.IsVisible = (bool)pref_input_motoplayInputSupport.IsChecked;
+    }
+
     private void UpdateEqualizerBandOptionsVisibility()
     {
         //Hide the equalizer band options if the equalizer profile is different from "Custom"
@@ -6085,17 +7282,393 @@ public partial class MainWindow : Window
         pref_mirror_audioBuffer_root.IsVisible = (bool)pref_mirror_enableAudioMirror.IsChecked;
     }
 
+    //Mouse Emulator
+
+    private void OnEnterMotoplayInputFocus_MouseEmulator()
+    {
+        //Install Motoplay Input callbacks for this screen
+        activeInputHandler.RegisterNewInputReceiver(
+        new UpEvents(
+            () =>
+            {
+                //If is emulation mode...
+                if (mouseEmulatorInteractionBlock.IsVisible == true)
+                    if (GetRunningTasksCount() == 0)
+                        CoroutineHandler.Start(EmulateMouseMoveUp(true));
+            },
+            (float deltaTimeMs) => { },
+            () => { },
+            () =>
+            {
+                //If is emulation mode...
+                if (mouseEmulatorInteractionBlock.IsVisible == true)
+                    if (GetRunningTasksCount() == 0)
+                        CoroutineHandler.Start(EmulateMouseMoveUp(false));
+            }),
+        new RightEvents(
+            () =>
+            {
+                //If is emulation mode...
+                if (mouseEmulatorInteractionBlock.IsVisible == true)
+                    if (GetRunningTasksCount() == 0)
+                        CoroutineHandler.Start(EmulateMouseMoveRight(true));
+            },
+            (float deltaTimeMs) => { },
+            () => { },
+            () =>
+            {
+                //If is emulation mode...
+                if (mouseEmulatorInteractionBlock.IsVisible == true)
+                    if (GetRunningTasksCount() == 0)
+                        CoroutineHandler.Start(EmulateMouseMoveRight(false));
+            }),
+        new DownEvents(
+            () =>
+            {
+                //If is emulation mode...
+                if (mouseEmulatorInteractionBlock.IsVisible == true)
+                    if (GetRunningTasksCount() == 0)
+                        CoroutineHandler.Start(EmulateMouseMoveDown(true));
+            },
+            (float deltaTimeMs) => { },
+            () => { },
+            () =>
+            {
+                //If is emulation mode...
+                if (mouseEmulatorInteractionBlock.IsVisible == true)
+                    if (GetRunningTasksCount() == 0)
+                        CoroutineHandler.Start(EmulateMouseMoveDown(false));
+            }),
+        new LeftEvents(
+            () =>
+            {
+                //If is emulation mode...
+                if (mouseEmulatorInteractionBlock.IsVisible == true)
+                    if (GetRunningTasksCount() == 0)
+                        CoroutineHandler.Start(EmulateMouseMoveLeft(true));
+            },
+            (float deltaTimeMs) => { },
+            () => { },
+            () =>
+            {
+                //If is emulation mode...
+                if (mouseEmulatorInteractionBlock.IsVisible == true)
+                    if (GetRunningTasksCount() == 0)
+                        CoroutineHandler.Start(EmulateMouseMoveLeft(false));
+            }),
+        new ClickEvents(
+            () =>
+            {
+                //If is emulation mode...
+                if (mouseEmulatorInteractionBlock.IsVisible == true)
+                    if (GetRunningTasksCount() == 0)
+                        CoroutineHandler.Start(EmulateMouseClick(false));
+            },
+            (float deltaTimeMs) =>
+            {
+                //Increase the time elapsed holding click
+                mouseEmulatingTimeElapsedHoldingMotoplayInputClick += deltaTimeMs;
+            },
+            () =>
+            {
+                //If is not in emulation mode
+                if (mouseEmulatorInteractionBlock.IsVisible == false)
+                    OnEnterMotoplayInputFocus_PagesManager();   //<- Change the focus to Pages Manager
+                //If is in emulation mode
+                if (mouseEmulatorInteractionBlock.IsVisible == true)
+                    if (mouseEmulatingTimeElapsedHoldingMotoplayInputClick >= 5000.0f)
+                    {
+                        CoroutineHandler.Start(EmulateMouseEnd());
+                        mouseEmulatorTipPanel.Opacity = 1.0f;
+                        mouseEmulatorInteractionBlock.IsVisible = false;   //<- Exit of emulation mode
+                    }
+                //Reset the time holding click counter
+                mouseEmulatingTimeElapsedHoldingMotoplayInputClick = 0.0f;
+            },
+            () =>
+            {
+                //If is in emulation mode
+                if (mouseEmulatorInteractionBlock.IsVisible == true)
+                    if (GetRunningTasksCount() == 0)
+                        CoroutineHandler.Start(EmulateMouseClick(true));
+                //If is not in emulation mode
+                if (mouseEmulatorInteractionBlock.IsVisible == false)
+                {
+                    if (GetRunningTasksCount() > 0)
+                        ShowToast(GetStringApplicationResource("mouseEmulator_cantStart"), ToastDuration.Short, ToastType.Problem);
+                    if (GetRunningTasksCount() == 0)
+                    {
+                        CoroutineHandler.Start(EmulateMouseStart());
+                        mouseEmulatorTipPanel.Opacity = 0.3f;
+                        mouseEmulatorInteractionBlock.IsVisible = true;   //<- Enter on emulation mode
+                    }
+                }
+            })
+        );
+
+        //Represent the focus on Pages
+        motoplayInputFocusOnPageManagerDisplay.IsVisible = false;
+        motoplayInputFocusOnPagesDisplay.IsVisible = true;
+        ShowMotoplayInputControlsDisplay(false);
+    }
+
+    private void PrepareTheMouseEmulator()
+    {
+
+    }
+
+    public IEnumerator<Wait> EmulateMouseStart()
+    {
+        //Add this task running
+        AddTask("mouseEmulationStart", "Emulates the movement of Mouse.");
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+
+
+        //Wait time
+        yield return new Wait(0.05f);
+
+        //Now, that is ensured that "unclutter" is already installed, send command to kill possible instances of "unclutter", already running
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, "sudo pkill -f unclutter");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //Remove the task running
+        RemoveTask("mouseEmulationStart");
+    }
+
+    public IEnumerator<Wait> EmulateMouseMoveUp(bool longDistance)
+    {
+        //Add this task running
+        AddTask("mouseEmulationUp", "Emulates the movement of Mouse.");
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+
+
+        //Wait time
+        yield return new Wait(0.05f);
+
+        //Prepare the value of movement
+        int movementPx = 7;
+        if (longDistance == true)
+            movementPx = 100;
+        //Send command of step 1
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, ("wlrctl pointer move " + 0 + " -" + movementPx));
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //Remove the task running
+        RemoveTask("mouseEmulationUp");
+    }
+
+    public IEnumerator<Wait> EmulateMouseMoveDown(bool longDistance)
+    {
+        //Add this task running
+        AddTask("mouseEmulationDown", "Emulates the movement of Mouse.");
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+
+
+        //Wait time
+        yield return new Wait(0.05f);
+
+        //Prepare the value of movement
+        int movementPx = 7;
+        if (longDistance == true)
+            movementPx = 100;
+        //Send command of step 1
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, ("wlrctl pointer move " + 0 + " " + movementPx));
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //Remove the task running
+        RemoveTask("mouseEmulationDown");
+    }
+
+    public IEnumerator<Wait> EmulateMouseMoveLeft(bool longDistance)
+    {
+        //Add this task running
+        AddTask("mouseEmulationLeft", "Emulates the movement of Mouse.");
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+
+
+        //Wait time
+        yield return new Wait(0.05f);
+
+        //Prepare the value of movement
+        int movementPx = 7;
+        if (longDistance == true)
+            movementPx = 100;
+        //Send command of step 1
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, ("wlrctl pointer move -" + movementPx + " 0"));
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //Remove the task running
+        RemoveTask("mouseEmulationLeft");
+    }
+
+    public IEnumerator<Wait> EmulateMouseMoveRight(bool longDistance)
+    {
+        //Add this task running
+        AddTask("mouseEmulationRight", "Emulates the movement of Mouse.");
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+
+
+        //Wait time
+        yield return new Wait(0.05f);
+
+        //Prepare the value of movement
+        int movementPx = 7;
+        if (longDistance == true)
+            movementPx = 100;
+        //Send command of step 1
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, ("wlrctl pointer move " + movementPx + " 0"));
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //Remove the task running
+        RemoveTask("mouseEmulationRight");
+    }
+
+    public IEnumerator<Wait> EmulateMouseClick(bool leftClick)
+    {
+        //Add this task running
+        AddTask("mouseEmulationClick", "Emulates the movement of Mouse.");
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+
+
+        //Wait time
+        yield return new Wait(0.05f);
+
+        //Send command of step 1
+        if (leftClick == true)
+            SendCommandToTerminalAndClearCurrentOutputLines(rKey, ("wlrctl pointer click left"));
+        if (leftClick == false)
+            SendCommandToTerminalAndClearCurrentOutputLines(rKey, ("wlrctl pointer click right"));
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //Remove the task running
+        RemoveTask("mouseEmulationClick");
+    }
+
+    public IEnumerator<Wait> EmulateMouseEnd()
+    {
+        //Add this task running
+        AddTask("mouseEmulationEnd", "Emulates the movement of Mouse.");
+
+        //If the Binded CLI Process is already rented by another task, wait until release
+        while (isBindedCliTerminalRented() == true)
+            yield return new Wait(0.5f);
+        //Rent the Binded CLI Process
+        string rKey = RentTheBindedCliTerminal();
+
+
+
+        //Wait time
+        yield return new Wait(0.05f);
+
+        //Now, that is ensured that "unclutter" is already installed, send command to hide the cursor
+        SendCommandToTerminalAndClearCurrentOutputLines(rKey, "unclutter -idle 0.2 -root & echo \"> ContinueInOtherThread\"");
+        //Wait the end of command execution
+        while (isLastCommandFinishedExecution(rKey) == false)
+            yield return new Wait(0.1f);
+
+
+
+        //Release the Binded CLI Process
+        ReleaseTheBindedCliTerminal(rKey);
+
+        //Remove the task running
+        RemoveTask("mouseEmulationEnd");
+    }
+
     //Interaction Blocker Manager
 
     public void SetActiveInteractionBlocker(bool enabled)
     {
         //If is enabled...
         if (enabled == true)
+        {
             appInteractionBlocker.IsVisible = true;
-
+            activeInputHandler.SetInputBlocked(true);
+        }
         //If is disabled
         if (enabled == false)
+        {
             appInteractionBlocker.IsVisible = false;
+            activeInputHandler.SetInputBlocked(false);
+        }
     }
 
     //Toast manager
@@ -6312,7 +7885,7 @@ public partial class MainWindow : Window
 
             //Start the wvkbd process
             wvkbdProcess = new Process() { StartInfo = new ProcessStartInfo() { FileName = (motoplayRootPath + "/Keyboard/wvkbd-mobintl"), Arguments = keyboardParams.ToString(), RedirectStandardOutput = true } };
-            wvkbdProcess.OutputDataReceived += new DataReceivedEventHandler((s, e) => { ShowOnVirtualKeyboardKeyPressFeedback((string) (e.Data)); });
+            wvkbdProcess.OutputDataReceived += new DataReceivedEventHandler((s, e) => { ShowOnVirtualKeyboardKeyPressFeedback((string)(e.Data)); });
             wvkbdProcess.Start();
             wvkbdProcess.BeginOutputReadLine();
             wvkbdFeedbackWindow.Show();
@@ -6596,10 +8169,10 @@ public partial class MainWindow : Window
         updateAppButton.IsEnabled = false;
 
         //Start the process of Motoplay Installer
-        Process updaterProcess = new Process() { StartInfo = new ProcessStartInfo() { FileName = (motoplayRootPath + "/Installer/InstallerMotoplay.Desktop"), Arguments = "online" }};
+        Process updaterProcess = new Process() { StartInfo = new ProcessStartInfo() { FileName = (motoplayRootPath + "/Installer/InstallerMotoplay.Desktop"), Arguments = "online" } };
         updaterProcess.Start();
     }
-    
+
     private void ScrollMenuTo(ScrollDirection direction)
     {
         //Start the routine of scroll
@@ -6616,7 +8189,7 @@ public partial class MainWindow : Window
 
         //Prepare the data
         float incrementScrollValue = 200.0f;
-        float originScrollValue = (float) menuItensScroll.Offset.Y;
+        float originScrollValue = (float)menuItensScroll.Offset.Y;
 
         //Prepare the timer data
         long startTime = DateTime.Now.Ticks;
@@ -6658,7 +8231,7 @@ public partial class MainWindow : Window
         rollMenuDown.IsEnabled = true;
         rollMenuDown.Opacity = 1.0;
     }
-    
+
     private BluetoothDeviceInScanLogs AnalyzeLogAndGetPossibleBluetoothDeviceInfo(string logToAnalyze)
     {
         //Prepare the data to return
@@ -6703,6 +8276,156 @@ public partial class MainWindow : Window
         return toReturn;
     }
 
+    private void AnimateSimpleTapFeedback(SimpleTapType simpleTapType)
+    {
+        //Run the requested simple tap feedback animation coroutine
+        if (simpleTapType == SimpleTapType.Up)
+        {
+            if (simpleTapFeedbackUpRoutine != null)
+            {
+                simpleTapFeedbackUpRoutine.Cancel();
+                simpleTapFeedbackUpRoutine = null;
+            }
+            simpleTapFeedbackUpRoutine = CoroutineHandler.Start(AnimateSimpleTapUp());
+        }
+        if (simpleTapType == SimpleTapType.Right)
+        {
+            if (simpleTapFeedbackRightRoutine != null)
+            {
+                simpleTapFeedbackRightRoutine.Cancel();
+                simpleTapFeedbackRightRoutine = null;
+            }
+            simpleTapFeedbackRightRoutine = CoroutineHandler.Start(AnimateSimpleTapRight());
+        }
+        if (simpleTapType == SimpleTapType.Down)
+        {
+            if (simpleTapFeedbackDownRoutine != null)
+            {
+                simpleTapFeedbackDownRoutine.Cancel();
+                simpleTapFeedbackDownRoutine = null;
+            }
+            simpleTapFeedbackDownRoutine = CoroutineHandler.Start(AnimateSimpleTapDown());
+        }
+        if (simpleTapType == SimpleTapType.Left)
+        {
+            if (simpleTapFeedbackLeftRoutine != null)
+            {
+                simpleTapFeedbackLeftRoutine.Cancel();
+                simpleTapFeedbackLeftRoutine = null;
+            }
+            simpleTapFeedbackLeftRoutine = CoroutineHandler.Start(AnimateSimpleTapLeft());
+        }
+        if (simpleTapType == SimpleTapType.Click)
+        {
+            if (simpleTapFeedbackClickRoutine != null)
+            {
+                simpleTapFeedbackClickRoutine.Cancel();
+                simpleTapFeedbackClickRoutine = null;
+            }
+            simpleTapFeedbackClickRoutine = CoroutineHandler.Start(AnimateSimpleTapClick());
+        }
+    }
+
+    private IEnumerator<Wait> AnimateSimpleTapUp()
+    {
+        //Enable the feedback element
+        motoplayInputJoystickTop.IsVisible = true;
+        motoplayInputJoystickTopFill.RenderTransform = new ScaleTransform(1.0f, 1.0f);
+
+        //Play the animation
+        ((Animation)this.Resources["simpleTapFeedbackUpDown"]).RunAsync(motoplayInputJoystickTopFill);
+
+        //Wait the animation finish
+        yield return new Wait(0.4f);
+
+        //Disable the feedback element
+        motoplayInputJoystickTopFill.Height = defaultInputFeedbackLinesHeight;
+        motoplayInputJoystickTop.IsVisible = false;
+
+        //Clear this routine reference
+        simpleTapFeedbackUpRoutine = null;
+    }
+
+    private IEnumerator<Wait> AnimateSimpleTapRight()
+    {
+        //Enable the feedback element
+        motoplayInputJoystickRight.IsVisible = true;
+        motoplayInputJoystickRightFill.RenderTransform = new ScaleTransform(1.0f, 1.0f);
+
+        //Play the animation
+        ((Animation)this.Resources["simpleTapFeedbackLeftRight"]).RunAsync(motoplayInputJoystickRightFill);
+
+        //Wait the animation finish
+        yield return new Wait(0.4f);
+
+        //Disable the feedback element
+        motoplayInputJoystickRightFill.Width = defaultInputFeedbackLinesWidth;
+        motoplayInputJoystickRight.IsVisible = false;
+
+        //Clear this routine reference
+        simpleTapFeedbackRightRoutine = null;
+    }
+
+    private IEnumerator<Wait> AnimateSimpleTapDown()
+    {
+        //Enable the feedback element
+        motoplayInputJoystickDown.IsVisible = true;
+        motoplayInputJoystickDownFill.RenderTransform = new ScaleTransform(1.0f, 1.0f);
+
+        //Play the animation
+        ((Animation)this.Resources["simpleTapFeedbackUpDown"]).RunAsync(motoplayInputJoystickDownFill);
+
+        //Wait the animation finish
+        yield return new Wait(0.4f);
+
+        //Disable the feedback element
+        motoplayInputJoystickDownFill.Height = defaultInputFeedbackLinesHeight;
+        motoplayInputJoystickDown.IsVisible = false;
+
+        //Clear this routine reference
+        simpleTapFeedbackDownRoutine = null;
+    }
+
+    private IEnumerator<Wait> AnimateSimpleTapLeft()
+    {
+        //Enable the feedback element
+        motoplayInputJoystickLeft.IsVisible = true;
+        motoplayInputJoystickLeftFill.RenderTransform = new ScaleTransform(1.0f, 1.0f);
+
+        //Play the animation
+        ((Animation)this.Resources["simpleTapFeedbackLeftRight"]).RunAsync(motoplayInputJoystickLeftFill);
+
+        //Wait the animation finish
+        yield return new Wait(0.4f);
+
+        //Disable the feedback element
+        motoplayInputJoystickLeftFill.Width = defaultInputFeedbackLinesWidth;
+        motoplayInputJoystickLeft.IsVisible = false;
+
+        //Clear this routine reference
+        simpleTapFeedbackLeftRoutine = null;
+    }
+
+    private IEnumerator<Wait> AnimateSimpleTapClick()
+    {
+        //Enable the feedback element
+        motoplayInputJoystickClick.IsVisible = true;
+        motoplayInputJoystickClickArc.SweepAngle = 360.0d;
+
+        //Play the animation
+        ((Animation)this.Resources["simpleTapFeedbackClick"]).RunAsync(motoplayInputJoystickClickArc);
+
+        //Wait the animation finish
+        yield return new Wait(0.4f);
+
+        //Disable the feedback element
+        motoplayInputJoystickClickArc.StrokeThickness = defaultInputFeedbackArcStroke;
+        motoplayInputJoystickClick.IsVisible = false;
+
+        //Clear this routine reference
+        simpleTapFeedbackClickRoutine = null;
+    }
+
     //Quit methods
 
     private void QuitApplication()
@@ -6735,7 +8458,7 @@ public partial class MainWindow : Window
         AvaloniaDebug.WriteLine("Closing Motoplay App...");
 
         //Force to disconnect the active OBD Adapter Handler, if have
-        if(activeObdConnection != null)
+        if (activeObdConnection != null)
         {
             activeObdConnection.ForceDisconnect();
             activeObdConnection = null;

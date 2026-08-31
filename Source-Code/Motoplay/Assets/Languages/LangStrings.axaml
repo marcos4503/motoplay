@@ -4,6 +4,9 @@
 	<!-- Status Bar -->
 	<x:String x:Key="statusBar_toggleKeyboardTooltip">Motoplay Virtual Keyboard</x:String>
 	<x:String x:Key="statusBar_toggleKeyboardTipText">Use CTRL + MENU to simulate Right Mouse Click. The F0 to F10 keys can be simulated using ALTGR + Num.</x:String>
+	<x:String x:Key="statusBar_motoplayInputNone">...</x:String>
+	<x:String x:Key="statusBar_motoplayInputConnecting">Trying to connect to Motoplay Input Device</x:String>
+	<x:String x:Key="statusBar_motoplayInputConnected">Connected to Motoplay Input Device</x:String>
 	<x:String x:Key="statusBar_updateAvailable">There is a new update available for the Motoplay App! Click the button next to the Keyboard Button to install the update.</x:String>
 	<x:String x:Key="statusBar_updateTooltip">There is an Update available for the Motoplay App!</x:String>
 	<x:String x:Key="statusBar_bindedCliTooltip">Binded CLI Terminal, in use...</x:String>
@@ -19,6 +22,14 @@
 	<x:String x:Key="quitApplication_dialogText">Are you sure you want to close Motoplay?</x:String>
 
 	<!-- Vehicle Panel Page -->
+	<x:String x:Key="vehiclePanel_pageTitle">Vehicle Panel</x:String>
+	<x:String x:Key="vehiclePanel_controls_shutdown">Hold 3s: Shutdown Computer</x:String>
+	<x:String x:Key="vehiclePanel_controls_miniplayer">With Miniplayer</x:String>
+	<x:String x:Key="vehiclePanel_controls_miniplayer_previous">Previous Music</x:String>
+	<x:String x:Key="vehiclePanel_controls_miniplayer_next">Next Music</x:String>
+	<x:String x:Key="vehiclePanel_controls_miniplayer_volumeup">Increase Volume</x:String>
+	<x:String x:Key="vehiclePanel_controls_miniplayer_volumedown">Decrease Volume</x:String>
+	<x:String x:Key="vehiclePanel_controls_miniplayer_pause">Play/Pause</x:String>
 	<x:String x:Key="vehiclePanel_setupIntroText">Oops! It looks like there is no Bluetooth OBD Adapter device configured for use by the Panel. You will need to configure one. Make sure the vehicle have the engine working and the Bluetooth OBD Adapter is plugged to the vehicle OBD-II port.
 
 Note that in order for this to work, no other device must already be connected to the OBD Adapter, and the Adapter must be in Bluetooth pairing mode. Some devices have a button on their case that you can press to enter pairing mode.
@@ -59,9 +70,14 @@ Attempt #%n</x:String>
 	<x:String x:Key="vehiclePanel_speedGauge_titleKmh">KM/h</x:String>
 	<x:String x:Key="vehiclePanel_speedGauge_titleMph">MP/h</x:String>
 	<x:String x:Key="vehiclePanel_rebootButton">Reboot Device</x:String>
+	<x:String x:Key="vehiclePanel_shutdownWarn">Shutdown Computer</x:String>
 
 	<!-- General Metrics -->
 	<x:String x:Key="generalMetrics_title">General Metrics</x:String>
+	<x:String x:Key="generalMetrics_controls_previousMetric">Previous Metric</x:String>
+	<x:String x:Key="generalMetrics_controls_nextMetric">Next Metric</x:String>
+	<x:String x:Key="generalMetrics_btnPrevious">Previous</x:String>
+	<x:String x:Key="generalMetrics_btnNext">Next</x:String>
 	<x:String x:Key="generalMetrics_timeSpentInEachGear_stopped">Stopped</x:String>
 	<x:String x:Key="generalMetrics_timeSpentInEachGear_clutch">Clutch</x:String>
 	<x:String x:Key="generalMetrics_timeSpentInEachGear_gear1">Gear 1</x:String>
@@ -75,6 +91,7 @@ Attempt #%n</x:String>
 	<x:String x:Key="generalMetrics_metricsUpdate">The metric will be updated in %d seconds!</x:String>
 
 	<!-- Music Player -->
+	<x:String x:Key="musicPlayer_pageTitle">Music Player</x:String>
 	<x:String x:Key="musicPlayer_dependenciesMessage">Motoplay needs to install some dependencies on your device for this functionality to be possible. To continue, click the button below.</x:String>
 	<x:String x:Key="musicPlayer_dependenciesButton">Install</x:String>
 	<x:String x:Key="musicPlayer_noMusicsName">No Tracks Found</x:String>
@@ -98,6 +115,7 @@ Attempt #%n</x:String>
 
 	<!-- USB Camera -->
 	<x:String x:Key="usbCamera_title">USB Camera</x:String>
+	<x:String x:Key="usbCamera_controls_autoSelectOrReset">Auto Select/Reset</x:String>
 	<x:String x:Key="usbCamera_autoSelectButton">Auto Select</x:String>
 	<x:String x:Key="usbCamera_resetButton">Reset Select</x:String>
 	<x:String x:Key="usbCamera_startSeeingErrorMsg">Unable to start viewing the selected Camera and/or Feature. Please check if the Camera is still connected.</x:String>
@@ -106,6 +124,7 @@ Attempt #%n</x:String>
 
 	<!-- Mirror Phone -->
 	<x:String x:Key="mirrorPhone_title">Mirror Phone</x:String>
+	<x:String x:Key="mirrorPhone_controls_connectDisconnect">Try Connect/Disconnect</x:String>
 	<x:String x:Key="mirrorPhone_dependenciesMessage">Motoplay needs to install some dependencies on your device for this functionality to be possible. To continue, click the button below.</x:String>
 	<x:String x:Key="mirrorPhone_dependenciesButton">Install</x:String>
 	<x:String x:Key="mirrorPhone_connectedMessage">Connected!</x:String>
@@ -144,6 +163,13 @@ Attempt #%n</x:String>
 	<x:String x:Key="appPreferences_saveNotification">Your Preferences have been saved! You may need to restart the Motoplay for some of them to take effect.</x:String>
 	<x:String x:Key="appPreferences_keyboardTab_title">Keyboard</x:String>
 	<x:String x:Key="appPreferences_keyboardTab_heightScreenPercent">Keyboard Height as a Percentage of Screen</x:String>
+	<x:String x:Key="appPreferences_InputTab_title">Input</x:String>
+	<x:String x:Key="appPreferences_InputTab_motoplayInputSupport">Motoplay Input Device Support</x:String>
+	<x:String x:Key="appPreferences_InputTab_pollingRate">Polling Rate</x:String>
+	<x:String x:Key="appPreferences_InputTab_invertXbyY">Invert X Axis by Y Axis</x:String>
+	<x:String x:Key="appPreferences_InputTab_invertXaxis">Invert X Axis</x:String>
+	<x:String x:Key="appPreferences_InputTab_invertYaxis">Invert Y Axis</x:String>
+	<x:String x:Key="appPreferences_InputTab_deadZone">Dead Zone</x:String>
 	<x:String x:Key="appPreferences_panelTab_title">Panel</x:String>
 	<x:String x:Key="appPreferences_panelTab_serialPortToUseTitle">Bluetooth Serial Port To Use</x:String>
 	<x:String x:Key="appPreferences_panelTab_serialPortChannelToUseTitle">Bluetooth Serial Port Channel To Use</x:String>
@@ -169,6 +195,8 @@ Attempt #%n</x:String>
 	<x:String x:Key="appPreferences_panelTab_letterToUseForVehicleStopped">Gears: Letter to Display for Stopped Vehicle (or Neutral)</x:String>
 	<x:String x:Key="appPreferences_panelTab_letterToUseForClutchPressed">Gears: Letter to Display for Clutch Pressed</x:String>
 	<x:String x:Key="appPreferences_panelTab_panelColorScheme">Panel Color Scheme</x:String>
+	<x:String x:Key="appPreferences_panelTab_panelLightThemeBacklightCmd">Command of Display on High Brightness</x:String>
+	<x:String x:Key="appPreferences_panelTab_panelDarkThemeBacklightCmd">Command of Display on Low Brightness</x:String>
 	<x:String x:Key="appPreferences_playerTab_title">Player</x:String>
 	<x:String x:Key="appPreferences_playerTab_resetSystemVolumeOnPlay">Reset System Volume On Start Playing a Music</x:String>
 	<x:String x:Key="appPreferences_playerTab_randomizeMusicList">Randomize Music List</x:String>
@@ -222,5 +250,28 @@ Attempt #%n</x:String>
 	<x:String x:Key="appPreferences_aboutTab_title">About</x:String>
 	<x:String x:Key="appPreferences_aboutTab_version">Motoplay Version %v</x:String>
 	<x:String x:Key="appPreferences_aboutTab_createdBy">Created by Marcos Tomaz</x:String>
+
+	<!-- Mouse Emulator Page -->
+	<x:String x:Key="mouseEmulator_pageTitle">Mouse Emulator</x:String>
+	<x:String x:Key="mouseEmulator_controls_start">Start</x:String>
+	<x:String x:Key="mouseEmulator_controls_emulating">When Emulating</x:String>
+	<x:String x:Key="mouseEmulator_controls_emulating_stop">Hold 5s: Stop</x:String>
+	<x:String x:Key="mouseEmulator_controls_emulating_rightClick">Right Click</x:String>
+	<x:String x:Key="mouseEmulator_controls_emulating_leftClick">Left Click</x:String>
+	<x:String x:Key="mouseEmulator_controls_emulating_up">Move Up (Hold: Move Further)</x:String>
+	<x:String x:Key="mouseEmulator_controls_emulating_right">Move Right (Hold: Move Further)</x:String>
+	<x:String x:Key="mouseEmulator_controls_emulating_down">Move Down (Hold: Move Further)</x:String>
+	<x:String x:Key="mouseEmulator_controls_emulating_left">Move Left (Hold: Move Further)</x:String>
+	<x:String x:Key="mouseEmulator_tipMessage">This function allows you to move the system Cursor and simulate LMB/RMB Clicks as if a Mouse were connected, but, using your Motoplay Input device. This can be useful for accessing certain OS functions.</x:String>
+	<x:String x:Key="mouseEmulator_startMessage0">Press</x:String>
+	<x:String x:Key="mouseEmulator_startMessage1">to start Mouse Emulation</x:String>
+	<x:String x:Key="mouseEmulator_emulatingMsgTitle">Emulating Mouse</x:String>
+	<x:String x:Key="mouseEmulator_emulatingMsgBody0">Hold</x:String>
+	<x:String x:Key="mouseEmulator_emulatingMsgBody1">during 5 seconds to stop.</x:String>
+	<x:String x:Key="mouseEmulator_cantStart">Please wait for any currently running Tasks to complete before entering Mouse Emulation.</x:String>
+
+	<!-- Pages Manager -->
+	<x:String x:Key="pagesManager_focusPage0">Press</x:String>
+	<x:String x:Key="pagesManager_focusPage1">to focus on this Screen</x:String>
 
 </ResourceDictionary>

@@ -1,10 +1,5 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Motoplay.Scripts
 {
@@ -25,6 +20,13 @@ namespace Motoplay.Scripts
             public ConfiguredObdBtAdapter configuredObdBtAdapter = new ConfiguredObdBtAdapter();
 
             public float keyboardHeightScreenPercent = 0.45f;
+
+            public bool inputMotoplayInputSupport = false;
+            public int inputPollingRate = 0;   //0 = 45hz, 1 = 60hz, 2 = 90hz, 3 = 125hz
+            public bool inputInvertXAxis = false;
+            public bool inputInvertYAxis = false;
+            public bool inputInvertXbyY = false;
+            public float inputDeadZone = 0.95f;
 
             public string bluetoothSerialPortToUse = "/dev/rfcomm14";
             public int bluetoothSerialPortChannelToUse = 1;
@@ -50,6 +52,8 @@ namespace Motoplay.Scripts
             public string letterToUseAsGearStopped = "S";
             public string letterToUseAsClutchPressed = "C";
             public int panelColorScheme = 0;   //0 = Automatic, 1 = Dark, 2 = Light
+            public string panelLightBacklightCmd = "echo 255 | sudo tee /sys/class/backlight/*/brightness";
+            public string panelDarkBacklightCmd = "echo 0 | sudo tee /sys/class/backlight/*/brightness";
 
             public int playerVolume = 75;
             public bool resetSystemVolumeOnPlaySong = true;

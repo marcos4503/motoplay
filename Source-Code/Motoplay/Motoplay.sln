@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.12.35209.166
+# Visual Studio Version 18
+VisualStudioVersion = 18.9.12120.119 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Motoplay", "Motoplay.csproj", "{D13E9AC7-2DB5-42A3-AA62-2F6B8125B9DD}"
 EndProject
@@ -12,6 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Itens de Solução", "Itens
 		..\Avalonia Project\About The Project.txt = ..\Avalonia Project\About The Project.txt
 		..\Avalonia Project\Access Avalonia Documentation.txt = ..\Avalonia Project\Access Avalonia Documentation.txt
 		..\Avalonia Project\Correct Way To Change App Icon Or Version.txt = ..\Avalonia Project\Correct Way To Change App Icon Or Version.txt
+		..\Avalonia Project\Fix Fake Compile Errors on AXAML Files.txt = ..\Avalonia Project\Fix Fake Compile Errors on AXAML Files.txt
 		..\Avalonia Project\How To Build and Run.txt = ..\Avalonia Project\How To Build and Run.txt
 		..\Avalonia Project\How To Run on Raspberry Pi.txt = ..\Avalonia Project\How To Run on Raspberry Pi.txt
 	EndProjectSection
