@@ -1,0 +1,2 @@
+- document after igntion-key ELM327/PSU automatic power on scheme
+- remeber that only tested motoplay with bullseye and bookworm, being bookworm the officially supported
