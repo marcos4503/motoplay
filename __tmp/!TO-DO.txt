@@ -1,2 +1,22 @@
 - document after igntion-key ELM327/PSU automatic power on scheme
 - remeber that only tested motoplay with bullseye and bookworm, being bookworm the officially supported
+
+- documentar como montar, configurar e conectar Input Knob ao Motoplay
+- 
+
+- quando preso na borracha do punho do guidão, boa parte da vibração é absorvida sem ir para o dispositivo
+- apos instalar, tomar cuidado ao pilotar, pois é um novo controle no guidão. A sua cabeça pode levar um tempo pra se acostumar, o que pode afetar a coordenação da embreagem e outros controles essenciais da moto. Vá com calma!
+- o motoplay input pode ser instalado virado para baixo, ou para cima, a depender do que for mais confortavel. De algumas voltas para encontrar o ângulo de giro de instalação, mais confortável para você, pois coisas como os tamanhos de mãos, posições de controles, tipos de guidão, etc, variam.
+- Pra evitar que o parafuso que fixa o dispositivo ao guidào, se solte com a vibracao, colocar um pingo de cola quente nele
+- pra evitar que o dispositivo gire no guidão, usar dupla face entre sua abraçadeira e o guidão
+- se possível passar cola por fora, na junção da tampa do Arduino, selando as frestras e parafusos contra passagem de água, pois no caso de entrar água, pode resultar em curto circuito ou oxidação de conexões, que pode resultar em não reconhecimento do Arduino, pelo Pi.
+
+- 4x buxa 4mm M3
+- 2x M3 9mm
+- 6x M3 5mm
+- 1x M3 14mm + Porca
+- 1x M3 17mm + Porca
+- usar cola ou silicone resistente a água pra vedar a tampa de cima nas juntas do topo, esquerda e direita
+- usar cola ou silicone resistente a água pra vedar a tampa de baixo na junta do topo
+- usar cola quente pra vedar o quadrado por onde entra os fios e por onde entra o cabo USB Tipo C
+- usar cola quente pra terminar de prender o Push Button

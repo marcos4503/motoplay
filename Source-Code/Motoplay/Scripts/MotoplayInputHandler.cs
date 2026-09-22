@@ -16,8 +16,8 @@ namespace Motoplay.Scripts
     {
         //Private constant variables
         private const int MOTOPLAY_INPUT_BAUDRATE = 115200;
-        private const float MIN_TIME_TO_WARN_FEEDBACK_OF_HOLD = 300.0f;
-        private const float MIN_TIME_TO_CONSIDER_LONG_TAP = 1200.0f;
+        private const float MIN_TIME_TO_WARN_FEEDBACK_OF_HOLD = 200.0f;
+        private const float MIN_TIME_TO_CONSIDER_LONG_TAP = 300.0f;
 
         //Enums of script
         public enum ConnectionStatus
